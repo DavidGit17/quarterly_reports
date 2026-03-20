@@ -462,7 +462,7 @@ function SubmitReportContent() {
 
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 mb-6">
           <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">
-            {displayProject} {displayQuarter} Reports
+            {displayProject} {displayQuarter} Report
           </h2>
           <p className="text-lg text-slate-700 mb-6">
             Hi, Coordinator. When you submit this form, the owner will see your
