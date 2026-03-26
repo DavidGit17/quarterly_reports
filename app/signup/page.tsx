@@ -1,20 +1,55 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+type SignupResponse = {
+  message?: string;
+};
 
 export default function SignupPage() {
-  const router = useRouter()
-  const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Simulate signup and redirect to login
-    router.push('/login')
-  }
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+        }),
+      });
+
+      const data = (await response
+        .json()
+        .catch(() => ({}))) as SignupResponse;
+
+      if (!response.ok) {
+        setErrorMessage(data.message || "Signup failed.");
+        return;
+      }
+
+      router.push("/login");
+    } catch {
+      setErrorMessage("Unable to sign up right now. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -25,7 +60,10 @@ export default function SignupPage() {
 
           <form onSubmit={handleSignup} className="space-y-6">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Username
               </label>
               <input
@@ -40,7 +78,10 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Email
               </label>
               <input
@@ -55,7 +96,10 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
                 Password
               </label>
               <input
@@ -71,19 +115,27 @@ export default function SignupPage() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-900 transition-colors"
             >
-              Create Account
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
+
+            {errorMessage && (
+              <p className="text-sm text-red-600 text-center">{errorMessage}</p>
+            )}
           </form>
 
           <div className="mt-8">
-            <Link href="/login" className="text-center block text-secondary hover:underline">
+            <Link
+              href="/login"
+              className="text-center block text-secondary hover:underline"
+            >
               Already have an account? Login
             </Link>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

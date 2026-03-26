@@ -1,124 +1,117 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { formatDateTime } from "@/lib/form-storage";
 
 interface Report {
   id: string;
-  project: string;
+  projectName: string;
   quarter: string;
-  coordinator: string;
-  date: string;
-  time: string;
+  createdByUsername: string;
+  createdAt: string;
 }
 
-interface ProjectData {
-  [key: string]: {
-    [key: string]: Report[];
+type MeResponse = {
+  user?: {
+    role: "admin" | "coordinator";
   };
-}
+};
+
+type ReportsResponse = {
+  reports?: Report[];
+  message?: string;
+};
 
 export default function DashboardPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [role] = useState("admin");
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const [reports, setReports] = useState<Report[]>([]);
 
-  // Check if user is admin (this is UI-only simulation)
   useEffect(() => {
-    // In a real app, check actual authentication
-    // For this demo, we simulate admin role
-    const isAdmin = role === "admin";
-    if (!isAdmin) {
-      setIsUnauthorized(true);
-    }
-  }, [role]);
+    const loadDashboard = async () => {
+      try {
+        const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
 
-  // Mock data organized by Project -> Quarter -> Reports
-  const [reportData] = useState<ProjectData>({
-    Haksolok: {
-      Q1: [
-        {
-          id: "1",
-          project: "Haksolok",
-          quarter: "Q1",
-          coordinator: "Ahmed Hassan",
-          date: "2024-03-15",
-          time: "10:30 AM",
-        },
-        {
-          id: "2",
-          project: "Haksolok",
-          quarter: "Q1",
-          coordinator: "Fatima Ali",
-          date: "2024-03-18",
-          time: "02:00 PM",
-        },
-      ],
-      Q2: [
-        {
-          id: "3",
-          project: "Haksolok",
-          quarter: "Q2",
-          coordinator: "Ahmed Hassan",
-          date: "2024-06-10",
-          time: "09:00 AM",
-        },
-      ],
-    },
-    Sudan: {
-      Q1: [
-        {
-          id: "4",
-          project: "Sudan",
-          quarter: "Q1",
-          coordinator: "Mohammed Saleh",
-          date: "2024-03-20",
-          time: "02:15 PM",
-        },
-      ],
-      Q2: [
-        {
-          id: "5",
-          project: "Sudan",
-          quarter: "Q2",
-          coordinator: "Mohammed Saleh",
-          date: "2024-06-15",
-          time: "11:00 AM",
-        },
-      ],
-    },
-    Libya: {
-      Q1: [
-        {
-          id: "6",
-          project: "Libya",
-          quarter: "Q1",
-          coordinator: "Noor El-Deen",
-          date: "2024-03-25",
-          time: "11:45 AM",
-        },
-      ],
-    },
-    Beirut: {
-      Q1: [
-        {
-          id: "7",
-          project: "Beirut",
-          quarter: "Q1",
-          coordinator: "Sara Khalil",
-          date: "2024-04-01",
-          time: "03:20 PM",
-        },
-      ],
-    },
-  });
+        if (!meResponse.ok) {
+          router.push("/login");
+          return;
+        }
 
-  // Filter reports based on search
-  const filteredProjects = Object.keys(reportData).filter((project) =>
-    project.toLowerCase().includes(searchTerm.toLowerCase()),
+        const meData = (await meResponse.json()) as MeResponse;
+
+        if (meData.user?.role !== "admin") {
+          setIsUnauthorized(true);
+          return;
+        }
+
+        const reportsResponse = await fetch("/api/reports", {
+          cache: "no-store",
+        });
+        const reportsData = (await reportsResponse.json()) as ReportsResponse;
+
+        if (!reportsResponse.ok) {
+          setErrorMessage(reportsData.message || "Unable to load reports.");
+          return;
+        }
+
+        setReports(reportsData.reports || []);
+      } catch {
+        setErrorMessage("Unable to load dashboard right now.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadDashboard();
+  }, [router]);
+
+  const reportData = useMemo(() => {
+    const grouped: Record<string, Record<string, Report[]>> = {};
+
+    reports.forEach((report) => {
+      const projectName = report.projectName;
+      const quarter = report.quarter;
+
+      if (!grouped[projectName]) {
+        grouped[projectName] = {};
+      }
+
+      if (!grouped[projectName][quarter]) {
+        grouped[projectName][quarter] = [];
+      }
+
+      grouped[projectName][quarter].push(report);
+    });
+
+    return grouped;
+  }, [reports]);
+
+  const filteredProjects = useMemo(
+    () =>
+      Object.keys(reportData).filter((project) =>
+        project.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [reportData, searchTerm],
   );
+
+  const totalProjects = Object.keys(reportData).length;
+  const totalReports = reports.length;
+  const activeCoordinators = new Set(
+    reports.map((report) => report.createdByUsername),
+  ).size;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   if (isUnauthorized) {
     return (
@@ -147,31 +140,47 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-primary">Admin Dashboard</h1>
-          <Link
-            href="/profile?role=admin"
-            className="text-secondary hover:underline font-medium"
-          >
-            Profile
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/admin/form-builder"
+              className="text-secondary hover:underline font-medium"
+            >
+              Form Builder
+            </Link>
+            <Link
+              href="/profile"
+              className="text-secondary hover:underline font-medium"
+            >
+              Profile
+            </Link>
+          </div>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg border border-border p-6">
             <p className="text-sm text-muted-foreground mb-2">Total Projects</p>
-            <p className="text-3xl font-bold text-primary">4</p>
+            <p className="text-3xl font-bold text-primary">{totalProjects}</p>
           </div>
           <div className="bg-white rounded-lg border border-border p-6">
             <p className="text-sm text-muted-foreground mb-2">Total Reports</p>
-            <p className="text-3xl font-bold text-primary">7</p>
+            <p className="text-3xl font-bold text-primary">{totalReports}</p>
           </div>
           <div className="bg-white rounded-lg border border-border p-6">
             <p className="text-sm text-muted-foreground mb-2">
               Active Coordinators
             </p>
-            <p className="text-3xl font-bold text-primary">4</p>
+            <p className="text-3xl font-bold text-primary">
+              {activeCoordinators}
+            </p>
           </div>
         </div>
+
+        {errorMessage && (
+          <div className="bg-white rounded-lg border border-border p-4 mb-6">
+            <p className="text-sm text-red-600">{errorMessage}</p>
+          </div>
+        )}
 
         {/* Search Bar */}
         <div className="bg-white rounded-lg border border-border p-6 mb-6">
@@ -210,11 +219,12 @@ export default function DashboardPage() {
                               <p className="text-sm text-muted-foreground mb-1">
                                 Submitted by:{" "}
                                 <span className="text-foreground font-medium">
-                                  {report.coordinator}
+                                  {report.createdByUsername}
                                 </span>
                               </p>
                               <p className="text-sm text-muted-foreground">
-                                {report.date} at {report.time}
+                                {formatDateTime(report.createdAt).date} at{" "}
+                                {formatDateTime(report.createdAt).time}
                               </p>
                             </div>
                             <button

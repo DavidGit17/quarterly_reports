@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 type UserRole = "admin" | "coordinator";
@@ -14,37 +14,45 @@ type SessionUser = {
 
 function ProfileContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const roleParam = searchParams.get("role");
+  const [isHydrated, setIsHydrated] = useState(false);
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("reporting-user");
+    const loadSessionUser = async () => {
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
 
-    if (!storedUser) {
-      return;
-    }
+        if (!response.ok) {
+          router.push("/login");
+          return;
+        }
 
-    try {
-      const parsed = JSON.parse(storedUser) as SessionUser;
-      if (parsed.username && parsed.email && parsed.role) {
-        setSessionUser(parsed);
+        const data = (await response.json()) as { user?: SessionUser };
+
+        if (!data.user) {
+          router.push("/login");
+          return;
+        }
+
+        setSessionUser(data.user);
+      } catch {
+        setErrorMessage("Unable to load profile.");
+      } finally {
+        setIsHydrated(true);
       }
-    } catch {
-      setSessionUser(null);
-    }
-  }, []);
+    };
 
-  const role: UserRole =
-    roleParam === "admin" || roleParam === "coordinator"
-      ? roleParam
-      : sessionUser?.role || "coordinator";
+    void loadSessionUser();
+  }, [router]);
+
+  const role: UserRole = sessionUser?.role || "coordinator";
 
   const profileData =
     role === "admin"
       ? {
-          username: sessionUser?.username || "Admin User",
-          email: sessionUser?.email || "admin@example.com",
+          username: sessionUser?.username || "Admin",
+          email: sessionUser?.email || "-",
           roleLabel: "Administrator",
           description:
             "You have full access to all reports and can manage the system.",
@@ -52,16 +60,28 @@ function ProfileContent() {
           destinationLabel: "Go to Dashboard",
         }
       : {
-          username: sessionUser?.username || "Coordinator User",
-          email: sessionUser?.email || "coordinator@example.com",
+          username: sessionUser?.username || "Coordinator",
+          email: sessionUser?.email || "-",
           roleLabel: "Coordinator",
           description: "You can submit and view your quarterly reports.",
           destinationHref: "/select",
           destinationLabel: "Go to Reports",
         };
 
-  const handleLogout = () => {
-    localStorage.removeItem("reporting-user");
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <div className="bg-white rounded-lg border border-border p-8 text-muted-foreground">
+            Loading profile...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
   };
 
@@ -111,6 +131,9 @@ function ProfileContent() {
               <p className="text-sm text-muted-foreground mb-4">
                 {profileData.description}
               </p>
+              {errorMessage && (
+                <p className="text-sm text-red-600">{errorMessage}</p>
+              )}
             </div>
 
             <div className="flex gap-4">

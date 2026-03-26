@@ -1,15 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+type MeResponse = {
+  user?: {
+    role: "admin" | "coordinator";
+  };
+};
 
 export default function SelectPage() {
   const router = useRouter();
   const [project, setProject] = useState("");
   const [quarter, setQuarter] = useState("");
+  const [isReady, setIsReady] = useState(false);
 
   const quarters = ["Q1", "Q2", "Q3", "Q4"];
+
+  useEffect(() => {
+    const verifyCoordinator = async () => {
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
+
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        const data = (await response.json()) as MeResponse;
+
+        if (data.user?.role === "admin") {
+          router.push("/dashboard");
+          return;
+        }
+
+        setIsReady(true);
+      } catch {
+        router.push("/login");
+      }
+    };
+
+    void verifyCoordinator();
+  }, [router]);
 
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +53,14 @@ export default function SelectPage() {
       );
     }
   };
+
+  if (!isReady) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <p className="text-slate-600">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -38,7 +79,7 @@ export default function SelectPage() {
             </h1>
           </div>
           <Link
-            href="/profile?role=coordinator"
+            href="/profile"
             className="text-blue-700 hover:underline font-medium"
           >
             Profile

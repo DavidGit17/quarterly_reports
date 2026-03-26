@@ -1,61 +1,79 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { formatDateTime } from "@/lib/form-storage";
+
+type ReportSubmission = {
+  id: string;
+  projectName: string;
+  quarter: string;
+  createdAt: string;
+};
+
+type MyReportsResponse = {
+  reports?: ReportSubmission[];
+  message?: string;
+};
 
 export default function MyReportsPage() {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [reports, setReports] = useState<ReportSubmission[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Mock data for submitted reports
-  const [reports] = useState([
-    {
-      id: '1',
-      project: 'Haksolok',
-      quarter: 'Q1',
-      date: '2024-03-15',
-      time: '10:30 AM',
-      coordinator: 'Ahmed Hassan',
-    },
-    {
-      id: '2',
-      project: 'Sudan',
-      quarter: 'Q1',
-      date: '2024-03-20',
-      time: '02:15 PM',
-      coordinator: 'Ahmed Hassan',
-    },
-    {
-      id: '3',
-      project: 'Libya',
-      quarter: 'Q1',
-      date: '2024-03-25',
-      time: '11:45 AM',
-      coordinator: 'Ahmed Hassan',
-    },
-    {
-      id: '4',
-      project: 'Beirut',
-      quarter: 'Q1',
-      date: '2024-04-01',
-      time: '03:20 PM',
-      coordinator: 'Ahmed Hassan',
-    },
-    {
-      id: '5',
-      project: 'Haksolok',
-      quarter: 'Q2',
-      date: '2024-06-10',
-      time: '09:00 AM',
-      coordinator: 'Ahmed Hassan',
-    },
-  ])
+  useEffect(() => {
+    const loadReports = async () => {
+      try {
+        const response = await fetch("/api/my-reports", { cache: "no-store" });
 
-  const filteredReports = reports.filter((report) =>
-    report.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    report.quarter.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (response.status === 403) {
+          router.push("/dashboard");
+          return;
+        }
+
+        const data = (await response.json()) as MyReportsResponse;
+
+        if (!response.ok) {
+          setErrorMessage(data.message || "Unable to load reports.");
+          return;
+        }
+
+        setReports(data.reports || []);
+      } catch {
+        setErrorMessage("Unable to load reports right now.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadReports();
+  }, [router]);
+
+  const filteredReports = useMemo(
+    () =>
+      reports.filter(
+        (report) =>
+          report.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          report.quarter.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [reports, searchTerm],
+  );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading reports...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,7 +93,6 @@ export default function MyReportsPage() {
           </Link>
         </div>
 
-        {/* Search Bar */}
         <div className="bg-white rounded-lg border border-border p-6 mb-6">
           <input
             type="text"
@@ -86,7 +103,12 @@ export default function MyReportsPage() {
           />
         </div>
 
-        {/* Reports Table */}
+        {errorMessage && (
+          <div className="bg-white rounded-lg border border-border p-4 mb-6">
+            <p className="text-sm text-red-600">{errorMessage}</p>
+          </div>
+        )}
+
         {filteredReports.length > 0 ? (
           <div className="bg-white rounded-lg border border-border overflow-hidden">
             <div className="overflow-x-auto">
@@ -111,29 +133,46 @@ export default function MyReportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredReports.map((report) => (
-                    <tr key={report.id} className="border-b border-border hover:bg-muted transition-colors">
-                      <td className="px-6 py-4 text-sm text-foreground">{report.project}</td>
-                      <td className="px-6 py-4 text-sm text-foreground">{report.quarter}</td>
-                      <td className="px-6 py-4 text-sm text-foreground">{report.date}</td>
-                      <td className="px-6 py-4 text-sm text-foreground">{report.time}</td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => router.push(`/report/${report.id}`)}
-                          className="text-secondary hover:underline font-medium text-sm"
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredReports.map((report) => {
+                    const { date, time } = formatDateTime(report.createdAt);
+
+                    return (
+                      <tr
+                        key={report.id}
+                        className="border-b border-border hover:bg-muted transition-colors"
+                      >
+                        <td className="px-6 py-4 text-sm text-foreground">
+                          {report.projectName}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-foreground">
+                          {report.quarter}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-foreground">
+                          {date}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-foreground">
+                          {time}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => router.push(`/report/${report.id}`)}
+                            className="text-secondary hover:underline font-medium text-sm"
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-border p-12 text-center">
-            <p className="text-muted-foreground mb-4">No reports found matching your search.</p>
+            <p className="text-muted-foreground mb-4">
+              No reports found matching your search.
+            </p>
             <Link
               href="/select"
               className="text-secondary hover:underline font-medium"
@@ -144,5 +183,5 @@ export default function MyReportsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

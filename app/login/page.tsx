@@ -4,40 +4,52 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+type LoginResponse = {
+  role?: "admin" | "coordinator";
+  message?: string;
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toDisplayName = (value: string) =>
-    value
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalizedUsername = username.trim();
-    const role = normalizedUsername.toLowerCase().includes("admin")
-      ? "admin"
-      : "coordinator";
+    setErrorMessage("");
+    setIsSubmitting(true);
 
-    const sessionUser = {
-      username: toDisplayName(normalizedUsername),
-      email: `${normalizedUsername.toLowerCase().replace(/\s+/g, ".")}@example.com`,
-      role,
-    };
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
 
-    localStorage.setItem("reporting-user", JSON.stringify(sessionUser));
+      const data = (await response.json()) as LoginResponse;
 
-    // Simulate different roles based on username
-    if (role === "admin") {
-      router.push("/dashboard");
-    } else {
-      router.push("/select");
+      if (!response.ok || !data.role) {
+        setErrorMessage(data.message || "Login failed.");
+        return;
+      }
+
+      if (data.role === "admin") {
+        router.push("/dashboard");
+      } else {
+        router.push("/select");
+      }
+    } catch {
+      setErrorMessage("User is not registered.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -95,10 +107,15 @@ export default function LoginPage() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-blue-900 transition-colors"
             >
-              Login
+              {isSubmitting ? "Logging in..." : "Login"}
             </button>
+
+            {errorMessage && (
+              <p className="text-sm text-red-600 text-center">{errorMessage}</p>
+            )}
           </form>
 
           <div className="mt-8 space-y-3">
@@ -124,7 +141,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Tip: Use username with "admin" to see admin dashboard
+          Use your registered account to continue.
         </p>
       </div>
     </div>
