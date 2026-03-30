@@ -13,12 +13,6 @@ interface Report {
   createdAt: string;
 }
 
-type MeResponse = {
-  user?: {
-    role: "admin" | "coordinator";
-  };
-};
-
 type ReportsResponse = {
   reports?: Report[];
   message?: string;
@@ -35,24 +29,20 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
-
-        if (!meResponse.ok) {
-          router.push("/login");
-          return;
-        }
-
-        const meData = (await meResponse.json()) as MeResponse;
-
-        if (meData.user?.role !== "admin") {
-          setIsUnauthorized(true);
-          return;
-        }
-
         const reportsResponse = await fetch("/api/reports", {
           cache: "no-store",
         });
         const reportsData = (await reportsResponse.json()) as ReportsResponse;
+
+        if (reportsResponse.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        if (reportsResponse.status === 403) {
+          setIsUnauthorized(true);
+          return;
+        }
 
         if (!reportsResponse.ok) {
           setErrorMessage(reportsData.message || "Unable to load reports.");

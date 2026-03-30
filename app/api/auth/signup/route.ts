@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getUsersCollection, toSessionUser } from "@/lib/auth";
+import { getUsersCollection } from "@/lib/auth";
 import { getMongoRouteErrorResponse } from "@/lib/mongodb";
 import {
   createSessionToken,
@@ -70,6 +70,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const sessionToken = createSessionToken();
+    const sessionExpiresAt = new Date(
+      Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
+    );
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const insertResult = await usersCollection.insertOne({
@@ -80,38 +84,19 @@ export async function POST(request: Request) {
       password: hashedPassword,
       role,
       createdAt: new Date(),
+      sessionToken,
+      sessionExpiresAt,
     });
-
-    const createdUser = await usersCollection.findOne({
-      _id: insertResult.insertedId,
-    });
-
-    if (!createdUser) {
-      return NextResponse.json(
-        { message: "Failed to create account." },
-        { status: 500 },
-      );
-    }
-
-    const sessionToken = createSessionToken();
-    const sessionExpiresAt = new Date(
-      Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
-    );
-
-    await usersCollection.updateOne(
-      { _id: createdUser._id },
-      {
-        $set: {
-          sessionToken,
-          sessionExpiresAt,
-        },
-      },
-    );
 
     const response = NextResponse.json(
       {
         message: "Account created successfully.",
-        user: toSessionUser(createdUser),
+        user: {
+          id: insertResult.insertedId.toString(),
+          username,
+          email,
+          role,
+        },
       },
       { status: 201 },
     );

@@ -67,30 +67,31 @@ export async function POST(request: Request) {
   }
 
   const reportsCollection = await getReportsCollection();
+  const createdAt = new Date();
 
   const insertResult = await reportsCollection.insertOne({
     projectName,
     quarter,
     createdBy: new ObjectId(currentUser.id),
     createdByUsername: currentUser.username,
-    createdAt: new Date(),
+    createdAt,
     fields,
     dynamicFields,
   });
 
-  const createdReport = await reportsCollection.findOne({
-    _id: insertResult.insertedId,
-  });
-
-  if (!createdReport) {
-    return NextResponse.json(
-      { message: "Failed to create report." },
-      { status: 500 },
-    );
-  }
-
   return NextResponse.json(
-    { report: toReportResponse(createdReport) },
+    {
+      report: {
+        id: insertResult.insertedId.toString(),
+        projectName,
+        quarter,
+        createdBy: currentUser.id,
+        createdByUsername: currentUser.username,
+        createdAt: createdAt.toISOString(),
+        fields,
+        dynamicFields,
+      },
+    },
     { status: 201 },
   );
 }

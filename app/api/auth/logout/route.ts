@@ -7,7 +7,7 @@ export async function POST() {
 
   if (sessionToken) {
     const usersCollection = await getUsersCollection();
-    await usersCollection.updateMany(
+    await usersCollection.updateOne(
       { sessionToken },
       { $unset: { sessionToken: "", sessionExpiresAt: "" } },
     );

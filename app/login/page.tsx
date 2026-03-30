@@ -9,12 +9,6 @@ type LoginResponse = {
   message?: string;
 };
 
-type MeResponse = {
-  user?: {
-    role?: "admin" | "coordinator";
-  };
-};
-
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -46,16 +40,7 @@ export default function LoginPage() {
         return;
       }
 
-      const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
-
-      if (!meResponse.ok) {
-        setErrorMessage("Login succeeded but session could not be verified.");
-        return;
-      }
-
-      const meData = (await meResponse.json()) as MeResponse;
-
-      if (meData.user?.role === "admin") {
+      if (data.role === "admin") {
         router.push("/dashboard");
         return;
       }
