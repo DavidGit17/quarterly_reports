@@ -20,15 +20,6 @@ const fieldTypeOptions: DynamicFieldType[] = [
   "file",
 ];
 
-const normalizeFieldId = (label: string) =>
-  label
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-
 export default function AdminFormBuilderPage() {
   const router = useRouter();
   const [configs, setConfigs] = useState<ProjectFormConfigs>({});
@@ -60,11 +51,9 @@ export default function AdminFormBuilderPage() {
             return field;
           }
 
-          const nextLabel = updates.label ?? field.label;
           return {
             ...field,
             ...updates,
-            id: normalizeFieldId(nextLabel) || field.id,
           };
         },
       );

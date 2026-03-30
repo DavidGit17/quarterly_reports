@@ -297,7 +297,7 @@ function SubmitReportContent() {
                     required={field.required !== false}
                     value={formValues[field.id] || ""}
                     onChange={(e) => handleTextChange(field.id, e.target.value)}
-                    className="w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-600"
+                    className="no-number-spinner w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-sky-600"
                     placeholder="Enter number"
                   />
                 )}

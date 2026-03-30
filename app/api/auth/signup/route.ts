@@ -2,11 +2,17 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { getUsersCollection, toSessionUser } from "@/lib/auth";
 import { getMongoRouteErrorResponse } from "@/lib/mongodb";
+import {
+  createSessionToken,
+  SESSION_COOKIE_NAME,
+  SESSION_MAX_AGE_SECONDS,
+} from "@/lib/session";
 
 type SignupPayload = {
   username?: string;
   email?: string;
   password?: string;
+  role?: "admin" | "coordinator";
 };
 
 const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
@@ -18,6 +24,7 @@ export async function POST(request: Request) {
     const username = payload.username?.trim() || "";
     const email = payload.email?.trim() || "";
     const password = payload.password || "";
+    const role = payload.role === "admin" ? "admin" : "coordinator";
 
     if (!username || !email || !password) {
       return NextResponse.json(
@@ -71,7 +78,7 @@ export async function POST(request: Request) {
       email,
       emailLower,
       password: hashedPassword,
-      role: "coordinator",
+      role,
       createdAt: new Date(),
     });
 
@@ -86,13 +93,40 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json(
+    const sessionToken = createSessionToken();
+    const sessionExpiresAt = new Date(
+      Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
+    );
+
+    await usersCollection.updateOne(
+      { _id: createdUser._id },
+      {
+        $set: {
+          sessionToken,
+          sessionExpiresAt,
+        },
+      },
+    );
+
+    const response = NextResponse.json(
       {
         message: "Account created successfully.",
         user: toSessionUser(createdUser),
       },
       { status: 201 },
     );
+
+    response.cookies.set({
+      name: SESSION_COOKIE_NAME,
+      value: sessionToken,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: SESSION_MAX_AGE_SECONDS,
+    });
+
+    return response;
   } catch (error) {
     const mongoError = getMongoRouteErrorResponse(error);
 

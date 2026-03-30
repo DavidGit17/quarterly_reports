@@ -6,6 +6,9 @@ import Link from "next/link";
 
 type SignupResponse = {
   message?: string;
+  user?: {
+    role?: "admin" | "coordinator";
+  };
 };
 
 export default function SignupPage() {
@@ -13,6 +16,7 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"admin" | "coordinator">("coordinator");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,19 +35,23 @@ export default function SignupPage() {
           username,
           email,
           password,
+          role,
         }),
       });
 
-      const data = (await response
-        .json()
-        .catch(() => ({}))) as SignupResponse;
+      const data = (await response.json().catch(() => ({}))) as SignupResponse;
 
       if (!response.ok) {
         setErrorMessage(data.message || "Signup failed.");
         return;
       }
 
-      router.push("/login");
+      if (data.user?.role === "admin") {
+        router.push("/dashboard");
+        return;
+      }
+
+      router.push("/select");
     } catch {
       setErrorMessage("Unable to sign up right now. Please try again.");
     } finally {
@@ -111,6 +119,26 @@ export default function SignupPage() {
                 placeholder="Create a password"
                 required
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="role"
+                className="block text-sm font-medium text-foreground mb-2"
+              >
+                Account Type
+              </label>
+              <select
+                id="role"
+                value={role}
+                onChange={(e) =>
+                  setRole(e.target.value as "admin" | "coordinator")
+                }
+                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+              >
+                <option value="coordinator">Coordinator</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
 
             <button
