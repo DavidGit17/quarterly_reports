@@ -282,7 +282,13 @@ function ProfileContent() {
       <div className="mx-auto max-w-5xl">
         <button
           type="button"
-          onClick={() => router.replace(profileData.destinationHref)}
+          onClick={() => {
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.replace(profileData.destinationHref);
+            }
+          }}
           className="mb-4 inline-flex items-center gap-1 font-ui text-[14px] font-medium leading-5 text-secondary transition-colors hover:text-foreground"
           aria-label="Go back"
           title="Back"

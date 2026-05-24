@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   FileText,
   Settings,
-  Bell,
   FolderKanban,
   Users,
 } from "lucide-react";
@@ -44,11 +43,6 @@ export const sidebarItems: SidebarItem[] = [
     label: "Coordinators",
     href: "/dashboard/coordinators",
     icon: <Users className="w-5 h-5" />,
-  },
-  {
-    label: "Notifications",
-    href: "/dashboard/notifications",
-    icon: <Bell className="w-5 h-5" />,
   },
   {
     label: "Settings",

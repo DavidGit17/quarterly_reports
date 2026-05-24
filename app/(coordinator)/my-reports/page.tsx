@@ -108,12 +108,19 @@ export default function MyReportsPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="mb-3">
-            <Link
-              href={formHref}
+            <button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  router.back();
+                } else {
+                  router.replace(formHref);
+                }
+              }}
               className="font-ui text-[14px] font-medium leading-5 text-secondary transition-colors hover:text-primary"
             >
               ← Back
-            </Link>
+            </button>
           </div>
           <div className="flex items-center justify-between gap-4">
             <h1 className="font-heading text-[30px] font-semibold leading-10 tracking-[-0.02em] text-foreground">

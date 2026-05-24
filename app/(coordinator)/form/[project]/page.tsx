@@ -51,7 +51,8 @@ const getQuarterLabel = (startMonth: string, endMonth: string) =>
 const fileAcceptTypes =
   ".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,image/*,video/*,audio/*";
 const PROFILE_IMAGE_STORAGE_KEY = "quarterly-profile-image";
-const FORM_BACKGROUND = "#f8f9fa";
+const FORM_BACKGROUND =
+  "linear-gradient(135deg, #f0f4f2 0%, #f8f9fa 50%, #f5f7f6 100%)";
 const FORM_FIELD_CLASS =
   "w-full rounded border border-[#727974] bg-[#ffffff] px-4 py-3 font-ui text-[16px] leading-6 text-[#191c1d] placeholder:text-[#727974] transition-[border-color,box-shadow,background-color] duration-200 hover:border-[#344b41] focus:border-[#4b6358] focus:bg-[#ffffff] focus:outline-none focus:ring-2 focus:ring-[#b2cdbf]/60 disabled:border-[#d9dadb] disabled:bg-[#edeeef] disabled:text-[#727974] disabled:cursor-not-allowed";
 const FORM_DATE_FIELD_CLASS = `${FORM_FIELD_CLASS} pr-12`;
@@ -545,7 +546,7 @@ export default function ProjectFormPage() {
   return (
     <div
       className="coordinator-system min-h-screen"
-      style={{ backgroundColor: FORM_BACKGROUND }}
+      style={{ background: FORM_BACKGROUND }}
     >
       <div className="max-w-4xl mx-auto px-4 py-10">
         {isPreviewMode && (
@@ -563,15 +564,7 @@ export default function ProjectFormPage() {
           </div>
         )}
 
-        <div className="mb-6">
-          <div className="mb-3">
-            <Link
-              href={isPreviewMode ? "/dashboard/forms-overview" : "/my-reports"}
-              className={FORM_LINK_CLASS}
-            >
-              ← {isPreviewMode ? "Forms Overview" : "My Reports"}
-            </Link>
-          </div>
+        <div className="sticky top-0 z-10 mb-6 -mx-4 px-4 bg-[#f8f9fa] pt-4 pb-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] md:text-[30px] md:leading-10 md:tracking-[-0.02em]">
               {isPreviewMode ? "Form Preview" : "Quarterly Report Submission"}
@@ -640,7 +633,7 @@ export default function ProjectFormPage() {
           <div className={`${FORM_SURFACE_CLASS} p-6`}>
             <div className="pb-6">
               <p className={`${FORM_LABEL_CLASS} mb-2`}>
-                Quarter <span className={FORM_REQUIRED_CLASS}>*</span>
+                Quarter
               </p>
               <p className="rounded border border-[#c2c8c3] bg-[#f3f4f5] px-4 py-3 font-ui text-[16px] font-medium leading-6 text-[#191c1d]">
                 {quarterRange}

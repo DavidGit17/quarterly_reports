@@ -130,8 +130,8 @@
 
 @theme inline {
   --font-sans: var(--font-inter), Inter, sans-serif;
-  --font-heading: var(--font-inter), Inter, sans-serif;
-  --font-mono: var(--font-geist-mono), "Geist Mono", "Geist Mono Fallback";
+  --font-heading: var(--font-plex), "IBM Plex Sans", sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -172,27 +172,15 @@
 
 @layer utilities {
   .font-heading {
-    font-family: inherit;
+    font-family: var(--font-plex), "IBM Plex Sans", sans-serif;
   }
 
   .font-ui {
-    font-family: inherit;
-  }
-
-  .font-data {
-    font-family: inherit;
-  }
-
-  .coordinator-system .font-heading {
-    font-family: var(--font-heading);
-  }
-
-  .coordinator-system .font-ui {
     font-family: var(--font-inter), Inter, sans-serif;
   }
 
-  .coordinator-system .font-data {
-    font-family: var(--font-jetbrains), "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  .font-data {
+    font-family: var(--font-jetbrains), "JetBrains Mono", monospace;
   }
 
   .si-surface {
@@ -266,6 +254,9 @@
   body {
     @apply bg-background text-foreground;
     font-variant-numeric: tabular-nums;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-plex), "IBM Plex Sans", sans-serif;
   }
   button,
   [role="button"],
