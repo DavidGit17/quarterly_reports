@@ -1,21 +1,10 @@
 import { NextResponse } from "next/server";
-import { getUsersCollection } from "@/lib/auth";
-import { getSessionTokenFromCookies, SESSION_COOKIE_NAME } from "@/lib/session";
+import { AUTH_COOKIE_NAME } from "@/server/auth/jwt";
 
 export async function POST() {
-  const sessionToken = await getSessionTokenFromCookies();
-
-  if (sessionToken) {
-    const usersCollection = await getUsersCollection();
-    await usersCollection.updateOne(
-      { sessionToken },
-      { $unset: { sessionToken: "", sessionExpiresAt: "" } },
-    );
-  }
-
   const response = NextResponse.json({ message: "Logged out." });
   response.cookies.set({
-    name: SESSION_COOKIE_NAME,
+    name: AUTH_COOKIE_NAME,
     value: "",
     httpOnly: true,
     sameSite: "lax",

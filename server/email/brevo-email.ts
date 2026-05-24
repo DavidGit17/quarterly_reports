@@ -1,0 +1,221 @@
+/**
+ * TypeScript wrapper for email utilities
+ * Provides type-safe access to Brevo email functionality
+ */
+
+import axios from "axios";
+
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || "noreply@example.com";
+
+interface BrevoResponse {
+  messageId?: string;
+  success?: boolean;
+  email?: string;
+}
+
+interface SendEmailOptions {
+  to: string;
+  subject: string;
+  htmlContent: string;
+}
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Unknown email service error";
+
+/**
+ * Validate Brevo configuration
+ */
+const validateConfig = (): void => {
+  if (!BREVO_API_KEY) {
+    throw new Error("BREVO_API_KEY environment variable is not set");
+  }
+};
+
+/**
+ * Get Brevo API headers
+ */
+const getHeaders = () => ({
+  "api-key": BREVO_API_KEY,
+  "Content-Type": "application/json",
+});
+
+/**
+ * Send email via Brevo API
+ */
+const sendEmail = async (options: SendEmailOptions): Promise<BrevoResponse> => {
+  validateConfig();
+
+  try {
+    const payload = {
+      sender: {
+        email: SENDER_EMAIL,
+        name: "Quarterly Reports",
+      },
+      to: [{ email: options.to }],
+      subject: options.subject,
+      htmlContent: options.htmlContent,
+    };
+
+    console.log(`[BREVO] Sending email to: ${options.to}`);
+    console.log(`[BREVO] Subject: ${options.subject}`);
+    const response = await axios.post(BREVO_API_URL, payload, {
+      headers: getHeaders(),
+    });
+
+    console.log(
+      `[BREVO] Email sent successfully to ${options.to}. Message ID: ${response.data.messageId}`,
+    );
+    return {
+      success: true,
+      messageId: response.data.messageId,
+      email: options.to,
+    };
+  } catch (error: unknown) {
+    const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+    const responseData = axios.isAxiosError(error)
+      ? error.response?.data
+      : undefined;
+    const message = getErrorMessage(error);
+
+    console.error(
+      `[BREVO] Error sending email to ${options.to}:`,
+      responseData || message,
+    );
+
+    if (status === 401) {
+      throw new Error("Invalid Brevo API key");
+    }
+
+    if (status === 400) {
+      const invalidEmailMessage =
+        typeof responseData === "object" &&
+        responseData !== null &&
+        "message" in responseData
+          ? String(responseData.message)
+          : message;
+      throw new Error(`Invalid email address: ${invalidEmailMessage}`);
+    }
+
+    throw new Error(`Failed to send email: ${message}`);
+  }
+};
+
+/**
+ * Send OTP email
+ */
+export const sendOTPEmail = async (
+  email: string,
+  otp: string,
+): Promise<BrevoResponse> => {
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0;">Verify Your Email</h1>
+      </div>
+      <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
+          Thank you for signing up! Use the code below to verify your email address.
+        </p>
+        <div style="background: white; border: 2px solid #667eea; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+          <p style="color: #999; font-size: 12px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px;">Your OTP Code</p>
+          <p style="color: #667eea; font-size: 32px; font-weight: bold; margin: 0; letter-spacing: 4px; font-family: 'Courier New', monospace;">
+            ${otp}
+          </p>
+        </div>
+        <p style="color: #999; font-size: 14px; margin-top: 20px;">
+          This code will expire in <strong>15 minutes</strong>. Do not share this code with anyone.
+        </p>
+        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+          If you didn't request this code, please ignore this email.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: "Your OTP Verification Code",
+    htmlContent,
+  });
+};
+
+/**
+ * Send welcome email
+ */
+export const sendWelcomeEmail = async (
+  email: string,
+  username: string,
+): Promise<BrevoResponse> => {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0;">Welcome, ${username}!</h1>
+      </div>
+      <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
+          Your account has been successfully created. You can now log in and start managing your quarterly reports.
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${appUrl}/login" 
+             style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            Go to Dashboard
+          </a>
+        </div>
+        <p style="color: #999; font-size: 14px; margin-top: 30px;">
+          If you have any questions, feel free to reach out to our support team.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: "Welcome to Quarterly Reports!",
+    htmlContent,
+  });
+};
+
+/**
+ * Send password reset email
+ */
+export const sendPasswordResetEmail = async (
+  email: string,
+  resetToken: string,
+): Promise<BrevoResponse> => {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0;">Reset Your Password</h1>
+      </div>
+      <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
+          We received a request to reset your password. Click the button below to create a new password.
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${appUrl}/reset-password?token=${resetToken}" 
+             style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            Reset Password
+          </a>
+        </div>
+        <p style="color: #999; font-size: 14px; margin-top: 20px;">
+          This link will expire in <strong>1 hour</strong>.
+        </p>
+        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+          If you didn't request a password reset, please ignore this email.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: "Password Reset Request",
+    htmlContent,
+  });
+};

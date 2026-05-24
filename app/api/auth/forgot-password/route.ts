@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getUsersCollection } from "@/lib/auth";
-import { getMongoRouteErrorResponse } from "@/lib/mongodb";
+import { getUsersCollection } from "@/server/auth/auth";
+import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 
 type ForgotPasswordPayload = {
   username?: string;
@@ -75,10 +75,6 @@ export async function POST(request: Request) {
       {
         $set: {
           password: hashedPassword,
-        },
-        $unset: {
-          sessionToken: "",
-          sessionExpiresAt: "",
         },
       },
     );

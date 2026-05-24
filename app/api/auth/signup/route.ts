@@ -1,21 +1,36 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getUsersCollection } from "@/lib/auth";
-import { getMongoRouteErrorResponse } from "@/lib/mongodb";
 import {
-  createSessionToken,
-  SESSION_COOKIE_NAME,
-  SESSION_MAX_AGE_SECONDS,
-} from "@/lib/session";
+  ADMIN_USERNAMES,
+  MAX_ADMIN_ACCOUNTS,
+  getUsersCollection,
+} from "@/server/auth/auth";
+import { COORDINATOR_PROJECT_OPTIONS } from "@/lib/shared/form-storage";
+import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
+import {
+  AUTH_COOKIE_NAME,
+  AUTH_MAX_AGE_SECONDS,
+  createAuthToken,
+} from "@/server/auth/jwt";
 
 type SignupPayload = {
   username?: string;
   email?: string;
   password?: string;
   role?: "admin" | "coordinator";
+  project?: string;
 };
 
 const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+
+const normalizeProjectName = (projectValue: string) => {
+  const trimmed = projectValue.trim();
+  const matchedProject = COORDINATOR_PROJECT_OPTIONS.find(
+    (projectName) => projectName.toLowerCase() === trimmed.toLowerCase(),
+  );
+
+  return matchedProject || "";
+};
 
 export async function POST(request: Request) {
   try {
@@ -25,10 +40,18 @@ export async function POST(request: Request) {
     const email = payload.email?.trim() || "";
     const password = payload.password || "";
     const role = payload.role === "admin" ? "admin" : "coordinator";
+    const project = normalizeProjectName(payload.project || "");
 
     if (!username || !email || !password) {
       return NextResponse.json(
         { message: "Username, email and password are required." },
+        { status: 400 },
+      );
+    }
+
+    if (!project) {
+      return NextResponse.json(
+        { message: "Project is required." },
         { status: 400 },
       );
     }
@@ -56,6 +79,28 @@ export async function POST(request: Request) {
 
     const usersCollection = await getUsersCollection();
 
+    if (role === "admin") {
+      const adminCount = await usersCollection.countDocuments({
+        role: "admin",
+      });
+
+      if (adminCount >= MAX_ADMIN_ACCOUNTS) {
+        return NextResponse.json(
+          { message: "Admin account limit exceeded" },
+          { status: 403 },
+        );
+      }
+
+      return NextResponse.json(
+        {
+          message:
+            "Admin accounts should be pre-created or manually inserted in DB.",
+          allowedUsernames: ADMIN_USERNAMES,
+        },
+        { status: 403 },
+      );
+    }
+
     const usernameLower = username.toLowerCase();
     const emailLower = email.toLowerCase();
 
@@ -70,10 +115,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const sessionToken = createSessionToken();
-    const sessionExpiresAt = new Date(
-      Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
-    );
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const insertResult = await usersCollection.insertOne({
@@ -82,11 +123,13 @@ export async function POST(request: Request) {
       email,
       emailLower,
       password: hashedPassword,
-      role,
+      role: "coordinator",
+      project,
+      profileImage: "",
       createdAt: new Date(),
-      sessionToken,
-      sessionExpiresAt,
     });
+
+    const authToken = await createAuthToken(insertResult.insertedId.toString());
 
     const response = NextResponse.json(
       {
@@ -95,20 +138,22 @@ export async function POST(request: Request) {
           id: insertResult.insertedId.toString(),
           username,
           email,
-          role,
+          role: "coordinator",
+          project,
+          profileImage: "",
         },
       },
       { status: 201 },
     );
 
     response.cookies.set({
-      name: SESSION_COOKIE_NAME,
-      value: sessionToken,
+      name: AUTH_COOKIE_NAME,
+      value: authToken,
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: SESSION_MAX_AGE_SECONDS,
+      maxAge: AUTH_MAX_AGE_SECONDS,
     });
 
     return response;

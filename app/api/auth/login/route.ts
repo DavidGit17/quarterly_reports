@@ -1,12 +1,12 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { getUsersCollection, toSessionUser } from "@/lib/auth";
-import { getMongoRouteErrorResponse } from "@/lib/mongodb";
+import { getUsersCollection, toSessionUser } from "@/server/auth/auth";
+import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import {
-  createSessionToken,
-  SESSION_COOKIE_NAME,
-  SESSION_MAX_AGE_SECONDS,
-} from "@/lib/session";
+  AUTH_COOKIE_NAME,
+  AUTH_MAX_AGE_SECONDS,
+  createAuthToken,
+} from "@/server/auth/jwt";
 
 type LoginPayload = {
   username?: string;
@@ -48,35 +48,23 @@ export async function POST(request: Request) {
       );
     }
 
-    const sessionToken = createSessionToken();
-    const sessionExpiresAt = new Date(
-      Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
-    );
-
-    await usersCollection.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          sessionToken,
-          sessionExpiresAt,
-        },
-      },
-    );
+    const authToken = await createAuthToken(user._id.toString());
 
     const response = NextResponse.json({
       message: "Login successful.",
       user: toSessionUser(user),
       role: user.role,
+      project: user.project,
     });
 
     response.cookies.set({
-      name: SESSION_COOKIE_NAME,
-      value: sessionToken,
+      name: AUTH_COOKIE_NAME,
+      value: authToken,
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: SESSION_MAX_AGE_SECONDS,
+      maxAge: AUTH_MAX_AGE_SECONDS,
     });
 
     return response;
