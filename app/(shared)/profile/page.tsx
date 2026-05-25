@@ -31,7 +31,6 @@ type SessionUser = {
   profileImage?: string;
 };
 
-const PROFILE_IMAGE_STORAGE_KEY = "quarterly-profile-image";
 
 const createImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
@@ -116,14 +115,7 @@ function ProfileContent() {
         }
 
         setSessionUser(data.user);
-
-        const savedProfileImage = localStorage.getItem(
-          `${PROFILE_IMAGE_STORAGE_KEY}:${data.user.id}`,
-        );
-
-        setProfileImagePreview(
-          savedProfileImage || data.user.profileImage || "",
-        );
+        setProfileImagePreview(data.user.profileImage || "");
       } catch {
         setErrorMessage("Unable to load profile.");
       } finally {
@@ -235,19 +227,19 @@ function ProfileContent() {
         );
       }
 
-      setProfileImagePreview(nextImage);
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileImage: nextImage }),
+      });
 
-      if (nextImage) {
-        localStorage.setItem(
-          `${PROFILE_IMAGE_STORAGE_KEY}:${sessionUser.id}`,
-          nextImage,
-        );
-      } else {
-        localStorage.removeItem(
-          `${PROFILE_IMAGE_STORAGE_KEY}:${sessionUser.id}`,
-        );
+      if (!res.ok) {
+        const err = (await res.json()).message || "Failed to save.";
+        setErrorMessage(err);
+        return;
       }
 
+      setProfileImagePreview(nextImage);
       setIsModalOpen(false);
       setUploadImage("");
       setErrorMessage("");

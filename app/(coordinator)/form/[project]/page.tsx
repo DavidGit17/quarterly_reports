@@ -50,7 +50,6 @@ const getQuarterLabel = (startMonth: string, endMonth: string) =>
   `${startMonth} - ${endMonth}`;
 const fileAcceptTypes =
   ".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,image/*,video/*,audio/*";
-const PROFILE_IMAGE_STORAGE_KEY = "quarterly-profile-image";
 const FORM_BACKGROUND =
   "linear-gradient(135deg, #f0f4f2 0%, #f8f9fa 50%, #f5f7f6 100%)";
 const FORM_FIELD_CLASS =
@@ -187,15 +186,7 @@ export default function ProjectFormPage() {
             setCoordinatorName(username);
           }
 
-          if (data.user.id) {
-            const savedProfileImage = localStorage.getItem(
-              `${PROFILE_IMAGE_STORAGE_KEY}:${data.user.id}`,
-            );
-
-            setProfileImagePreview(
-              savedProfileImage || data.user.profileImage || "",
-            );
-          }
+          setProfileImagePreview(data.user.profileImage || "");
 
           const assignedProject = data.user.project || "";
 

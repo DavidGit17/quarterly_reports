@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, Search, Bell, LogOut, Check, Trash2, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -33,6 +33,15 @@ interface Notification {
   read: boolean;
   actionUrl?: string;
 }
+
+type SessionUser = {
+  id: string;
+  username: string;
+  email: string;
+  role: "admin" | "coordinator";
+  project?: string;
+  profileImage?: string;
+};
 
 const mockNotifications: Notification[] = [
   {
@@ -106,11 +115,34 @@ const typeColors: Record<string, { dot: string; bg: string; label: string }> =
     },
   };
 
+const getUserInitials = (name: string) => {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+  return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
+};
+
 export function Header({ onMobileMenuClick }: HeaderProps) {
   const router = useRouter();
   const [notifications, setNotifications] =
     useState<Notification[]>(mockNotifications);
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<SessionUser | null>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        if (res.ok) {
+          const data = (await res.json()) as { user?: SessionUser };
+          if (data.user) setUser(data.user);
+        }
+      } catch {
+        // silently fail
+      }
+    };
+    void loadUser();
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -322,40 +354,43 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           </Popover>
 
           {/* Profile dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="p-1 hover:bg-[#f3f4f5] rounded transition-colors">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage
-                    src="https://avatar.vercel.sh/jsmith"
-                    alt="User"
-                  />
-                  <AvatarFallback>JS</AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="font-ui text-[14px] font-medium text-[#191c1d]">
-                  Jane Smith
-                </p>
-                <p className="font-ui text-[12px] text-[#727974]">
-                  jane.smith@company.com
-                </p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/profile">My Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600" asChild>
-                <Link href="/login">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:bg-[#f3f4f5] rounded transition-colors">
+                  <Avatar className="w-8 h-8 border border-[#c2c8c3]">
+                    {user.profileImage ? (
+                      <AvatarImage src={user.profileImage} alt={user.username} />
+                    ) : null}
+                    <AvatarFallback className="bg-[#e1e3e4] font-ui text-[13px] font-semibold text-[#344b41]">
+                      {getUserInitials(user.username)}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1.5">
+                  <p className="font-ui text-[14px] font-medium text-[#191c1d]">
+                    {user.username}
+                  </p>
+                  <p className="font-ui text-[12px] text-[#727974]">
+                    {user.email}
+                  </p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">My Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600" asChild>
+                  <Link href="/login">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
