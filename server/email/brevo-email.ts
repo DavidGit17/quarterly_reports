@@ -6,8 +6,6 @@
 import axios from "axios";
 
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
-const SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || "noreply@example.com";
 
 interface BrevoResponse {
   messageId?: string;
@@ -27,8 +25,11 @@ const getErrorMessage = (error: unknown) =>
 /**
  * Validate Brevo configuration
  */
+const getBrevoApiKey = () => process.env.BREVO_API_KEY;
+const getSenderEmail = () => process.env.BREVO_SENDER_EMAIL || "noreply@example.com";
+
 const validateConfig = (): void => {
-  if (!BREVO_API_KEY) {
+  if (!getBrevoApiKey()) {
     throw new Error("BREVO_API_KEY environment variable is not set");
   }
 };
@@ -37,7 +38,7 @@ const validateConfig = (): void => {
  * Get Brevo API headers
  */
 const getHeaders = () => ({
-  "api-key": BREVO_API_KEY,
+  "api-key": getBrevoApiKey(),
   "Content-Type": "application/json",
 });
 
@@ -50,7 +51,7 @@ const sendEmail = async (options: SendEmailOptions): Promise<BrevoResponse> => {
   try {
     const payload = {
       sender: {
-        email: SENDER_EMAIL,
+        email: getSenderEmail(),
         name: "Quarterly Reports",
       },
       to: [{ email: options.to }],
