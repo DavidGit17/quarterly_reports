@@ -363,6 +363,16 @@ export const buildFormConfigs = (
     ];
   }
 
+  // Also include dynamically created projects from customConfigs
+  for (const [projectKey, fields] of Object.entries(customConfigs)) {
+    if (!normalizedConfigs[projectKey]) {
+      normalizedConfigs[projectKey] = [
+        ...defaultFields,
+        ...fields,
+      ];
+    }
+  }
+
   return normalizedConfigs;
 };
 

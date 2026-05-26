@@ -4,7 +4,7 @@
     "coordinators": 10,
     "facilitators": 10
   },
-  "reports": 2000,
+  "reports": 200,
   "projects": ["Haksolok", "Sukacita", "Tunas", "Murna", "Ninjay", "SuViMung", "Hiba"],
   "quarters": ["Q1", "Q2", "Q3", "Q4"],
   "emailPrefix": "mailtesterinfinity",

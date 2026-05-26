@@ -1,14 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   getHydratedFormState,
   toProjectSlug,
   type ProjectFormConfigs,
+  getBaseDefaultFields,
+  type FormFieldConfig,
 } from "@/lib/shared/form-storage";
 import { ChevronRight, FileText, Eye } from "lucide-react";
+
+type ApiProject = {
+  id: string;
+  name: string;
+};
 
 export default function FormsOverviewPage() {
   const router = useRouter();
@@ -20,38 +27,60 @@ export default function FormsOverviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
 
-  useEffect(() => {
-    const verifyAdmin = async () => {
-      try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-        });
+  const fetchData = useCallback(async () => {
+    try {
+      const [authRes, formState] = await Promise.all([
+        fetch("/api/auth/me", { method: "GET" }),
+        getHydratedFormState(),
+      ]);
 
-        if (!response.ok) {
-          router.push("/login");
-          return;
-        }
-
-        const data = (await response.json()) as {
-          user?: { role: string };
-        };
-        if (data.user?.role !== "admin") {
-          router.push("/dashboard");
-          return;
-        }
-
-        setIsAdmin(true);
-        const { formConfigs, quarterConfigs } = await getHydratedFormState();
-        setFormConfigs(formConfigs);
-        setQuarterConfigs(quarterConfigs);
-        setIsLoading(false);
-      } catch {
+      if (!authRes.ok) {
         router.push("/login");
+        return;
       }
-    };
 
-    void verifyAdmin();
+      const authData = (await authRes.json()) as {
+        user?: { role: string };
+      };
+      if (authData.user?.role !== "admin") {
+        router.push("/dashboard");
+        return;
+      }
+
+      setIsAdmin(true);
+
+      // Merge dynamically created projects from the API
+      let mergedConfigs = formState.formConfigs;
+      try {
+        const projectsRes = await fetch("/api/projects");
+        if (projectsRes.ok) {
+          const projectsData = (await projectsRes.json()) as {
+            projects: ApiProject[];
+          };
+          const defaultFields: FormFieldConfig[] = getBaseDefaultFields();
+          const existingProjects = new Set(Object.keys(mergedConfigs));
+
+          for (const project of projectsData.projects) {
+            if (!existingProjects.has(project.name)) {
+              mergedConfigs[project.name] = [...defaultFields];
+            }
+          }
+        }
+      } catch {
+        // Ignore errors fetching projects - just use form state as-is
+      }
+
+      setFormConfigs(mergedConfigs);
+      setQuarterConfigs(formState.quarterConfigs);
+      setIsLoading(false);
+    } catch {
+      router.push("/login");
+    }
   }, [router]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (!isAdmin || isLoading) {
     return (
