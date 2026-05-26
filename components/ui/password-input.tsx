@@ -6,35 +6,21 @@ import { cn } from "@/lib/shared/utils";
 
 type PasswordInputProps = Omit<React.ComponentProps<"input">, "type">;
 
-function PasswordInput({ className, onChange, value, autoComplete = "new-password", ...props }: PasswordInputProps) {
+function PasswordInput({ className, autoComplete = "current-password", ...props }: PasswordInputProps) {
   const [show, setShow] = React.useState(false);
-  const inputRef = React.useRef<HTMLInputElement>(null);
-
-  // Sync external value changes to the DOM property (not HTML attribute).
-  // Guards against cursor-jump by only writing when the DOM actually differs.
-  React.useEffect(() => {
-    if (inputRef.current && inputRef.current.value !== (value as string)) {
-      inputRef.current.value = value as string;
-    }
-  }, [value]);
 
   return (
     <div className="relative">
       <input
-        ref={inputRef}
-        type="text"
+        type={show ? "text" : "password"}
         data-slot="password-input"
-        data-show={show ? "true" : undefined}
+        autoComplete={autoComplete}
         className={cn(
-          "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pr-9 [&:not([data-show])]:[-webkit-text-security:disc]",
+          "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pr-9",
           "focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[2px]",
           "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
           className,
         )}
-        autoComplete={autoComplete}
-        onChange={(e) => {
-          onChange?.(e);
-        }}
         {...props}
       />
       <button
