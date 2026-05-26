@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
-import { mockProjects, type Project } from "@/components/admin/dashboard/mock-data";
+import type { Project } from "@/components/admin/dashboard/mock-data";
 
 const ProjectFormDialog = dynamic(
   () =>
@@ -38,7 +38,6 @@ type ProjectDraft = {
   name: string;
   description: string;
   languages: string;
-  coordinators: string;
   status: ProjectStatus;
 };
 
@@ -46,7 +45,6 @@ const emptyDraft: ProjectDraft = {
   name: "",
   description: "",
   languages: "",
-  coordinators: "0",
   status: "active",
 };
 
@@ -54,7 +52,6 @@ const toDraft = (project: Project): ProjectDraft => ({
   name: project.name,
   description: project.description,
   languages: project.languages.join(", "),
-  coordinators: String(project.coordinators),
   status: project.status,
 });
 
@@ -65,7 +62,9 @@ const toLanguages = (value: string) =>
     .filter(Boolean);
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive" | "pending"
@@ -74,6 +73,28 @@ export default function ProjectsPage() {
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [projectDraft, setProjectDraft] = useState<ProjectDraft>(emptyDraft);
+
+  const fetchProjects = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const response = await fetch("/api/projects");
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to load projects.");
+      }
+      const data = await response.json();
+      setProjects(data.projects || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load projects.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const filteredProjects = projects.filter((project) => {
     const matchesSearch =
@@ -98,7 +119,7 @@ export default function ProjectsPage() {
     setIsProjectDialogOpen(true);
   };
 
-  const saveProject = () => {
+  const saveProject = async () => {
     const name = projectDraft.name.trim();
     const languages = toLanguages(projectDraft.languages);
 
@@ -106,36 +127,74 @@ export default function ProjectsPage() {
       return;
     }
 
-    const nextProject: Project = {
-      id: editingProject?.id || `proj-${Date.now()}`,
-      name,
-      description: projectDraft.description.trim(),
-      languages,
-      coordinators: Number.parseInt(projectDraft.coordinators, 10) || 0,
-      status: projectDraft.status,
-      createdDate:
-        editingProject?.createdDate || new Date().toISOString().slice(0, 10),
-    };
+    try {
+      setError("");
 
-    setProjects((prev) =>
-      editingProject
-        ? prev.map((project) =>
-            project.id === editingProject.id ? nextProject : project,
-          )
-        : [...prev, nextProject],
-    );
-    setIsProjectDialogOpen(false);
+      if (editingProject) {
+        const response = await fetch("/api/projects", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editingProject.id,
+            name,
+            description: projectDraft.description.trim(),
+            languages,
+            status: projectDraft.status,
+          }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.message || "Failed to update project.");
+        }
+      } else {
+        const response = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            description: projectDraft.description.trim(),
+            languages,
+            status: projectDraft.status,
+          }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.message || "Failed to create project.");
+        }
+      }
+
+      setIsProjectDialogOpen(false);
+      await fetchProjects();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save project.");
+    }
   };
 
-  const deleteProject = () => {
+  const deleteProject = async () => {
     if (!deletingProject) {
       return;
     }
 
-    setProjects((prev) =>
-      prev.filter((project) => project.id !== deletingProject.id),
-    );
-    setDeletingProject(null);
+    try {
+      setError("");
+      const response = await fetch("/api/projects", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: deletingProject.id }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to delete project.");
+      }
+
+      setDeletingProject(null);
+      await fetchProjects();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete project.");
+    }
   };
 
   return (
@@ -154,8 +213,20 @@ export default function ProjectsPage() {
         }
       />
 
+      {error && (
+        <div className="mb-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <ProjectsSummary projects={projects} />
 
+      {loading ? (
+        <div className="py-12 text-center text-sm text-slate-500">
+          Loading projects...
+        </div>
+      ) : (
+        <>
       <Toolbar
         searchValue={searchValue}
         onSearchChange={setSearchValue}
@@ -189,6 +260,8 @@ export default function ProjectsPage() {
       <div className="mt-4 text-sm text-slate-600">
         Showing {filteredProjects.length} of {projects.length} projects
       </div>
+        </>
+      )}
 
       <ProjectFormDialog
         open={isProjectDialogOpen}

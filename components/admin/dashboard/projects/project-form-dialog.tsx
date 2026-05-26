@@ -26,7 +26,6 @@ export type ProjectDraft = {
   name: string;
   description: string;
   languages: string;
-  coordinators: string;
   status: ProjectStatus;
 };
 
@@ -55,7 +54,9 @@ export function ProjectFormDialog({
             {editingProject ? "Edit Project" : "Create Project"}
           </DialogTitle>
           <DialogDescription>
-            Changes apply to this mock projects table only.
+            {editingProject
+              ? "Update the project details."
+              : "Add a new project to the system."}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -96,19 +97,6 @@ export function ProjectFormDialog({
             />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Coordinators
-              </label>
-              <Input
-                type="number"
-                min="0"
-                value={draft.coordinators}
-                onChange={(event) =>
-                  onDraftChange({ ...draft, coordinators: event.target.value })
-                }
-              />
-            </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700">
                 Status

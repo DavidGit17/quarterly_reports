@@ -35,7 +35,6 @@ export function ProjectsTable({
             <TableRow className="bg-slate-50">
               <TableHead>Project</TableHead>
               <TableHead>Languages</TableHead>
-              <TableHead className="text-right">Coordinators</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -43,7 +42,7 @@ export function ProjectsTable({
           <TableBody>
             {[1, 2, 3].map((i) => (
               <TableRow key={i}>
-                <TableCell colSpan={5} className="h-12 bg-slate-50" />
+                <TableCell colSpan={4} className="h-12 bg-slate-50" />
               </TableRow>
             ))}
           </TableBody>
@@ -67,7 +66,6 @@ export function ProjectsTable({
           <TableRow className="bg-slate-50">
             <TableHead>Project</TableHead>
             <TableHead>Languages</TableHead>
-            <TableHead className="text-right">Coordinators</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -91,9 +89,6 @@ export function ProjectsTable({
                     </Badge>
                   ))}
                 </div>
-              </TableCell>
-              <TableCell className="text-right text-slate-600">
-                {project.coordinators}
               </TableCell>
               <TableCell>
                 <StatusBadge status={project.status} />

@@ -1,8 +1,8 @@
 {
   "users": {
-    "admins": 4,
-    "coordinators": 50,
-    "facilitators": 50
+    "admins": 3,
+    "coordinators": 10,
+    "facilitators": 10
   },
   "reports": 2000,
   "projects": ["Haksolok", "Sukacita", "Tunas", "Murna", "Ninjay", "SuViMung", "Hiba"],
