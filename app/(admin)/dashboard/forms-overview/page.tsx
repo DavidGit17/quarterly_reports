@@ -7,15 +7,8 @@ import {
   getHydratedFormState,
   toProjectSlug,
   type ProjectFormConfigs,
-  getBaseDefaultFields,
-  type FormFieldConfig,
 } from "@/lib/shared/form-storage";
 import { ChevronRight, FileText, Eye } from "lucide-react";
-
-type ApiProject = {
-  id: string;
-  name: string;
-};
 
 export default function FormsOverviewPage() {
   const router = useRouter();
@@ -48,29 +41,7 @@ export default function FormsOverviewPage() {
       }
 
       setIsAdmin(true);
-
-      // Merge dynamically created projects from the API
-      let mergedConfigs = formState.formConfigs;
-      try {
-        const projectsRes = await fetch("/api/projects");
-        if (projectsRes.ok) {
-          const projectsData = (await projectsRes.json()) as {
-            projects: ApiProject[];
-          };
-          const defaultFields: FormFieldConfig[] = getBaseDefaultFields();
-          const existingProjects = new Set(Object.keys(mergedConfigs));
-
-          for (const project of projectsData.projects) {
-            if (!existingProjects.has(project.name)) {
-              mergedConfigs[project.name] = [...defaultFields];
-            }
-          }
-        }
-      } catch {
-        // Ignore errors fetching projects - just use form state as-is
-      }
-
-      setFormConfigs(mergedConfigs);
+      setFormConfigs(formState.formConfigs);
       setQuarterConfigs(formState.quarterConfigs);
       setIsLoading(false);
     } catch {
