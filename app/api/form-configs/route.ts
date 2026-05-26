@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/server/db/mongodb";
+import { requireAdmin } from "@/server/auth/auth";
 
 type FormConfigDocument = {
   key: string;
@@ -28,6 +29,10 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const { error } = await requireAdmin();
+    if (error) {
+      return NextResponse.json({ message: error.message }, { status: error.status });
+    }
     const body = await request.json();
     const { key, value } = body as { key: string; value: string };
 

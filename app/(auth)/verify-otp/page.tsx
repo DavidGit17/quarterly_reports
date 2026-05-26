@@ -20,7 +20,7 @@ function VerifyOTPContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const username = searchParams.get("username") || "";
-  const password = searchParams.get("password") || "";
+  const password = typeof window !== "undefined" ? (sessionStorage.getItem("signup_password") || "") : "";
   const role =
     (searchParams.get("role") as "admin" | "coordinator") || "coordinator";
   const project = searchParams.get("project") || "";
@@ -95,6 +95,7 @@ function VerifyOTPContent() {
       } else {
         router.push("/");
       }
+      sessionStorage.removeItem("signup_password");
     } catch {
       setErrorMessage("Unable to verify OTP right now. Please try again.");
     } finally {

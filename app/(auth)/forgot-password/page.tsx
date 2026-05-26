@@ -115,6 +115,7 @@ export default function ForgotPasswordPage() {
               </label>
               <PasswordInput
                 id="new-password"
+                autoComplete="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"

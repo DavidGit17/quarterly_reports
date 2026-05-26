@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { getUsersCollection } from "@/server/auth/auth";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 
 type ForgotPasswordPayload = {
   username?: string;
@@ -13,6 +14,13 @@ const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResult = await checkRateLimit(request, "forgot-password");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { message: "Too many password reset attempts. Please try again later." },
+        { status: 429 },
+      );
+    }
     const payload = (await request.json()) as ForgotPasswordPayload;
 
     const username = payload.username?.trim() || "";

@@ -1,22 +1,28 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedUser, getUsersCollection } from "@/server/auth/auth";
+import { getUsersCollection, requireActiveUser } from "@/server/auth/auth";
 import { ObjectId } from "mongodb";
 
 export async function GET() {
-  const user = await getAuthenticatedUser();
+  const { user, error } = await requireActiveUser();
 
-  if (!user) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+  if (error || !user) {
+    return NextResponse.json(
+      { message: error?.message || "Unauthorized." },
+      { status: error?.status || 401 },
+    );
   }
 
   return NextResponse.json({ user });
 }
 
 export async function PATCH(request: Request) {
-  const user = await getAuthenticatedUser();
+  const { user, error } = await requireActiveUser();
 
-  if (!user) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+  if (error || !user) {
+    return NextResponse.json(
+      { message: error?.message || "Unauthorized." },
+      { status: error?.status || 401 },
+    );
   }
 
   try {

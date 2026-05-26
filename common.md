@@ -278,7 +278,7 @@ Re-inspect the ACTUAL modified codebase and answer:
 Do not optimize further yet.
 Audit the current optimized implementation honestly. -->
 
-## Post-Optimization Audit
+<!-- ## Post-Optimization Audit
 
 ### Changes Verified
 
@@ -348,4 +348,103 @@ Audit the current optimized implementation honestly. -->
 
 1. **Fire-and-forget Brevo emails** — replace `await sendEmail(...)` with `sendEmail(...).catch(console.error)` to free the HTTP response immediately
 2. **Forgot-password email** — wire up `sendPasswordResetEmail()` which already exists in code but is never called
-3. **Text index for search** — add MongoDB text index for users and report fields to avoid `$regex` full collection scan
+3. **Text index for search** — add MongoDB text index for users and report fields to avoid `$regex` full collection scan -->
+
+Do NOT attempt to hide client-side password values from browser DevTools or DOM inspection.
+
+I understand that:
+
+- password inputs normally store values client-side
+- React controlled inputs expose values in DOM/state
+- changing type="password" → type="text" in DevTools revealing the value is normal browser behavior
+
+Do NOT implement fake client-side hiding/masking workarounds.
+
+Instead, verify and strengthen REAL security practices.
+
+Inspect the current implementation and ensure proper security is used:
+
+1. HTTPS / Secure Transport
+- production-ready HTTPS assumptions
+- secure cookie configuration
+
+2. Password Security
+Use proper server-side hashing.
+
+Verify:
+
+ts bcrypt.hash(...) bcrypt.compare(...) 
+
+Use reasonable cost factor.
+
+Never store plaintext passwords.
+
+3. Authentication Security
+
+Verify secure auth flow.
+
+Check:
+
+- login
+- signup
+- forgot/reset password
+- OTP flow
+- session handling
+
+4. JWT / Cookie Security
+
+If JWT/cookies are used, verify secure settings.
+
+Prefer:
+
+- httpOnly cookies
+- secure cookies (production)
+- sameSite protection
+- proper expiration handling
+
+5. Input Security
+
+Verify:
+
+- validation
+- sanitization
+- auth middleware
+- protected routes
+- authorization checks
+
+6. Browser Form Behavior
+
+Keep CORRECT browser behavior:
+
+Username field:
+
+html autocomplete="username" 
+
+Password field:
+
+html type="password" autocomplete="current-password" 
+
+Signup password:
+
+html autocomplete="new-password" 
+
+7. Password Visibility Toggle
+
+Eye button should ONLY switch:
+
+password ↔ text
+
+No extra hacks.
+
+8. Remove previous incorrect workaround logic.
+
+If any code was added trying to hide password values from DevTools/DOM/state, remove it.
+
+After inspection:
+
+Explain:
+
+- current security posture
+- changes made
+- affected files
+- remaining recommendations.

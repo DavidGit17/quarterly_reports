@@ -98,10 +98,11 @@ export default function SecurityPage() {
                       Current password
                     </label>
                     <PasswordInput
-                      id="current-password"
-                      value={currentPassword}
+                      id="new-password"
+                      autoComplete="new-password"
+                      value={newPassword}
                       onChange={(event) =>
-                        setCurrentPassword(event.target.value)
+                        setNewPassword(event.target.value)
                       }
                     />
                   </div>
@@ -129,6 +130,7 @@ export default function SecurityPage() {
                     </label>
                     <PasswordInput
                       id="confirm-password"
+                      autoComplete="new-password"
                       value={confirmPassword}
                       onChange={(event) =>
                         setConfirmPassword(event.target.value)

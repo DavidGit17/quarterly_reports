@@ -11,6 +11,7 @@ const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
   "verify-otp": { windowMs: 60 * 1000, maxRequests: 10 },
   login: { windowMs: 60 * 1000, maxRequests: 10 },
   signup: { windowMs: 60 * 1000, maxRequests: 5 },
+  "forgot-password": { windowMs: 60 * 1000, maxRequests: 3 },
 };
 
 let ensureRateLimitIndexesPromise: Promise<void> | null = null;

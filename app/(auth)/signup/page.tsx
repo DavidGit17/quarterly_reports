@@ -91,10 +91,10 @@ export default function SignupPage() {
       });
 
       // Step 2: Redirect to OTP verification page with form data
+      sessionStorage.setItem("signup_password", password);
       const params = new URLSearchParams({
         email,
         username,
-        password,
         role,
         ...(role !== "admin" && { project }),
       });
@@ -159,6 +159,7 @@ export default function SignupPage() {
               </Label>
               <PasswordInput
                 id="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={fieldClassName}
