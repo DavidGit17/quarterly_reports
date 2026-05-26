@@ -25,8 +25,8 @@ const getErrorMessage = (error: unknown) =>
 /**
  * Validate Brevo configuration
  */
-const getBrevoApiKey = () => process.env.BREVO_API_KEY;
-const getSenderEmail = () => process.env.BREVO_SENDER_EMAIL || "noreply@example.com";
+const getBrevoApiKey = () => (process.env.BREVO_API_KEY || "").trim();
+const getSenderEmail = () => process.env.BREVO_SENDER_EMAIL?.trim() || "noreply@example.com";
 
 const validateConfig = (): void => {
   if (!getBrevoApiKey()) {
@@ -86,6 +86,8 @@ const sendEmail = async (options: SendEmailOptions): Promise<BrevoResponse> => {
     );
 
     if (status === 401) {
+      const brevoMsg = axios.isAxiosError(error) ? JSON.stringify(error.response?.data) : "";
+      console.error(`[BREVO] 401 response data: ${brevoMsg}`);
       throw new Error("Invalid Brevo API key");
     }
 
