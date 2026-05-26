@@ -45,6 +45,14 @@ const ensureReportsIndexes = async (
           key: { createdBy: 1, createdAt: -1 },
           name: "reports_created_by_created_at_desc_idx",
         },
+        {
+          key: { projectName: 1, createdAt: -1 },
+          name: "reports_project_name_created_at_idx",
+        },
+        {
+          key: { status: 1, createdAt: -1 },
+          name: "reports_status_created_at_idx",
+        },
       ])
       .then(() => undefined);
   }

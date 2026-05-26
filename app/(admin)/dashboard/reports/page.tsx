@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
@@ -9,7 +10,6 @@ import {
   ReportsTable,
   type ReportsTableReport,
 } from "@/components/admin/dashboard/reports/reports-table";
-import { ReportsSummary } from "@/components/admin/dashboard/reports/reports-summary";
 import {
   Select,
   SelectContent,
@@ -25,9 +25,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { mockActiveSessions } from "@/components/admin/dashboard/mock-data";
-import { LiveActivity } from "@/components/admin/dashboard/reports/live-activity";
+
+const ReportsSummary = dynamic(
+  () =>
+    import(
+      "@/components/admin/dashboard/reports/reports-summary"
+    ).then((mod) => ({ default: mod.ReportsSummary })),
+  { ssr: false },
+);
+
+const LiveActivity = dynamic(
+  () =>
+    import(
+      "@/components/admin/dashboard/reports/live-activity"
+    ).then((mod) => ({ default: mod.LiveActivity })),
+  { ssr: false },
+);
 
 type ReportStatus =
   | "draft"
@@ -52,6 +67,12 @@ type ReportSubmission = {
 
 type ReportsResponse = {
   reports?: ReportSubmission[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
   message?: string;
 };
 
@@ -315,10 +336,13 @@ const getReportRows = (reports: ReportSubmission[]) => {
 export default function ReportsPage() {
   const router = useRouter();
   const [reports, setReports] = useState<ReportSubmission[]>([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, totalPages: 0 });
   const [searchValue, setSearchValue] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [projectFilter, setProjectFilter] = useState("all");
   const [quarterFilter, setQuarterFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<"all" | ReportStatus>("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [editingReport, setEditingReport] =
@@ -327,12 +351,20 @@ export default function ReportsPage() {
   const [deletingReport, setDeletingReport] =
     useState<ReportsTableReport | null>(null);
 
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const response = await fetch("/api/reports", { cache: "no-store" });
+      const params = new URLSearchParams();
+      params.set("page", String(currentPage));
+      params.set("limit", "50");
+      if (searchValue) params.set("search", searchValue);
+      if (projectFilter !== "all") params.set("project", projectFilter);
+      if (quarterFilter !== "all") params.set("quarter", quarterFilter);
+      if (statusFilter !== "all") params.set("status", statusFilter);
+
+      const response = await fetch(`/api/reports?${params.toString()}`, { cache: "no-store" });
 
       if (response.status === 401) {
         router.push("/login");
@@ -347,41 +379,31 @@ export default function ReportsPage() {
       }
 
       setReports(data.reports || []);
+      setPagination(data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 });
     } catch {
       setErrorMessage("Unable to load reports right now.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, searchValue, projectFilter, quarterFilter, statusFilter, router]);
 
   useEffect(() => {
     void loadReports();
-  }, []);
+  }, [loadReports]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchValue, projectFilter, quarterFilter, statusFilter]);
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setSearchValue(searchInput);
+  };
 
   const tableReports = useMemo(() => {
     const displayIds = getReportDisplayIds(reports);
     return reports.map((report) => mapReportToTableRow(report, displayIds));
   }, [reports]);
-
-  const filteredReports = tableReports.filter((report) => {
-    const search = searchValue.toLowerCase();
-    const matchesSearch =
-      report.id.toLowerCase().includes(search) ||
-      report.displayId.toLowerCase().includes(search) ||
-      report.projectName.toLowerCase().includes(search) ||
-      report.submittedBy.toLowerCase().includes(search);
-
-    const matchesProject =
-      projectFilter === "all" || report.projectName === projectFilter;
-
-    const matchesQuarter =
-      quarterFilter === "all" || report.quarter === quarterFilter;
-
-    const matchesStatus =
-      statusFilter === "all" || report.status === statusFilter;
-
-    return matchesSearch && matchesProject && matchesQuarter && matchesStatus;
-  });
 
   const uniqueProjects = Array.from(
     new Set(tableReports.map((report) => report.projectName)),
@@ -460,8 +482,8 @@ export default function ReportsPage() {
         action={
           <Button
             className="bg-slate-700 hover:bg-slate-800 text-white gap-2"
-            onClick={() => void exportReports(filteredReports)}
-            disabled={filteredReports.length === 0}
+            onClick={() => void exportReports(tableReports)}
+            disabled={tableReports.length === 0}
           >
             <Download className="w-4 h-4" />
             Export All
@@ -483,9 +505,10 @@ export default function ReportsPage() {
       )}
 
       <Toolbar
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
-        searchPlaceholder="Search by report ID, project, or coordinator..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        onSearchSubmit={handleSearch}
+        searchPlaceholder="Search by project, quarter, or coordinator..."
         filters={
           <div className="flex gap-2 flex-wrap">
             <Select value={projectFilter} onValueChange={setProjectFilter}>
@@ -539,7 +562,7 @@ export default function ReportsPage() {
       />
 
       <ReportsTable
-        reports={filteredReports}
+        reports={tableReports}
         isLoading={isLoading}
         onView={(report) => router.push(`/report/${report.id}`)}
         onEdit={(report) => {
@@ -550,8 +573,33 @@ export default function ReportsPage() {
         onExport={(report) => void exportReports([report])}
       />
 
-      <div className="mt-4 text-sm text-slate-600">
-        Showing {filteredReports.length} of {tableReports.length} reports
+      <div className="flex items-center justify-between mt-4">
+        <div className="text-sm text-slate-600">
+          {pagination.total > 0 ? `Showing ${Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–${Math.min(pagination.page * pagination.limit, pagination.total)} of ${pagination.total} reports` : "No reports"}
+        </div>
+        {pagination.totalPages > 1 && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm text-slate-600 px-2">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= pagination.totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       <Dialog

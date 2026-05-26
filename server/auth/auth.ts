@@ -2,13 +2,15 @@ import { Collection, ObjectId, WithId } from "mongodb";
 import { getDb } from "@/server/db/mongodb";
 import { getAuthTokenFromCookies, verifyAuthToken } from "@/server/auth/jwt";
 
-export type UserRole = "coordinator" | "admin";
+export type UserRole = "coordinator" | "facilitator" | "admin";
+export type UserStatus = "active" | "inactive";
 
 export type SessionUser = {
   id: string;
   username: string;
   email: string;
   role: UserRole;
+  status: UserStatus;
   project?: string;
   profileImage?: string;
 };
@@ -23,6 +25,7 @@ export type UserDocument = {
   emailLower: string;
   password: string;
   role: UserRole;
+  status: UserStatus;
   project?: string;
   profileImage?: string;
   createdAt: Date;
@@ -47,6 +50,10 @@ const ensureUsersIndexes = async (
           key: { emailLower: 1 },
           name: "users_email_lower_idx",
         },
+        {
+          key: { role: 1, status: 1, createdAt: -1 },
+          name: "users_role_status_created_at_idx",
+        },
       ])
       .then(() => undefined);
   }
@@ -68,6 +75,7 @@ export const toSessionUser = (user: UserRecord): SessionUser => ({
   username: user.username,
   email: user.email,
   role: user.role,
+  status: user.status || "active",
   project: user.project,
   profileImage: user.profileImage,
 });
@@ -104,4 +112,48 @@ export const getAuthenticatedUser = async (): Promise<SessionUser | null> => {
   }
 
   return toSessionUser(user);
+};
+
+export const requireActiveUser = async (): Promise<{
+  user: SessionUser | null;
+  error: { message: string; status: number } | null;
+}> => {
+  const currentUser = await getAuthenticatedUser();
+
+  if (!currentUser) {
+    return { user: null, error: { message: "Unauthorized.", status: 401 } };
+  }
+
+  if (currentUser.status !== "active") {
+    return {
+      user: null,
+      error: {
+        message:
+          "Your account is currently inactive. Please contact administrator.",
+        status: 403,
+      },
+    };
+  }
+
+  return { user: currentUser, error: null };
+};
+
+export const requireAdmin = async (): Promise<{
+  user: SessionUser;
+  error: { message: string; status: number } | null;
+}> => {
+  const { user, error } = await requireActiveUser();
+
+  if (error || !user) {
+    return { user: null as unknown as SessionUser, error };
+  }
+
+  if (user.role !== "admin") {
+    return {
+      user: null as unknown as SessionUser,
+      error: { message: "Forbidden.", status: 403 },
+    };
+  }
+
+  return { user, error: null };
 };

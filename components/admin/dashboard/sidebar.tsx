@@ -7,7 +7,7 @@ import {
   FileText,
   Settings,
   FolderKanban,
-  Users,
+  UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/shared/utils";
 
@@ -40,9 +40,9 @@ export const sidebarItems: SidebarItem[] = [
     icon: <FolderKanban className="w-5 h-5" />,
   },
   {
-    label: "Coordinators",
-    href: "/dashboard/coordinators",
-    icon: <Users className="w-5 h-5" />,
+    label: "Users",
+    href: "/dashboard/users",
+    icon: <UserCog className="w-5 h-5" />,
   },
   {
     label: "Settings",

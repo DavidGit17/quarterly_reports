@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/shared/use-toast";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"coordinator" | "admin" | "">(""); // Start empty
+  const [role, setRole] = useState<"coordinator" | "facilitator" | "admin" | "">("");
   const [projectOptions, setProjectOptions] = useState<string[]>([]);
   const [project, setProject] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -95,7 +96,7 @@ export default function SignupPage() {
         username,
         password,
         role,
-        ...(role === "coordinator" && { project }),
+        ...(role !== "admin" && { project }),
       });
 
       router.push(`/verify-otp?${params.toString()}`);
@@ -156,9 +157,8 @@ export default function SignupPage() {
               <Label htmlFor="password" className="mb-2">
                 Password
               </Label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={fieldClassName}
@@ -175,18 +175,21 @@ export default function SignupPage() {
                 id="role"
                 value={role}
                 onChange={(e) =>
-                  setRole(e.target.value as "coordinator" | "admin")
+                  setRole(
+                    e.target.value as "coordinator" | "facilitator" | "admin",
+                  )
                 }
                 className={fieldClassName}
                 required
               >
                 <option value="">-- Select a role --</option>
                 <option value="coordinator">Coordinator</option>
+                <option value="facilitator">Facilitator</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
 
-            {role === "coordinator" && (
+            {(role === "coordinator" || role === "facilitator") && (
               <div>
                 <Label htmlFor="project" className="mb-2">
                   Project <span className="text-destructive">*</span>

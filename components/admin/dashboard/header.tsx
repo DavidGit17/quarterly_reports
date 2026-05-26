@@ -382,11 +382,15 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                   <Link href="/profile">My Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600" asChild>
-                  <Link href="/login">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </Link>
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={async () => {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    router.push("/login");
+                  }}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

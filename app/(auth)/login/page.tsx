@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toProjectSlug } from "@/lib/shared/form-storage";
+import { PasswordInput } from "@/components/ui/password-input";
 
 type LoginResponse = {
-  role?: "admin" | "coordinator";
+  role?: "admin" | "coordinator" | "facilitator";
   project?: string;
   message?: string;
 };
@@ -54,7 +55,8 @@ export default function LoginPage() {
         return;
       }
 
-      router.push(`/form/${toProjectSlug(data.project)}`);
+      const formPrefix = data.role === "facilitator" ? "/f" : "";
+      router.push(`${formPrefix}/form/${toProjectSlug(data.project)}`);
     } catch {
       setErrorMessage("User is not registered.");
     } finally {
@@ -97,9 +99,8 @@ export default function LoginPage() {
               >
                 Password
               </label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={fieldClassName}

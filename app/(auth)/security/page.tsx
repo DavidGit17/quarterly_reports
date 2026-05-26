@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Shield, UserCircle2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function SecurityPage() {
   const router = useRouter();
@@ -97,9 +97,8 @@ export default function SecurityPage() {
                     >
                       Current password
                     </label>
-                    <Input
+                    <PasswordInput
                       id="current-password"
-                      type="password"
                       value={currentPassword}
                       onChange={(event) =>
                         setCurrentPassword(event.target.value)
@@ -114,9 +113,8 @@ export default function SecurityPage() {
                     >
                       New password
                     </label>
-                    <Input
+                    <PasswordInput
                       id="new-password"
-                      type="password"
                       value={newPassword}
                       onChange={(event) => setNewPassword(event.target.value)}
                     />
@@ -129,9 +127,8 @@ export default function SecurityPage() {
                     >
                       Confirm password
                     </label>
-                    <Input
+                    <PasswordInput
                       id="confirm-password"
-                      type="password"
                       value={confirmPassword}
                       onChange={(event) =>
                         setConfirmPassword(event.target.value)

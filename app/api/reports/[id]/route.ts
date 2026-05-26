@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
-import { getAuthenticatedUser } from "@/server/auth/auth";
+import { requireActiveUser } from "@/server/auth/auth";
 import {
   getReportsCollection,
   toReportResponse,
@@ -24,10 +24,13 @@ const REPORT_STATUSES: ReportStatus[] = [
 ];
 
 export async function GET(_: Request, { params }: Params) {
-  const currentUser = await getAuthenticatedUser();
+  const { user: currentUser, error } = await requireActiveUser();
 
-  if (!currentUser) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+  if (error || !currentUser) {
+    return NextResponse.json(
+      { message: error!.message },
+      { status: error!.status },
+    );
   }
 
   const { id } = await params;
@@ -49,7 +52,7 @@ export async function GET(_: Request, { params }: Params) {
   const isAdmin = currentUser.role === "admin";
   const isOwner = report.createdBy.toString() === currentUser.id;
   const isProjectMatch =
-    currentUser.role === "coordinator"
+    currentUser.role === "coordinator" || currentUser.role === "facilitator"
       ? report.projectName.toLowerCase() ===
         (currentUser.project || "").trim().toLowerCase()
       : true;
@@ -65,15 +68,18 @@ export async function GET(_: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  const currentUser = await getAuthenticatedUser();
+  const { user: currentUser, error } = await requireActiveUser();
 
-  if (!currentUser) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+  if (error || !currentUser) {
+    return NextResponse.json(
+      { message: error!.message },
+      { status: error!.status },
+    );
   }
 
-  if (currentUser.role !== "admin") {
+  if (currentUser.role !== "admin" && currentUser.role !== "facilitator") {
     return NextResponse.json(
-      { message: "Only admins can edit reports." },
+      { message: "Only admins and facilitators can edit reports." },
       { status: 403 },
     );
   }
@@ -111,15 +117,18 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_: Request, { params }: Params) {
-  const currentUser = await getAuthenticatedUser();
+  const { user: currentUser, error } = await requireActiveUser();
 
-  if (!currentUser) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+  if (error || !currentUser) {
+    return NextResponse.json(
+      { message: error!.message },
+      { status: error!.status },
+    );
   }
 
-  if (currentUser.role !== "admin") {
+  if (currentUser.role !== "admin" && currentUser.role !== "facilitator") {
     return NextResponse.json(
-      { message: "Only admins can delete reports." },
+      { message: "Only admins and facilitators can delete reports." },
       { status: 403 },
     );
   }

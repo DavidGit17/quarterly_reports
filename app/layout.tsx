@@ -1,22 +1,8 @@
 import type { Metadata } from "next";
-import {
-  Geist,
-  Geist_Mono,
-  IBM_Plex_Sans,
-  Inter,
-  JetBrains_Mono,
-} from "next/font/google";
+import { IBM_Plex_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist",
-});
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-});
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -44,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geist.variable} ${geistMono.variable} ${inter.variable} ${ibmPlexSans.variable} ${jetBrainsMono.variable} font-sans antialiased`}
+        className={`${inter.variable} ${ibmPlexSans.variable} ${jetBrainsMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         {children}

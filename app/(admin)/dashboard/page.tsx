@@ -15,6 +15,12 @@ interface Report {
 
 type ReportsResponse = {
   reports?: Report[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
   message?: string;
 };
 
@@ -28,11 +34,12 @@ export default function DashboardPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
+  const [totalReportsCount, setTotalReportsCount] = useState(0);
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const reportsResponse = await fetch("/api/reports", {
+        const reportsResponse = await fetch("/api/reports?page=1&limit=100", {
           cache: "no-store",
         });
         const reportsData = (await reportsResponse.json()) as ReportsResponse;
@@ -53,6 +60,7 @@ export default function DashboardPage() {
         }
 
         setReports(reportsData.reports || []);
+        setTotalReportsCount(reportsData.pagination?.total ?? reportsData.reports?.length ?? 0);
       } catch {
         setErrorMessage("Unable to load dashboard right now.");
       } finally {
@@ -105,7 +113,7 @@ export default function DashboardPage() {
   );
 
   const totalProjects = Object.keys(reportData).length;
-  const totalReports = reports.length;
+  const totalReports = totalReportsCount;
   const activeCoordinators = new Set(
     reports.map((report) => report.createdByUsername),
   ).size;

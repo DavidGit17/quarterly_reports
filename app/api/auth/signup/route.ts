@@ -12,12 +12,13 @@ import {
   AUTH_MAX_AGE_SECONDS,
   createAuthToken,
 } from "@/server/auth/jwt";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 
 type SignupPayload = {
   username?: string;
   email?: string;
   password?: string;
-  role?: "admin" | "coordinator";
+  role?: "admin" | "coordinator" | "facilitator";
   project?: string;
 };
 
@@ -34,12 +35,19 @@ const normalizeProjectName = (projectValue: string) => {
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResult = await checkRateLimit(request, "signup");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { message: "Too many signup attempts. Please try again later." },
+        { status: 429 },
+      );
+    }
     const payload = (await request.json()) as SignupPayload;
 
     const username = payload.username?.trim() || "";
     const email = payload.email?.trim() || "";
     const password = payload.password || "";
-    const role = payload.role === "admin" ? "admin" : "coordinator";
+    const role = payload.role === "admin" ? "admin" : (payload.role === "facilitator" ? "facilitator" : "coordinator");
     const project = normalizeProjectName(payload.project || "");
 
     if (!username || !email || !password) {
@@ -124,6 +132,7 @@ export async function POST(request: Request) {
       emailLower,
       password: hashedPassword,
       role: "coordinator",
+      status: "active",
       project,
       profileImage: "",
       createdAt: new Date(),
@@ -138,7 +147,8 @@ export async function POST(request: Request) {
           id: insertResult.insertedId.toString(),
           username,
           email,
-          role: "coordinator",
+      role,
+          status: "active",
           project,
           profileImage: "",
         },

@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
-import { getAuthenticatedUser } from "@/server/auth/auth";
+import { requireActiveUser } from "@/server/auth/auth";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import {
   getReportsCollection,
@@ -25,15 +25,18 @@ const hasEmptyFieldValue = (value: string | string[]) => {
 
 export async function POST(request: Request) {
   try {
-    const currentUser = await getAuthenticatedUser();
+    const { user: currentUser, error } = await requireActiveUser();
 
-    if (!currentUser) {
-      return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+    if (error || !currentUser) {
+      return NextResponse.json(
+        { message: error!.message },
+        { status: error!.status },
+      );
     }
 
-    if (currentUser.role !== "coordinator") {
+    if (currentUser.role !== "coordinator" && currentUser.role !== "facilitator") {
       return NextResponse.json(
-        { message: "Only coordinators can submit reports." },
+        { message: "Only coordinators and facilitators can submit reports." },
         { status: 403 },
       );
     }
@@ -130,29 +133,77 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
-  try {
-    const currentUser = await getAuthenticatedUser();
+const MAX_LIMIT = 100;
+const DEFAULT_LIMIT = 50;
 
-    if (!currentUser) {
-      return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+export async function GET(request: Request) {
+  try {
+    const { user: currentUser, error } = await requireActiveUser();
+
+    if (error || !currentUser) {
+      return NextResponse.json(
+        { message: error!.message },
+        { status: error!.status },
+      );
     }
 
-    if (currentUser.role !== "admin") {
+    if (currentUser.role !== "admin" && currentUser.role !== "facilitator") {
       return NextResponse.json(
-        { message: "Only admins can access all reports." },
+        { message: "Only admins and facilitators can access all reports." },
         { status: 403 },
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(searchParams.get("limit") || String(DEFAULT_LIMIT), 10)));
+    const search = searchParams.get("search")?.trim() || "";
+    const projectFilter = searchParams.get("project")?.trim() || "";
+    const statusFilter = searchParams.get("status")?.trim() || "";
+    const quarterFilter = searchParams.get("quarter")?.trim() || "";
+
+    const query: Record<string, unknown> = {};
+
+    if (projectFilter) {
+      query.projectName = projectFilter;
+    }
+    if (statusFilter) {
+      query.status = statusFilter;
+    }
+    if (quarterFilter) {
+      query.quarter = quarterFilter;
+    }
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      query.$or = [
+        { projectName: { $regex: escaped, $options: "i" } },
+        { quarter: { $regex: escaped, $options: "i" } },
+        { createdByUsername: { $regex: escaped, $options: "i" } },
+      ];
+    }
+
     const reportsCollection = await getReportsCollection();
 
-    const reports = await reportsCollection
-      .find({})
-      .sort({ createdAt: -1 })
-      .toArray();
+    const skip = (page - 1) * limit;
+    const [total, reports] = await Promise.all([
+      reportsCollection.countDocuments(query),
+      reportsCollection
+        .find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .toArray(),
+    ]);
 
-    return NextResponse.json({ reports: reports.map(toReportResponse) });
+    return NextResponse.json({
+      reports: reports.map(toReportResponse),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     const mongoError = getMongoRouteErrorResponse(error);
     if (mongoError) {

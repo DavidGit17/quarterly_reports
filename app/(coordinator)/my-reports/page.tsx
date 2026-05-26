@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDateTime, toProjectSlug } from "@/lib/shared/form-storage";
 
 type ReportSubmission = {
@@ -14,6 +15,12 @@ type ReportSubmission = {
 
 type MyReportsResponse = {
   reports?: ReportSubmission[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
   message?: string;
 };
 
@@ -26,72 +33,75 @@ type MeResponse = {
 
 export default function MyReportsPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchValue, setSearchValue] = useState("");
   const [reports, setReports] = useState<ReportSubmission[]>([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [formHref, setFormHref] = useState("/login");
 
-  useEffect(() => {
-    const loadReports = async () => {
-      try {
-        const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
+  const loadReports = useCallback(async () => {
+    try {
+      const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
 
-        if (!meResponse.ok) {
-          router.push("/login");
-          return;
-        }
-
-        const meData = (await meResponse.json()) as MeResponse;
-
-        if (meData.user?.role !== "coordinator") {
-          router.push("/dashboard");
-          return;
-        }
-
-        if (meData.user.project) {
-          setFormHref(`/form/${toProjectSlug(meData.user.project)}`);
-        }
-
-        const response = await fetch("/api/my-reports", { cache: "no-store" });
-
-        if (response.status === 401) {
-          router.push("/login");
-          return;
-        }
-
-        if (response.status === 403) {
-          router.push("/dashboard");
-          return;
-        }
-
-        const data = (await response.json()) as MyReportsResponse;
-
-        if (!response.ok) {
-          setErrorMessage(data.message || "Unable to load reports.");
-          return;
-        }
-
-        setReports(data.reports || []);
-      } catch {
-        setErrorMessage("Unable to load reports right now.");
-      } finally {
-        setIsLoading(false);
+      if (!meResponse.ok) {
+        router.push("/login");
+        return;
       }
-    };
 
+      const meData = (await meResponse.json()) as MeResponse;
+
+      if (meData.user?.role !== "coordinator") {
+        router.push("/dashboard");
+        return;
+      }
+
+      if (meData.user.project) {
+        setFormHref(`/form/${toProjectSlug(meData.user.project)}`);
+      }
+
+      const params = new URLSearchParams();
+      params.set("page", String(currentPage));
+      params.set("limit", "50");
+      if (searchValue) params.set("search", searchValue);
+
+      const response = await fetch(`/api/my-reports?${params.toString()}`, { cache: "no-store" });
+
+      if (response.status === 401) {
+        router.push("/login");
+        return;
+      }
+
+      if (response.status === 403) {
+        router.push("/dashboard");
+        return;
+      }
+
+      const data = (await response.json()) as MyReportsResponse;
+
+      if (!response.ok) {
+        setErrorMessage(data.message || "Unable to load reports.");
+        return;
+      }
+
+      setReports(data.reports || []);
+      setPagination(data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 });
+    } catch {
+      setErrorMessage("Unable to load reports right now.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, searchValue, router]);
+
+  useEffect(() => {
+    setIsLoading(true);
     void loadReports();
-  }, [router]);
+  }, [loadReports]);
 
-  const filteredReports = useMemo(
-    () =>
-      reports.filter(
-        (report) =>
-          report.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          report.quarter.toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
-    [reports, searchTerm],
-  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchValue]);
 
   if (isLoading) {
     return (
@@ -138,9 +148,9 @@ export default function MyReportsPage() {
         <div className="si-surface p-6 mb-6">
           <input
             type="text"
-            placeholder="Search by project or quarter..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by quarter..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
             className="si-field w-full px-4 py-2 font-ui text-[14px] leading-5 placeholder:text-muted-foreground"
           />
         </div>
@@ -153,7 +163,7 @@ export default function MyReportsPage() {
           </div>
         )}
 
-        {filteredReports.length > 0 ? (
+        {reports.length > 0 ? (
           <div className="si-surface overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -177,7 +187,7 @@ export default function MyReportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredReports.map((report) => {
+                  {reports.map((report) => {
                     const { date, time } = formatDateTime(report.createdAt);
 
                     return (
@@ -211,6 +221,34 @@ export default function MyReportsPage() {
                 </tbody>
               </table>
             </div>
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+                <div className="font-data text-[12px] font-medium leading-4 text-[#424845]">
+                  {pagination.total} report{pagination.total !== 1 ? "s" : ""}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="font-ui text-[14px] font-medium leading-5 text-secondary transition-colors hover:text-primary disabled:opacity-40"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="font-data text-[12px] font-medium leading-4 text-[#424845]">
+                    {pagination.page} / {pagination.totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={currentPage >= pagination.totalPages}
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                    className="font-ui text-[14px] font-medium leading-5 text-secondary transition-colors hover:text-primary disabled:opacity-40"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="si-surface p-12 text-center">

@@ -6,7 +6,8 @@ import { toProjectSlug } from "@/lib/shared/form-storage";
 
 type MeResponse = {
   user?: {
-    role: "admin" | "coordinator";
+    role: "admin" | "coordinator" | "facilitator";
+    status?: "active" | "inactive";
     project?: string;
   };
 };
@@ -26,6 +27,11 @@ export default function Home() {
 
         const data = (await response.json()) as MeResponse;
 
+        if (data.user?.status === "inactive") {
+          router.push("/login");
+          return;
+        }
+
         if (data.user?.role === "admin") {
           router.push("/dashboard");
           return;
@@ -36,7 +42,8 @@ export default function Home() {
           return;
         }
 
-        router.push(`/form/${toProjectSlug(data.user.project)}`);
+        const formPrefix = data.user.role === "facilitator" ? "/f" : "";
+        router.push(`${formPrefix}/form/${toProjectSlug(data.user.project)}`);
       } catch {
         router.push("/login");
       }

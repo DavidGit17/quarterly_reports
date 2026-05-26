@@ -5,6 +5,7 @@ import { cn } from "@/lib/shared/utils";
 interface ToolbarProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
+  onSearchSubmit?: () => void;
   searchPlaceholder?: string;
   filters?: React.ReactNode;
   actions?: React.ReactNode;
@@ -14,11 +15,18 @@ interface ToolbarProps {
 export function Toolbar({
   searchValue,
   onSearchChange,
+  onSearchSubmit,
   searchPlaceholder = "Search...",
   filters,
   actions,
   className,
 }: ToolbarProps) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && onSearchSubmit) {
+      onSearchSubmit();
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -33,6 +41,7 @@ export function Toolbar({
           placeholder={searchPlaceholder}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="border-0 bg-transparent outline-none flex-1 min-w-0"
         />
       </div>

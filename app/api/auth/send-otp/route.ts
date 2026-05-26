@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sendOTPEmail } from "@/server/email/brevo-email";
 import { getDb } from "@/server/db/mongodb";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 
 /**
  * Generate a 6-digit OTP
@@ -23,6 +24,13 @@ type SendOTPPayload = {
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResult = await checkRateLimit(request, "send-otp");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { message: "Too many OTP requests. Please try again later." },
+        { status: 429 },
+      );
+    }
     const payload = (await request.json()) as SendOTPPayload;
     const email = payload.email?.trim().toLowerCase() || "";
     const username = payload.username?.trim() || "User";
@@ -89,26 +97,7 @@ export async function POST(request: Request) {
       `[OTP] Generated OTP: ${otp} for ${email}, expires at ${expiresAt.toISOString()}`,
     );
 
-    // Store OTP in database
-    await otpCollection.updateOne(
-      { email },
-      {
-        $set: {
-          email,
-          username,
-          otp,
-          expiresAt,
-          attempts: 0,
-          maxAttempts: MAX_OTP_ATTEMPTS,
-          createdAt: new Date(),
-        },
-      },
-      { upsert: true },
-    );
-
-    console.log(`[OTP] Stored OTP in database for ${email}`);
-
-    // Send OTP via email - ONLY ONCE via Brevo API
+    // Send OTP via email via Brevo API
     try {
       console.log(`[OTP] Sending email to ${email} via Brevo API...`);
       const emailSent = await sendOTPEmail(email, otp);
@@ -142,6 +131,25 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+
+    // Store OTP in database (only after successful email)
+    await otpCollection.updateOne(
+      { email },
+      {
+        $set: {
+          email,
+          username,
+          otp,
+          expiresAt,
+          attempts: 0,
+          maxAttempts: MAX_OTP_ATTEMPTS,
+          createdAt: new Date(),
+        },
+      },
+      { upsert: true },
+    );
+
+    console.log(`[OTP] Stored OTP in database for ${email}`);
 
     console.log(
       `[OTP] Request completed successfully for ${email}. OTP will expire in ${OTP_EXPIRY_MINUTES} minutes.`,

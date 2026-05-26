@@ -1,0 +1,18 @@
+{
+  "users": {
+    "admins": 4,
+    "coordinators": 50,
+    "facilitators": 50
+  },
+  "reports": 2000,
+  "projects": ["Haksolok", "Sukacita", "Tunas", "Murna", "Ninjay", "SuViMung", "Hiba"],
+  "quarters": ["Q1", "Q2", "Q3", "Q4"],
+  "emailPrefix": "mailtesterinfinity",
+  "usernamePatterns": {
+    "admin": "admin",
+    "coordinator": "coordinator",
+    "facilitator": "facilitator"
+  },
+  "reportsPerUserRange": [1, 20],
+  "years": [2024, 2025, 2026]
+}

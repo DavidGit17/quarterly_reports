@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
 import { Toolbar } from "@/components/admin/dashboard/toolbar";
 import { ProjectsTable } from "@/components/admin/dashboard/projects/projects-table";
@@ -15,16 +15,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { mockProjects, type Project } from "@/components/admin/dashboard/mock-data";
+
+const ProjectFormDialog = dynamic(
+  () =>
+    import(
+      "@/components/admin/dashboard/projects/project-form-dialog"
+    ).then((mod) => ({ default: mod.ProjectFormDialog })),
+);
+
+const DeleteProjectDialog = dynamic(
+  () =>
+    import(
+      "@/components/admin/dashboard/projects/delete-project-dialog"
+    ).then((mod) => ({ default: mod.DeleteProjectDialog })),
+);
 
 type ProjectStatus = Project["status"];
 
@@ -184,143 +190,21 @@ export default function ProjectsPage() {
         Showing {filteredProjects.length} of {projects.length} projects
       </div>
 
-      <Dialog
+      <ProjectFormDialog
         open={isProjectDialogOpen}
         onOpenChange={setIsProjectDialogOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingProject ? "Edit Project" : "Create Project"}
-            </DialogTitle>
-            <DialogDescription>
-              Changes apply to this mock projects table only.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Project Name
-              </label>
-              <Input
-                value={projectDraft.name}
-                onChange={(event) =>
-                  setProjectDraft((prev) => ({
-                    ...prev,
-                    name: event.target.value,
-                  }))
-                }
-                placeholder="Project name"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Description
-              </label>
-              <Textarea
-                value={projectDraft.description}
-                onChange={(event) =>
-                  setProjectDraft((prev) => ({
-                    ...prev,
-                    description: event.target.value,
-                  }))
-                }
-                placeholder="Project description"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                Languages
-              </label>
-              <Input
-                value={projectDraft.languages}
-                onChange={(event) =>
-                  setProjectDraft((prev) => ({
-                    ...prev,
-                    languages: event.target.value,
-                  }))
-                }
-                placeholder="Genesis, Exodus, Matthew"
-              />
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Coordinators
-                </label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={projectDraft.coordinators}
-                  onChange={(event) =>
-                    setProjectDraft((prev) => ({
-                      ...prev,
-                      coordinators: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Status
-                </label>
-                <Select
-                  value={projectDraft.status}
-                  onValueChange={(value) =>
-                    setProjectDraft((prev) => ({
-                      ...prev,
-                      status: value as ProjectStatus,
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsProjectDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={saveProject}>
-              {editingProject ? "Save Changes" : "Create Project"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        editingProject={editingProject}
+        draft={projectDraft}
+        onDraftChange={setProjectDraft}
+        onSave={saveProject}
+      />
 
-      <Dialog
+      <DeleteProjectDialog
         open={Boolean(deletingProject)}
         onOpenChange={(open) => !open && setDeletingProject(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Project</DialogTitle>
-            <DialogDescription>
-              Delete {deletingProject?.name}? This only removes it from the
-              current mock table session.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeletingProject(null)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={deleteProject}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        deletingProject={deletingProject}
+        onConfirm={deleteProject}
+      />
     </main>
   );
 }

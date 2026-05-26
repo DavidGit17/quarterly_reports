@@ -8,6 +8,7 @@ import {
   createAuthToken,
 } from "@/server/auth/jwt";
 import { sendWelcomeEmail } from "@/server/email/brevo-email";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { cookies } from "next/headers";
 
 const MAX_OTP_ATTEMPTS = 5;
@@ -17,7 +18,7 @@ type VerifyOTPPayload = {
   otp?: string;
   username?: string;
   password?: string;
-  role?: "admin" | "coordinator";
+  role?: "admin" | "coordinator" | "facilitator";
   project?: string;
 };
 
@@ -31,12 +32,19 @@ const normalizeProjectName = (projectValue: string) => {
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResult = await checkRateLimit(request, "verify-otp");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { message: "Too many verification attempts. Please try again later." },
+        { status: 429 },
+      );
+    }
     const payload = (await request.json()) as VerifyOTPPayload;
     const email = payload.email?.trim().toLowerCase() || "";
     const otp = payload.otp?.trim() || "";
     const username = payload.username?.trim() || "";
     const password = payload.password || "";
-    const role = payload.role === "admin" ? "admin" : "coordinator";
+    const role = payload.role === "admin" ? "admin" : (payload.role === "facilitator" ? "facilitator" : "coordinator");
     const project = normalizeProjectName(payload.project || "");
 
     if (!email || !otp) {
@@ -115,7 +123,8 @@ export async function POST(request: Request) {
         emailLower: email,
         password: passwordHash,
         role,
-        ...(role === "coordinator" && { project }),
+        status: "active",
+        ...(role !== "admin" && { project }),
         isVerified: true,
         verifiedAt: now,
         createdAt: now,
@@ -152,7 +161,7 @@ export async function POST(request: Request) {
         user: {
           id: userId,
           role,
-          project: role === "coordinator" ? project : undefined,
+          project: role !== "admin" ? project : undefined,
         },
       });
     }

@@ -7,6 +7,7 @@ import {
   AUTH_MAX_AGE_SECONDS,
   createAuthToken,
 } from "@/server/auth/jwt";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 
 type LoginPayload = {
   username?: string;
@@ -15,6 +16,14 @@ type LoginPayload = {
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResult = await checkRateLimit(request, "login");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { message: "Too many login attempts. Please try again later." },
+        { status: 429 },
+      );
+    }
+
     const payload = (await request.json()) as LoginPayload;
 
     const username = payload.username?.trim() || "";
@@ -45,6 +54,16 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { message: "Invalid credentials." },
         { status: 401 },
+      );
+    }
+
+    if (user.status === "inactive") {
+      return NextResponse.json(
+        {
+          message:
+            "Your account is currently inactive. Please contact administrator.",
+        },
+        { status: 403 },
       );
     }
 

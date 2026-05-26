@@ -1,18 +1,24 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
-import { getAuthenticatedUser } from "@/server/auth/auth";
+import { requireActiveUser } from "@/server/auth/auth";
 import { getReportsCollection, toReportResponse } from "@/server/reports/reports";
 
-export async function GET() {
-  const currentUser = await getAuthenticatedUser();
+const MAX_MY_LIMIT = 100;
+const DEFAULT_MY_LIMIT = 50;
 
-  if (!currentUser) {
-    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+export async function GET(request: Request) {
+  const { user: currentUser, error } = await requireActiveUser();
+
+  if (error || !currentUser) {
+    return NextResponse.json(
+      { message: error!.message },
+      { status: error!.status },
+    );
   }
 
-  if (currentUser.role !== "coordinator") {
+  if (currentUser.role !== "coordinator" && currentUser.role !== "facilitator") {
     return NextResponse.json(
-      { message: "Only coordinators can access their reports." },
+      { message: "Only coordinators and facilitators can access their reports." },
       { status: 403 },
     );
   }
@@ -26,14 +32,42 @@ export async function GET() {
     );
   }
 
-  const reportsCollection = await getReportsCollection();
-  const reports = await reportsCollection
-    .find({
-      createdBy: new ObjectId(currentUser.id),
-      projectName: assignedProject,
-    })
-    .sort({ createdAt: -1 })
-    .toArray();
+  const { searchParams } = new URL(request.url);
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+  const limit = Math.min(MAX_MY_LIMIT, Math.max(1, parseInt(searchParams.get("limit") || String(DEFAULT_MY_LIMIT), 10)));
+  const search = searchParams.get("search")?.trim() || "";
 
-  return NextResponse.json({ reports: reports.map(toReportResponse) });
+  const query: Record<string, unknown> = {
+    createdBy: new ObjectId(currentUser.id),
+    projectName: assignedProject,
+  };
+
+  if (search) {
+    const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    query.$or = [
+      { quarter: { $regex: escaped, $options: "i" } },
+    ];
+  }
+
+  const reportsCollection = await getReportsCollection();
+  const skip = (page - 1) * limit;
+  const [total, reports] = await Promise.all([
+    reportsCollection.countDocuments(query),
+    reportsCollection
+      .find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray(),
+  ]);
+
+  return NextResponse.json({
+    reports: reports.map(toReportResponse),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  });
 }

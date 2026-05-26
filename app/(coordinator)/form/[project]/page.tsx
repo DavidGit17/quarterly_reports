@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  BIBLE_BOOKS,
   getHydratedFormState,
   getProjectNameFromSlug,
   toProjectSlug,
@@ -140,6 +141,7 @@ export default function ProjectFormPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isAccessDenied, setIsAccessDenied] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("");
 
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const nativeDateInputRefs = useRef<Record<string, HTMLInputElement | null>>(
@@ -158,6 +160,8 @@ export default function ProjectFormPage() {
   useEffect(() => {
     const verifyAccess = async () => {
       try {
+        setIsAccessDenied(false);
+        setIsPreviewMode(false);
         const response = await fetch("/api/auth/me", { cache: "no-store" });
 
         if (response.status === 401) {
@@ -524,10 +528,10 @@ export default function ProjectFormPage() {
             You can only access the form for your assigned project.
           </p>
           <Link
-            href="/dashboard"
+            href="/login"
             className={FORM_LINK_CLASS}
           >
-            Go to Dashboard
+            Return to Login
           </Link>
         </div>
       </div>
