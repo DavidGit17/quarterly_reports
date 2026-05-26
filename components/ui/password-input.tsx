@@ -6,7 +6,7 @@ import { cn } from "@/lib/shared/utils";
 
 type PasswordInputProps = Omit<React.ComponentProps<"input">, "type">;
 
-function PasswordInput({ className, onChange, value, ...props }: PasswordInputProps) {
+function PasswordInput({ className, onChange, value, autoComplete = "new-password", ...props }: PasswordInputProps) {
   const [show, setShow] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -31,6 +31,7 @@ function PasswordInput({ className, onChange, value, ...props }: PasswordInputPr
           "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
           className,
         )}
+        autoComplete={autoComplete}
         onChange={(e) => {
           onChange?.(e);
         }}
