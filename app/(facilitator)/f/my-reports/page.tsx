@@ -105,7 +105,7 @@ export default function FacilitatorMyReportsPage() {
 
   if (isLoading) {
     return (
-      <div className="coordinator-system min-h-screen bg-background">
+      <div className="coordinator-system min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse">
           <div className="mb-8">
             <div className="h-4 w-16 bg-slate-200 rounded mb-3" />
@@ -133,7 +133,7 @@ export default function FacilitatorMyReportsPage() {
   }
 
   return (
-    <div className="coordinator-system min-h-screen bg-background">
+    <div className="coordinator-system min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="mb-3">
