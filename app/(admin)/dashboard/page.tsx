@@ -44,14 +44,16 @@ export default function DashboardPage() {
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
   const [totalReportsCount, setTotalReportsCount] = useState(0);
+  const [coordinatorCount, setCoordinatorCount] = useState(0);
+  const [facilitatorCount, setFacilitatorCount] = useState(0);
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const reportsResponse = await fetch("/api/reports?page=1&limit=100", {
-          cache: "no-store",
-        });
-        const reportsData = (await reportsResponse.json()) as ReportsResponse;
+        const [reportsResponse, usersResponse] = await Promise.all([
+          fetch("/api/reports?page=1&limit=100", { cache: "no-store" }),
+          fetch("/api/admin/users?limit=1", { cache: "no-store" }),
+        ]);
 
         if (reportsResponse.status === 401) {
           router.push("/login");
@@ -63,6 +65,8 @@ export default function DashboardPage() {
           return;
         }
 
+        const reportsData = (await reportsResponse.json()) as ReportsResponse;
+
         if (!reportsResponse.ok) {
           setErrorMessage(reportsData.message || "Unable to load reports.");
           return;
@@ -70,6 +74,12 @@ export default function DashboardPage() {
 
         setReports(reportsData.reports || []);
         setTotalReportsCount(reportsData.pagination?.total ?? reportsData.reports?.length ?? 0);
+
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json() as { counts?: { coordinator: number; facilitator: number } };
+          setCoordinatorCount(usersData.counts?.coordinator ?? 0);
+          setFacilitatorCount(usersData.counts?.facilitator ?? 0);
+        }
       } catch {
         setErrorMessage("Unable to load dashboard right now.");
       } finally {
@@ -101,14 +111,15 @@ export default function DashboardPage() {
     return grouped;
   }, [reports]);
 
-  const reportsPerProject = useMemo(() => {
+  const topProjects = useMemo(() => {
     const counts: Record<string, number> = {};
     reports.forEach((r) => {
       counts[r.projectName] = (counts[r.projectName] || 0) + 1;
     });
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
   }, [reports]);
 
   const reportsPerMonth = useMemo(() => {
@@ -122,9 +133,6 @@ export default function DashboardPage() {
 
   const totalProjects = Object.keys(reportData).length;
   const totalReports = totalReportsCount;
-  const activeCoordinators = new Set(
-    reports.map((report) => report.createdByUsername),
-  ).size;
 
   if (isUnauthorized) {
     return (
@@ -163,7 +171,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
               <p className="text-sm text-slate-600 mb-2">Total Projects</p>
               <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
@@ -174,6 +182,10 @@ export default function DashboardPage() {
             </div>
             <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
               <p className="text-sm text-slate-600 mb-2">Active Coordinators</p>
+              <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
+            </div>
+            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+              <p className="text-sm text-slate-600 mb-2">Active Facilitators</p>
               <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
             </div>
           </div>
@@ -197,7 +209,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
               <p className="text-sm text-slate-600 mb-2">Total Projects</p>
               <p className="text-3xl font-bold text-slate-900">
@@ -213,7 +225,13 @@ export default function DashboardPage() {
             <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
               <p className="text-sm text-slate-600 mb-2">Active Coordinators</p>
               <p className="text-3xl font-bold text-slate-900">
-                {activeCoordinators}
+                {coordinatorCount}
+              </p>
+            </div>
+            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+              <p className="text-sm text-slate-600 mb-2">Active Facilitators</p>
+              <p className="text-3xl font-bold text-slate-900">
+                {facilitatorCount}
               </p>
             </div>
           </div>
@@ -232,17 +250,17 @@ export default function DashboardPage() {
             <div className="bg-white rounded-lg border border-slate-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-slate-900">
-                  Reports Per Project
+                  Top Projects
                 </h2>
-                {reportsPerProject.length > 10 && (
+                {totalProjects > 10 && (
                   <span className="text-xs text-slate-500">
-                    showing top {reportsPerProject.length}
+                    top 10 of {totalProjects}
                   </span>
                 )}
               </div>
-              <div className="overflow-y-auto" style={{ maxHeight: 400 }}>
-                <ResponsiveContainer width="100%" height={Math.max(200, reportsPerProject.length * 24)}>
-                  <BarChart data={reportsPerProject} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
+              {topProjects.length > 0 ? (
+                <ResponsiveContainer width="100%" height={Math.max(200, topProjects.length * 36)}>
+                  <BarChart data={topProjects} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
                     <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#334155" }} width={120} />
@@ -250,10 +268,12 @@ export default function DashboardPage() {
                       contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
                       formatter={(value: number) => [value, "Reports"]}
                     />
-                    <Bar dataKey="value" fill="#334155" radius={[0, 4, 4, 0]} barSize={12} />
+                    <Bar dataKey="value" fill="#334155" radius={[0, 4, 4, 0]} barSize={16} />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
+              ) : (
+                <p className="text-sm text-slate-500">No data</p>
+              )}
             </div>
 
             {/* Reports Per Month */}
