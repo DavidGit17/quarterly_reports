@@ -230,21 +230,30 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Reports Per Project */}
             <div className="bg-white rounded-lg border border-slate-200 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                Reports Per Project
-              </h2>
-              <ResponsiveContainer width="100%" height={Math.max(200, reportsPerProject.length * 40)}>
-                <BarChart data={reportsPerProject} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#334155" }} width={120} />
-                  <Tooltip
-                    contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
-                    formatter={(value: number) => [value, "Reports"]}
-                  />
-                  <Bar dataKey="value" fill="#334155" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Reports Per Project
+                </h2>
+                {reportsPerProject.length > 10 && (
+                  <span className="text-xs text-slate-500">
+                    showing top {reportsPerProject.length}
+                  </span>
+                )}
+              </div>
+              <div className="overflow-y-auto" style={{ maxHeight: 400 }}>
+                <ResponsiveContainer width="100%" height={Math.max(200, reportsPerProject.length * 36)}>
+                  <BarChart data={reportsPerProject} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#334155" }} width={120} />
+                    <Tooltip
+                      contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
+                      formatter={(value: number) => [value, "Reports"]}
+                    />
+                    <Bar dataKey="value" fill="#334155" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* Reports Per Month */}

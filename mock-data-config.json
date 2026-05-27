@@ -5,7 +5,18 @@
     "facilitators": 10
   },
   "reports": 200,
-  "projects": ["Haksolok", "Sukacita", "Tunas", "Murna", "Ninjay", "SuViMung", "Hiba"],
+  "projects": [
+    "Haksolok", "Sukacita", "Tunas", "Murna", "Ninjay", "SuViMung", "Hiba",
+    "Akar", "Bakti", "Cahaya", "Damai", "Elok", "Gading", "Harum",
+    "Intan", "Jagat", "Kencana", "Lestari", "Mekar", "Nusantara",
+    "Optima", "Purnama", "Ragam", "Sari", "Tirta", "Unggul",
+    "Varia", "Wijaya", "Yakin", "Zamrud",
+    "Abadi", "Bersama", "Cemerlang", "Dinamis", "Eka",
+    "Guna", "Hikmah", "Indah", "Jaya", "Karya",
+    "Luhur", "Maju", "Nila", "Perdana", "Raya",
+    "Sejahtera", "Utama", "Wahana", "Mandiri", "Prima",
+    "Citra", "Dharma", "Mitra", "Krida", "Satria"
+  ],
   "quarters": ["Q1", "Q2", "Q3", "Q4"],
   "emailPrefix": "mailtesterinfinity",
   "usernamePatterns": {

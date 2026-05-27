@@ -145,14 +145,16 @@ async function main() {
 
   const usersCollection = db.collection<UserDocument>("users");
   const reportsCollection = db.collection<ReportDocument>("reports");
+  const projectsCollection = db.collection("projects");
 
   console.log("Connected to MongoDB:", dbName);
   console.log("");
 
   // ── Clear existing seed data ──────────────────────────
-  console.log("Clearing existing users and reports...");
+  console.log("Clearing existing users, reports, and projects...");
   await usersCollection.deleteMany({});
   await reportsCollection.deleteMany({});
+  await projectsCollection.deleteMany({});
   console.log("Done.");
   console.log("");
 
@@ -241,6 +243,12 @@ async function main() {
   console.log(`  Coordinators: ${coordinators}`);
   console.log(`  Facilitators: ${facilitators}`);
   console.log(`  Common password: "${password}"`);
+  console.log("");
+
+  // ── Seed projects ──────────────────────────────────────
+  const projectDocs = config.projects.map((name) => ({ name }));
+  await projectsCollection.insertMany(projectDocs);
+  console.log(`Inserted ${projectDocs.length} projects`);
   console.log("");
 
   // ── Build reports ─────────────────────────────────────
