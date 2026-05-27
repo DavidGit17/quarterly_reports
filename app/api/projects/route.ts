@@ -21,13 +21,13 @@ const getCollection = async () => {
   return db.collection<ProjectDocument>(COLLECTION);
 };
 
-const toProjectResponse = (doc: ProjectDocument & { _id: ObjectId }) => ({
+const toProjectResponse = (doc: Partial<ProjectDocument> & { _id: ObjectId }) => ({
   id: doc._id.toString(),
-  name: doc.name,
-  description: doc.description,
-  languages: doc.languages,
-  status: doc.status,
-  createdDate: doc.createdAt.toISOString().slice(0, 10),
+  name: doc.name || "",
+  description: doc.description || "",
+  languages: doc.languages || [],
+  status: doc.status || "active",
+  createdDate: doc.createdAt ? new Date(doc.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
 });
 
 export async function GET() {

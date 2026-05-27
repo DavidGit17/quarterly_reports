@@ -246,7 +246,14 @@ async function main() {
   console.log("");
 
   // ── Seed projects ──────────────────────────────────────
-  const projectDocs = config.projects.map((name) => ({ name }));
+  const projectDocs = config.projects.map((name, i) => ({
+    name,
+    nameLower: name.toLowerCase(),
+    description: "",
+    languages: [] as string[],
+    status: "active" as const,
+    createdAt: faker.date.between({ from: "2024-01-01", to: "2025-12-01" }),
+  }));
   await projectsCollection.insertMany(projectDocs);
   console.log(`Inserted ${projectDocs.length} projects`);
   console.log("");
