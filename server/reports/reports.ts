@@ -24,6 +24,7 @@ export type ReportDocument = {
   status?: ReportStatus;
   fields: Record<string, string | string[]>;
   dynamicFields: DynamicReportField[];
+  cycleId?: ObjectId;
 };
 
 export type ReportRecord = WithId<ReportDocument> & { _id: ObjectId };
@@ -53,6 +54,10 @@ const ensureReportsIndexes = async (
           key: { status: 1, createdAt: -1 },
           name: "reports_status_created_at_idx",
         },
+        {
+          key: { cycleId: 1 },
+          name: "reports_cycle_id_idx",
+        },
       ])
       .then(() => undefined);
   }
@@ -79,4 +84,5 @@ export const toReportResponse = (report: ReportRecord) => ({
   status: report.status || "submitted",
   fields: report.fields,
   dynamicFields: report.dynamicFields,
+  cycleId: report.cycleId?.toString() || null,
 });

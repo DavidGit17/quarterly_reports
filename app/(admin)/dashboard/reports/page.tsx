@@ -342,6 +342,10 @@ export default function ReportsPage() {
   const [projectFilter, setProjectFilter] = useState("all");
   const [quarterFilter, setQuarterFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<"all" | ReportStatus>("all");
+  const [cycleFilter, setCycleFilter] = useState("all");
+  const [cycles, setCycles] = useState<Array<{ id: string; name: string }>>(
+    [],
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -363,6 +367,7 @@ export default function ReportsPage() {
       if (projectFilter !== "all") params.set("project", projectFilter);
       if (quarterFilter !== "all") params.set("quarter", quarterFilter);
       if (statusFilter !== "all") params.set("status", statusFilter);
+      if (cycleFilter !== "all") params.set("cycleId", cycleFilter);
 
       const response = await fetch(`/api/reports?${params.toString()}`, { cache: "no-store" });
 
@@ -385,15 +390,30 @@ export default function ReportsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchValue, projectFilter, quarterFilter, statusFilter, router]);
+  }, [currentPage, searchValue, projectFilter, quarterFilter, statusFilter, cycleFilter, router]);
 
   useEffect(() => {
     void loadReports();
   }, [loadReports]);
 
   useEffect(() => {
+    const fetchCycles = async () => {
+      try {
+        const res = await fetch("/api/reporting-cycles");
+        if (res.ok) {
+          const data = await res.json();
+          setCycles(data.cycles || []);
+        }
+      } catch {
+        // non-critical
+      }
+    };
+    fetchCycles();
+  }, []);
+
+  useEffect(() => {
     setCurrentPage(1);
-  }, [searchValue, projectFilter, quarterFilter, statusFilter]);
+  }, [searchValue, projectFilter, quarterFilter, statusFilter, cycleFilter]);
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -534,6 +554,23 @@ export default function ReportsPage() {
                 {uniqueQuarters.map((quarter) => (
                   <SelectItem key={quarter} value={quarter}>
                     {quarter}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={cycleFilter}
+              onValueChange={setCycleFilter}
+            >
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="All cycles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Cycles</SelectItem>
+                {cycles.map((cycle) => (
+                  <SelectItem key={cycle.id} value={cycle.id}>
+                    {cycle.name}
                   </SelectItem>
                 ))}
               </SelectContent>

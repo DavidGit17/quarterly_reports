@@ -13,6 +13,7 @@ type CreateReportPayload = {
   quarter?: string;
   fields?: Record<string, string | string[]>;
   dynamicFields?: DynamicReportField[];
+  cycleId?: string;
 };
 
 const hasEmptyFieldValue = (value: string | string[]) => {
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     const quarter = payload.quarter?.trim() || "";
     const fields = payload.fields || {};
     const dynamicFields = payload.dynamicFields || [];
+    const cycleId = payload.cycleId?.trim() || "";
 
     const assignedProject = currentUser.project?.trim() || "";
 
@@ -99,6 +101,7 @@ export async function POST(request: Request) {
       status: "submitted",
       fields,
       dynamicFields,
+      ...(cycleId ? { cycleId: new ObjectId(cycleId) } : {}),
     });
 
     return NextResponse.json(
@@ -113,6 +116,7 @@ export async function POST(request: Request) {
           status: "submitted",
           fields,
           dynamicFields,
+          cycleId: cycleId || null,
         },
       },
       { status: 201 },
@@ -161,6 +165,7 @@ export async function GET(request: Request) {
     const projectFilter = searchParams.get("project")?.trim() || "";
     const statusFilter = searchParams.get("status")?.trim() || "";
     const quarterFilter = searchParams.get("quarter")?.trim() || "";
+    const cycleIdFilter = searchParams.get("cycleId")?.trim() || "";
 
     const query: Record<string, unknown> = {};
 
@@ -172,6 +177,16 @@ export async function GET(request: Request) {
     }
     if (quarterFilter) {
       query.quarter = quarterFilter;
+    }
+    if (cycleIdFilter) {
+      try {
+        query.cycleId = new ObjectId(cycleIdFilter);
+      } catch {
+        return NextResponse.json(
+          { message: "Invalid cycle id." },
+          { status: 400 },
+        );
+      }
     }
     if (search) {
       const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

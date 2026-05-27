@@ -8,6 +8,8 @@ import {
   Settings,
   FolderKanban,
   UserCog,
+  CalendarDays,
+  Send,
 } from "lucide-react";
 import { cn } from "@/lib/shared/utils";
 
@@ -33,6 +35,16 @@ export const sidebarItems: SidebarItem[] = [
     label: "Forms Overview",
     href: "/dashboard/forms-overview",
     icon: <FileText className="w-5 h-5" />,
+  },
+  {
+    label: "Reporting Cycles",
+    href: "/dashboard/reporting-cycles",
+    icon: <CalendarDays className="w-5 h-5" />,
+  },
+  {
+    label: "Email Campaigns",
+    href: "/dashboard/email-campaigns",
+    icon: <Send className="w-5 h-5" />,
   },
   {
     label: "Projects",
