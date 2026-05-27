@@ -1,4 +1,4 @@
-export default function FacilitatorLayout({
+export default function CoordinatorLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -51,31 +51,29 @@ const getQuarterLabel = (startMonth: string, endMonth: string) =>
   `${startMonth} - ${endMonth}`;
 const fileAcceptTypes =
   ".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,image/*,video/*,audio/*";
-const FORM_BACKGROUND =
-  "linear-gradient(135deg, #f0f4f2 0%, #f8f9fa 50%, #f5f7f6 100%)";
 const FORM_FIELD_CLASS =
-  "w-full rounded border border-[#727974] bg-[#ffffff] px-4 py-3 font-ui text-[16px] leading-6 text-[#191c1d] placeholder:text-[#727974] transition-[border-color,box-shadow,background-color] duration-200 hover:border-[#344b41] focus:border-[#4b6358] focus:bg-[#ffffff] focus:outline-none focus:ring-2 focus:ring-[#b2cdbf]/60 disabled:border-[#d9dadb] disabled:bg-[#edeeef] disabled:text-[#727974] disabled:cursor-not-allowed";
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
 const FORM_DATE_FIELD_CLASS = `${FORM_FIELD_CLASS} pr-12`;
 const FORM_CUSTOM_SELECT_TRIGGER_CLASS =
-  "h-auto w-full rounded border-[#727974] bg-[#ffffff] px-4 py-3 font-ui text-[16px] leading-6 text-[#191c1d] shadow-none transition-[border-color,box-shadow,background-color] duration-200 hover:border-[#344b41] focus:border-[#4b6358] focus:ring-2 focus:ring-[#b2cdbf]/60 focus-visible:border-[#4b6358] focus-visible:ring-2 focus-visible:ring-[#b2cdbf]/60 data-[placeholder]:text-[#727974]";
+  "h-auto w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 shadow-none transition-all duration-200 hover:border-slate-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus-visible:border-blue-400 focus-visible:ring-2 focus-visible:ring-blue-100 data-[placeholder]:text-slate-400";
 const FORM_CUSTOM_SELECT_CONTENT_CLASS =
-  "rounded border-[#c2c8c3] bg-[#ffffff] text-[#191c1d] shadow-[0_4px_12px_rgba(90,100,114,0.08)]";
+  "rounded-xl border border-slate-100 bg-white text-slate-800 shadow-lg";
 const FORM_CUSTOM_SELECT_ITEM_CLASS =
-  "cursor-pointer rounded-sm py-2 pl-8 pr-3 font-ui text-[14px] leading-5 text-[#191c1d] transition-colors duration-150 focus:bg-[#cee9db] focus:text-[#082017] data-[state=checked]:bg-[#4b6358] data-[state=checked]:text-white";
-const FORM_SURFACE_CLASS = "rounded-lg border border-[#c2c8c3] bg-[#ffffff]";
+  "cursor-pointer rounded-lg py-2 pl-8 pr-3 text-[14px] text-slate-700 transition-colors duration-150 focus:bg-blue-50 focus:text-blue-800 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white";
+const FORM_SURFACE_CLASS = "rounded-2xl bg-white shadow-sm border border-slate-100";
 const FORM_LABEL_CLASS =
-  "block font-ui text-[16px] font-medium leading-6 text-[#191c1d]";
-const FORM_REQUIRED_CLASS = "font-ui font-semibold text-[#ba1a1a]";
+  "block text-[16px] font-medium text-slate-800";
+const FORM_REQUIRED_CLASS = "text-red-400 font-semibold";
 const FORM_META_CLASS =
-  "font-ui text-[14px] leading-5 text-[#424845]";
+  "text-sm text-slate-500";
 const FORM_LINK_CLASS =
-  "font-ui text-[14px] font-medium text-[#555f6d] transition-colors duration-200 hover:text-[#344b41]";
+  "text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-700";
 const FORM_ICON_BUTTON_CLASS =
-  "absolute right-3 top-1/2 -translate-y-1/2 text-[#555f6d] transition-colors duration-200 hover:text-[#344b41] cursor-pointer";
+  "absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 cursor-pointer";
 const FORM_SECONDARY_ACTION_CLASS =
-  "font-ui text-[14px] font-medium text-[#555f6d] transition-colors duration-200 hover:text-[#344b41] cursor-pointer";
+  "text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-700 cursor-pointer";
 const FORM_PRIMARY_BUTTON_CLASS =
-  "inline-flex items-center justify-center rounded bg-[#4b6358] px-8 py-3 font-ui text-[16px] font-semibold leading-6 text-white transition-[background-color,box-shadow] duration-200 hover:bg-[#344b41] focus:outline-none focus:ring-2 focus:ring-[#b2cdbf]/70 active:bg-[#344b41] cursor-pointer disabled:bg-[#d9dadb] disabled:text-[#727974] disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center rounded-xl bg-blue-700 px-8 py-3 text-[16px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-200 active:bg-blue-900 cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
 
 const formatDateInput = (value: string) => {
   const digitsOnly = value.replace(/\D/g, "").slice(0, 8);
@@ -531,7 +529,7 @@ export default function ProjectFormPage() {
 
   if (!isReady && !errorMessage) {
     return (
-      <div className="coordinator-system min-h-screen" style={{ background: FORM_BACKGROUND }}>
+      <div className="min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-10 animate-pulse">
           <div className="h-4 w-16 bg-slate-200 rounded mb-6" />
           <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
@@ -597,19 +595,16 @@ export default function ProjectFormPage() {
   }
 
   return (
-    <div
-      className="coordinator-system min-h-screen"
-      style={{ background: FORM_BACKGROUND }}
-    >
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-10">
         {isPreviewMode && (
-          <div className="mb-6 rounded-lg border border-[#d6c3b1] bg-[#f3dfcc] px-6 py-4 flex items-center gap-3">
-            <Eye className="h-5 w-5 text-[#514436] shrink-0" />
+          <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-6 py-4 flex items-center gap-3">
+            <Eye className="h-5 w-5 text-blue-600 shrink-0" />
             <div>
-              <p className="font-ui text-[14px] font-semibold leading-5 text-[#241a0e]">
+              <p className="text-sm font-semibold text-blue-800">
                 Preview Mode
               </p>
-              <p className="font-data text-[12px] font-medium leading-4 text-[#524437]">
+              <p className="text-xs font-medium text-blue-600">
                 You are viewing this form as an admin. This is a read-only
                 preview.
               </p>
@@ -634,15 +629,15 @@ export default function ProjectFormPage() {
               {!isPreviewMode && (
                 <Link
                   href="/profile"
-                  className="inline-flex items-center text-[#555f6d] transition-colors duration-200 hover:text-[#344b41]"
+                  className="inline-flex items-center text-slate-400 transition-colors duration-200 hover:text-slate-600"
                   aria-label="Go to profile"
                   title="Profile"
                 >
-                  <Avatar className="h-9 w-9 border border-[#c2c8c3]">
+                  <Avatar className="h-9 w-9 border border-slate-200">
                     {profileImagePreview ? (
                       <AvatarImage src={profileImagePreview} alt="Profile" />
                     ) : null}
-                    <AvatarFallback className="bg-[#e1e3e4] font-data text-[12px] font-medium text-[#344b41]">
+                    <AvatarFallback className="bg-slate-100 text-xs font-medium text-slate-600">
                       {coordinatorName ? (
                         getUserInitials(coordinatorName)
                       ) : (
@@ -688,7 +683,7 @@ export default function ProjectFormPage() {
               <p className={`${FORM_LABEL_CLASS} mb-2`}>
                 Quarter
               </p>
-              <p className="rounded border border-[#c2c8c3] bg-[#f3f4f5] px-4 py-3 font-ui text-[16px] font-medium leading-6 text-[#191c1d]">
+              <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
                 {quarterRange}
               </p>
             </div>
@@ -908,10 +903,10 @@ export default function ProjectFormPage() {
                               onClick={() =>
                                 handleTextChange(field.id, String(i + 1))
                               }
-                              className={`rounded-sm p-1 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#b2cdbf]/60 ${
+                              className={`rounded-sm p-1 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
                                 isActive
-                                  ? "text-[#4b6358]"
-                                  : "text-[#c2c8c3] hover:text-[#4b6358]"
+                                  ? "text-blue-600"
+                                  : "text-slate-200 hover:text-blue-500"
                               }`}
                               aria-label={`Rate ${i + 1} out of ${field.ratingLevels || 5}`}
                             >
@@ -932,7 +927,7 @@ export default function ProjectFormPage() {
                     <div className="space-y-4">
                       <label
                         htmlFor={`file-${field.id}`}
-                        className="inline-flex items-center gap-2 rounded border border-[#c2c8c3] bg-[#ffffff] px-3 py-2 font-ui text-[14px] font-medium leading-5 text-[#344b41] transition-[background-color,border-color] duration-200 hover:border-[#4b6358] hover:bg-[#cee9db]/35 cursor-pointer"
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
                       >
                         <Upload className="h-4 w-4" /> Upload file
                       </label>
@@ -962,9 +957,9 @@ export default function ProjectFormPage() {
 
                       {uploadingFiles[field.id] && (
                         <div className="space-y-2">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded border border-dashed border-[#c2c8c3] bg-[#f3f4f5] px-3 py-2 font-ui text-[14px] leading-5 text-[#191c1d]">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
                             <div className="flex items-center gap-2 min-w-0">
-                              <Upload className="h-4 w-4 text-[#555f6d]" />
+                              <Upload className="h-4 w-4 text-slate-400" />
                               <span className="truncate">
                                 {(pendingFiles[field.id] || [])[0]?.name}
                               </span>
@@ -977,9 +972,9 @@ export default function ProjectFormPage() {
                               Cancel
                             </button>
                           </div>
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e1e3e4]">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
                             <div
-                              className="h-full bg-[#4b6358] transition-all duration-200"
+                              className="h-full bg-blue-600 transition-all duration-200"
                               style={{
                                 width: `${Math.max(
                                   5,
@@ -1038,11 +1033,11 @@ export default function ProjectFormPage() {
 
         {showSubmitPopup && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-md rounded-lg border border-[#c2c8c3] bg-[#ffffff] p-6 shadow-[0_4px_12px_rgba(90,100,114,0.08)]">
-              <h3 className="mb-2 font-heading text-[20px] font-medium leading-7 text-[#191c1d]">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg border border-slate-100">
+              <h3 className="mb-2 text-xl font-semibold text-slate-800">
                 Report submitted successfully
               </h3>
-              <p className={`${FORM_META_CLASS} mb-5`}>
+              <p className="text-sm text-slate-500 mb-5">
                 Redirecting to submitted reports history...
               </p>
               <button
