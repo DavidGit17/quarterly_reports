@@ -3,7 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { formatDateTime } from "@/lib/shared/form-storage";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 interface Report {
   id: string;
@@ -24,12 +32,13 @@ type ReportsResponse = {
   message?: string;
 };
 
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
 export default function DashboardPage() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchType, setSearchType] = useState<
-    "project" | "quarter" | "date" | "language"
-  >("project");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isUnauthorized, setIsUnauthorized] = useState(false);
@@ -92,25 +101,24 @@ export default function DashboardPage() {
     return grouped;
   }, [reports]);
 
-  const filteredProjects = useMemo(
-    () =>
-      Object.keys(reportData).filter((project) => {
-        if (searchType === "project") {
-          return project.toLowerCase().includes(searchTerm.toLowerCase());
-        } else if (searchType === "quarter") {
-          return Object.keys(reportData[project]).some((quarter) =>
-            quarter.toLowerCase().includes(searchTerm.toLowerCase()),
-          );
-        } else if (searchType === "date") {
-          return reportData[project][Object.keys(reportData[project])[0]]?.some(
-            (report) =>
-              formatDateTime(report.createdAt).date.includes(searchTerm),
-          );
-        }
-        return true;
-      }),
-    [reportData, searchTerm, searchType],
-  );
+  const reportsPerProject = useMemo(() => {
+    const counts: Record<string, number> = {};
+    reports.forEach((r) => {
+      counts[r.projectName] = (counts[r.projectName] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [reports]);
+
+  const reportsPerMonth = useMemo(() => {
+    const counts = new Array(12).fill(0);
+    reports.forEach((r) => {
+      const month = new Date(r.createdAt).getMonth();
+      counts[month]++;
+    });
+    return counts.map((count, i) => ({ name: MONTHS[i], value: count }));
+  }, [reports]);
 
   const totalProjects = Object.keys(reportData).length;
   const totalReports = totalReportsCount;
@@ -217,93 +225,50 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Unified Search Bar */}
-        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder={`Search by ${searchType}...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-slate-700 focus:ring-1 focus:ring-slate-200 bg-white text-slate-900"
-              />
+        {/* Charts */}
+        {reports.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Reports Per Project */}
+            <div className="bg-white rounded-lg border border-slate-200 p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                Reports Per Project
+              </h2>
+              <ResponsiveContainer width="100%" height={Math.max(200, reportsPerProject.length * 40)}>
+                <BarChart data={reportsPerProject} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#334155" }} width={120} />
+                  <Tooltip
+                    contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
+                    formatter={(value: number) => [value, "Reports"]}
+                  />
+                  <Bar dataKey="value" fill="#334155" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <select
-              value={searchType}
-              onChange={(e) =>
-                setSearchType(
-                  e.target.value as "project" | "quarter" | "date" | "language",
-                )
-              }
-              className="px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:border-slate-700 focus:ring-1 focus:ring-slate-200 bg-white text-slate-900"
-            >
-              <option value="project">Project Name</option>
-              <option value="quarter">Quarter</option>
-              <option value="date">Date</option>
-              <option value="language">Language</option>
-            </select>
-          </div>
-        </div>
 
-        {/* Reports Organized by Project -> Quarter */}
-        {filteredProjects.length > 0 ? (
-          <div className="space-y-8">
-            {filteredProjects.map((project) => (
-              <div key={project}>
-                <h2 className="text-2xl font-bold text-slate-900 mb-4 pb-4 border-b border-slate-200">
-                  {project}
-                </h2>
-
-                {Object.keys(reportData[project]).map((quarter) => (
-                  <div key={`${project}-${quarter}`} className="mb-6">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-3 ml-2">
-                      {quarter}
-                    </h3>
-
-                    <div className="grid gap-4">
-                      {reportData[project][quarter].map((report) => (
-                        <div
-                          key={report.id}
-                          className="bg-white rounded-lg border border-slate-200 p-4 md:p-6 transition-colors"
-                        >
-                          <div className="flex flex-col md:flex-row items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-slate-600 mb-1">
-                                Submitted by:{" "}
-                                <span className="text-slate-900 font-medium">
-                                  {report.createdByUsername}
-                                </span>
-                              </p>
-                              <p className="text-sm text-slate-600">
-                                {formatDateTime(report.createdAt).date} at{" "}
-                                {formatDateTime(report.createdAt).time}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() =>
-                                router.push(`/report/${report.id}`)
-                              }
-                              className="w-full md:w-auto bg-slate-700 text-white px-4 md:px-6 py-2.5 md:py-2 rounded-md hover:bg-slate-800 transition-colors font-medium whitespace-nowrap"
-                            >
-                              View Report
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
+            {/* Reports Per Month */}
+            <div className="bg-white rounded-lg border border-slate-200 p-6">
+              <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                Reports Over Time
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={reportsPerMonth} margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#64748b" }} />
+                  <YAxis tick={{ fontSize: 12, fill: "#64748b" }} />
+                  <Tooltip
+                    contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
+                    formatter={(value: number) => [value, "Reports"]}
+                  />
+                  <Bar dataKey="value" fill="#334155" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
-            <p className="text-slate-600">
-              {searchTerm
-                ? "No projects found matching your search."
-                : "No reports available."}
-            </p>
+            <p className="text-slate-600">No reports yet.</p>
           </div>
         )}
       </div>
