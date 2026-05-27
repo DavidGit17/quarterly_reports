@@ -274,8 +274,15 @@ export default function EmailCampaignsPage() {
       />
 
       {loading ? (
-        <div className="py-12 text-center text-sm text-slate-500">
-          Loading campaigns...
+        <div className="animate-pulse mt-4 overflow-x-auto rounded-lg border border-slate-200">
+          <div className="bg-slate-50 p-3">
+            <div className="h-4 w-32 bg-slate-200 rounded" />
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 border-t border-slate-100">
+              <div className="h-4 w-full bg-slate-200 rounded" />
+            </div>
+          ))}
         </div>
       ) : campaigns.length === 0 ? (
         <div className="py-12 text-center text-sm text-slate-500">

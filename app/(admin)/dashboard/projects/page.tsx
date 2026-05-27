@@ -222,8 +222,25 @@ export default function ProjectsPage() {
       <ProjectsSummary projects={projects} />
 
       {loading ? (
-        <div className="py-12 text-center text-sm text-slate-500">
-          Loading projects...
+        <div className="animate-pulse space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-lg border border-slate-200 p-4">
+                <div className="h-4 w-20 bg-slate-200 rounded mb-2" />
+                <div className="h-8 w-12 bg-slate-200 rounded" />
+              </div>
+            ))}
+          </div>
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
+            <div className="bg-slate-50 p-3">
+              <div className="h-4 w-32 bg-slate-200 rounded" />
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-4 border-t border-slate-100">
+                <div className="h-4 w-full bg-slate-200 rounded" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <>

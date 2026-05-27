@@ -205,8 +205,29 @@ function SubmitReportContent() {
 
   if (!isReady && !errorMessage) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <p className="text-slate-600">Loading...</p>
+      <div className="min-h-screen bg-slate-100">
+        <div className="max-w-5xl mx-auto px-4 py-10 animate-pulse">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div className="h-4 w-16 bg-slate-200 rounded" />
+            <div className="h-8 w-64 bg-slate-200 rounded" />
+          </div>
+          <div className="bg-white rounded-lg border border-slate-200 p-8 mb-6">
+            <div className="h-10 w-72 bg-slate-200 rounded mb-4" />
+            <div className="h-4 w-48 bg-slate-200 rounded" />
+          </div>
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg border border-slate-200 p-6">
+              <div className="h-5 w-32 bg-slate-200 rounded mb-2" />
+              <div className="h-10 w-full bg-slate-200 rounded" />
+            </div>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-lg border border-slate-200 p-6">
+                <div className="h-5 w-48 bg-slate-200 rounded mb-3" />
+                <div className="h-10 w-full bg-slate-200 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

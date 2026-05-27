@@ -13,13 +13,19 @@ import {
   saveDefaultFields,
   saveProjectQuarters,
   saveFormConfigs,
+  saveFormTitles,
+  saveFormMeta,
   pushFormConfigsToApi,
   pushDefaultFieldsToApi,
   pushQuarterConfigsToApi,
+  pushFormTitlesToApi,
+  pushFormMetaToApi,
   toProjectSlug,
   type DynamicFieldType,
   type FormFieldConfig,
   type ProjectQuarterConfigs,
+  type FormTitles,
+  type FormMeta,
   type MonthOption,
   type ProjectFormConfigs,
 } from "@/lib/shared/form-storage";
@@ -139,6 +145,16 @@ export default function AdminFormBuilderPage() {
   const [recentlyAddedFieldId, setRecentlyAddedFieldId] = useState<
     string | null
   >(null);
+  const [formTitles, setFormTitles] = useState<FormTitles>({});
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const isDirtyRef = useRef(false);
+  const [isDirty, setIsDirty] = useState(false);
+
+  const markDirty = () => {
+    isDirtyRef.current = true;
+    setIsDirty(true);
+  };
+
   const [scrollPosition, setScrollPosition] = useState({
     canScrollDown: false,
     canScrollUp: false,
@@ -169,6 +185,8 @@ export default function AdminFormBuilderPage() {
         defaultFields: hydratedDefaults,
         customConfigs,
         quarterConfigs,
+        formTitles: hydratedTitles,
+        formMeta: hydratedMeta,
       } = await getHydratedFormState();
 
       // Ensure we have all 27 default fields (hydratedDefaults can have MORE than 27 - custom fields added via builder)
@@ -181,6 +199,8 @@ export default function AdminFormBuilderPage() {
       setDefaultFields(defaultsToUse);
       setConfigs(customConfigs);
       setQuarterConfigs(quarterConfigs);
+      setFormTitles(hydratedTitles);
+      setLastSavedAt(hydratedMeta.lastSavedAt);
 
       const params = new URLSearchParams(window.location.search);
       const projectParam = params.get("project");
@@ -338,6 +358,7 @@ export default function AdminFormBuilderPage() {
           : field,
       ),
     );
+    markDirty();
   };
 
   const updateField = (fieldId: string, updates: Partial<FormFieldConfig>) => {
@@ -360,6 +381,7 @@ export default function AdminFormBuilderPage() {
         [selectedProject]: updatedProjectFields,
       };
     });
+    markDirty();
   };
 
   const addDefaultField = () => {
@@ -376,6 +398,7 @@ export default function AdminFormBuilderPage() {
       return [...prev, newField];
     });
     setPendingAddedFieldId(newFieldId);
+    markDirty();
   };
 
   const addNewField = () => {
@@ -397,10 +420,12 @@ export default function AdminFormBuilderPage() {
       };
     });
     setPendingAddedFieldId(newFieldId);
+    markDirty();
   };
 
   const removeDefaultField = (fieldId: string) => {
     setDefaultFields((prev) => prev.filter((field) => field.id !== fieldId));
+    markDirty();
   };
 
   const removeField = (fieldId: string) => {
@@ -410,6 +435,7 @@ export default function AdminFormBuilderPage() {
         (field) => field.id !== fieldId,
       ),
     }));
+    markDirty();
   };
 
   const addProject = () => {
@@ -440,6 +466,7 @@ export default function AdminFormBuilderPage() {
 
     setSelectedProject(trimmedProjectName);
     setNewProjectName("");
+    markDirty();
   };
 
   const handleSave = async () => {
@@ -450,15 +477,24 @@ export default function AdminFormBuilderPage() {
       configs,
       defaultsToSave,
     );
+    const now = new Date().toISOString();
+    const meta: FormMeta = { lastSavedAt: now };
 
     saveDefaultFields(defaultsToSave);
     saveFormConfigs(customConfigsToSave);
     saveProjectQuarters(quarterConfigs);
+    saveFormTitles(formTitles);
+    saveFormMeta(meta);
     await Promise.all([
       pushDefaultFieldsToApi(defaultsToSave),
       pushFormConfigsToApi(customConfigsToSave),
       pushQuarterConfigsToApi(quarterConfigs),
+      pushFormTitlesToApi(formTitles),
+      pushFormMetaToApi(meta),
     ]);
+    setLastSavedAt(now);
+    isDirtyRef.current = false;
+    setIsDirty(false);
     router.push("/dashboard/forms-overview");
   };
 
@@ -478,6 +514,8 @@ export default function AdminFormBuilderPage() {
       pushFormConfigsToApi(defaults),
       pushQuarterConfigsToApi(defaultQuarters),
     ]);
+    isDirtyRef.current = false;
+    setIsDirty(false);
   };
 
   const moveFieldUp = (fieldId: string, scope: "default" | "custom") => {
@@ -508,6 +546,7 @@ export default function AdminFormBuilderPage() {
         };
       });
     }
+    markDirty();
   };
 
   const moveFieldDown = (fieldId: string, scope: "default" | "custom") => {
@@ -538,6 +577,7 @@ export default function AdminFormBuilderPage() {
         };
       });
     }
+    markDirty();
   };
 
   const copyField = (field: FormFieldConfig, scope: "default" | "custom") => {
@@ -555,6 +595,7 @@ export default function AdminFormBuilderPage() {
         [selectedProject]: [...(prev[selectedProject] || []), newField],
       }));
     }
+    markDirty();
   };
 
   const renderFieldOptions = (
@@ -713,18 +754,45 @@ export default function AdminFormBuilderPage() {
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
                   Form Builder
                 </h1>
+                <div className="flex items-center gap-3 mt-1">
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+                      isDirty
+                        ? "text-amber-600"
+                        : "text-green-600"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block w-1.5 h-1.5 rounded-full ${
+                        isDirty ? "bg-amber-500" : "bg-green-500"
+                      }`}
+                    />
+                    {isDirty ? "Unsaved changes" : "Saved"}
+                  </span>
+                  {lastSavedAt && !isDirty && (
+                    <span className="text-xs text-slate-400">
+                      Last saved{" "}
+                      {new Date(lastSavedAt).toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  )}
+                </div>
                 <p className="text-slate-500 mt-1">
                   Configure questions, defaults, and project reporting forms.
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={resetDefaults}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-            >
-              Reset to defaults
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={resetDefaults}
+                className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Reset to defaults
+              </button>
+            </div>
           </div>
         </div>
 
@@ -770,6 +838,28 @@ export default function AdminFormBuilderPage() {
 
         {/* Configuration Panel */}
         <div className="bg-white rounded-lg border border-slate-200 p-6 mb-8 space-y-6">
+          {/* Form Title */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-900 mb-3">
+              Form Title
+            </label>
+            <input
+              type="text"
+              value={formTitles[selectedProject] || ""}
+              onChange={(e) => {
+                setFormTitles((prev) => ({
+                  ...prev,
+                  [selectedProject]: e.target.value,
+                }));
+                markDirty();
+              }}
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
+              placeholder={`${selectedProject} Quarterly Report`}
+            />
+          </div>
+
+          <div className="border-t border-slate-200" />
+
           {/* Share Form Link */}
           <div>
             <h3 className="text-sm font-semibold text-slate-900 mb-3">
@@ -884,15 +974,16 @@ export default function AdminFormBuilderPage() {
                   value={
                     quarterConfigs[selectedProject]?.startMonth || "January"
                   }
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setQuarterConfigs((prev) => ({
                       ...prev,
                       [selectedProject]: {
                         startMonth: e.target.value as MonthOption,
                         endMonth: prev[selectedProject]?.endMonth || "March",
                       },
-                    }))
-                  }
+                    }));
+                    markDirty();
+                  }}
                   className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700 appearance-none bg-no-repeat bg-white"
                   style={{
                     paddingRight: "2.5rem",
@@ -913,7 +1004,7 @@ export default function AdminFormBuilderPage() {
                 </label>
                 <select
                   value={quarterConfigs[selectedProject]?.endMonth || "March"}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setQuarterConfigs((prev) => ({
                       ...prev,
                       [selectedProject]: {
@@ -921,8 +1012,9 @@ export default function AdminFormBuilderPage() {
                           prev[selectedProject]?.startMonth || "January",
                         endMonth: e.target.value as MonthOption,
                       },
-                    }))
-                  }
+                    }));
+                    markDirty();
+                  }}
                   className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700 appearance-none bg-no-repeat bg-white"
                   style={{
                     paddingRight: "2.5rem",

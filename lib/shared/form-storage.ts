@@ -72,6 +72,14 @@ export const COORDINATOR_PROJECT_OPTIONS = [
 const FORM_CONFIGS_STORAGE_KEY = "project-form-configs";
 const DEFAULT_FIELDS_STORAGE_KEY = "project-default-form-fields";
 const FORM_QUARTER_STORAGE_KEY = "project-form-quarters";
+const FORM_TITLES_STORAGE_KEY = "form-titles";
+const FORM_META_STORAGE_KEY = "form-meta";
+
+export type FormTitles = Record<string, string>;
+
+export type FormMeta = {
+  lastSavedAt: string | null;
+};
 
 export const MONTH_OPTIONS: MonthOption[] = [
   "January",
@@ -526,6 +534,78 @@ export const saveProjectQuarters = (quarters: ProjectQuarterConfigs) => {
   localStorage.setItem(FORM_QUARTER_STORAGE_KEY, JSON.stringify(quarters));
 };
 
+export const getFormTitles = (): FormTitles => {
+  if (!ensureBrowser()) return {};
+  return safeParse<FormTitles>(
+    localStorage.getItem(FORM_TITLES_STORAGE_KEY),
+    {},
+  );
+};
+
+export const saveFormTitles = (titles: FormTitles) => {
+  if (!ensureBrowser()) return;
+  localStorage.setItem(FORM_TITLES_STORAGE_KEY, JSON.stringify(titles));
+};
+
+export const pushFormTitlesToApi = async (
+  titles: FormTitles,
+): Promise<boolean> => {
+  try {
+    const res = await fetch(apiUrl(true), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key: "form-titles",
+        value: JSON.stringify(titles),
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.warn("[form-storage] PUT form-titles failed:", res.status, body);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[form-storage] PUT form-titles error:", err);
+    return false;
+  }
+};
+
+export const getFormMeta = (): FormMeta => {
+  if (!ensureBrowser()) return { lastSavedAt: null };
+  return safeParse<FormMeta>(
+    localStorage.getItem(FORM_META_STORAGE_KEY),
+    { lastSavedAt: null },
+  );
+};
+
+export const saveFormMeta = (meta: FormMeta) => {
+  if (!ensureBrowser()) return;
+  localStorage.setItem(FORM_META_STORAGE_KEY, JSON.stringify(meta));
+};
+
+export const pushFormMetaToApi = async (meta: FormMeta): Promise<boolean> => {
+  try {
+    const res = await fetch(apiUrl(true), {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        key: "form-meta",
+        value: JSON.stringify(meta),
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.warn("[form-storage] PUT form-meta failed:", res.status, body);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[form-storage] PUT form-meta error:", err);
+    return false;
+  }
+};
+
 export const saveFormConfigs = (configs: ProjectFormConfigs) => {
   if (!ensureBrowser()) {
     return;
@@ -591,12 +671,16 @@ export type HydratedFormState = {
   customConfigs: ProjectFormConfigs;
   formConfigs: ProjectFormConfigs;
   quarterConfigs: ProjectQuarterConfigs;
+  formTitles: FormTitles;
+  formMeta: FormMeta;
 };
 
 export const getHydratedFormState = async (): Promise<HydratedFormState> => {
   let defaultFields = getDefaultFields();
   let customConfigs = getCustomFormConfigs();
   let quarterConfigs = getProjectQuarters();
+  let formTitles = getFormTitles();
+  let formMeta = getFormMeta();
 
   const apiConfigs = await fetchApiConfigs();
 
@@ -604,6 +688,8 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
     const rawDefaults = apiConfigs["default-fields"];
     const rawProjectConfigs = apiConfigs["project-form-configs"];
     const rawQuarters = apiConfigs["quarter-configs"];
+    const rawFormTitles = apiConfigs["form-titles"];
+    const rawFormMeta = apiConfigs["form-meta"];
 
     if (rawDefaults) {
       try {
@@ -648,6 +734,30 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
         console.warn("[form-storage] Failed to parse API quarter-configs");
       }
     }
+
+    if (rawFormTitles) {
+      try {
+        const parsedFormTitles = JSON.parse(rawFormTitles) as FormTitles;
+        if (parsedFormTitles && typeof parsedFormTitles === "object") {
+          formTitles = { ...formTitles, ...parsedFormTitles };
+          saveFormTitles(formTitles);
+        }
+      } catch {
+        console.warn("[form-storage] Failed to parse API form-titles");
+      }
+    }
+
+    if (rawFormMeta) {
+      try {
+        const parsedFormMeta = JSON.parse(rawFormMeta) as FormMeta;
+        if (parsedFormMeta && typeof parsedFormMeta === "object") {
+          formMeta = parsedFormMeta;
+          saveFormMeta(formMeta);
+        }
+      } catch {
+        console.warn("[form-storage] Failed to parse API form-meta");
+      }
+    }
   }
 
   const formConfigs = buildFormConfigs(defaultFields, customConfigs);
@@ -657,6 +767,8 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
     customConfigs,
     formConfigs,
     quarterConfigs,
+    formTitles,
+    formMeta,
   };
 };
 

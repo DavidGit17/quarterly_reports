@@ -42,7 +42,11 @@ export function ProjectsTable({
           <TableBody>
             {[1, 2, 3].map((i) => (
               <TableRow key={i}>
-                <TableCell colSpan={4} className="h-12 bg-slate-50" />
+                {[1, 2, 3, 4].map((j) => (
+                  <TableCell key={j} className="h-12">
+                    <div className="h-4 bg-slate-200 rounded animate-pulse" />
+                  </TableCell>
+                ))}
               </TableRow>
             ))}
           </TableBody>

@@ -226,8 +226,13 @@ export default function VerifyOTPPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          Loading...
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-pulse space-y-4 w-full max-w-md p-8">
+            <div className="h-8 w-48 bg-slate-200 rounded mx-auto" />
+            <div className="h-4 w-64 bg-slate-200 rounded mx-auto" />
+            <div className="h-12 w-full bg-slate-200 rounded" />
+            <div className="h-12 w-full bg-slate-200 rounded" />
+          </div>
         </div>
       }
     >

@@ -118,16 +118,6 @@ export default function DashboardPage() {
     reports.map((report) => report.createdByUsername),
   ).size;
 
-  if (isLoading) {
-    return (
-      <>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-slate-600">Loading dashboard...</p>
-        </div>
-      </>
-    );
-  }
-
   if (isUnauthorized) {
     return (
       <>
@@ -149,6 +139,38 @@ export default function DashboardPage() {
           </div>
         </div>
       </>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div>
+        <div className="mb-8">
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+              <p className="text-slate-600 text-sm mt-1">
+                Welcome back! Here's your quarterly reports overview.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+              <p className="text-sm text-slate-600 mb-2">Total Projects</p>
+              <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
+            </div>
+            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+              <p className="text-sm text-slate-600 mb-2">Total Reports</p>
+              <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
+            </div>
+            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+              <p className="text-sm text-slate-600 mb-2">Active Coordinators</p>
+              <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 

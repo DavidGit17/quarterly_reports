@@ -55,8 +55,27 @@ export default function FacilitatorSelectPage() {
 
   if (!isReady) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <p className="text-slate-600">Loading...</p>
+      <div className="min-h-screen bg-slate-100">
+        <div className="max-w-5xl mx-auto px-4 py-8 animate-pulse">
+          <div className="flex items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="h-5 w-16 bg-slate-200 rounded" />
+              <div className="h-9 w-64 bg-slate-200 rounded" />
+            </div>
+            <div className="h-5 w-16 bg-slate-200 rounded" />
+          </div>
+          <div className="bg-white rounded-lg border border-slate-300 p-8 space-y-6">
+            <div>
+              <div className="h-7 w-24 bg-slate-200 rounded mb-3" />
+              <div className="h-14 w-full bg-slate-200 rounded-lg" />
+            </div>
+            <div>
+              <div className="h-7 w-20 bg-slate-200 rounded mb-3" />
+              <div className="h-14 w-full bg-slate-200 rounded-lg" />
+            </div>
+            <div className="h-14 w-full bg-slate-200 rounded-lg" />
+          </div>
+        </div>
       </div>
     );
   }

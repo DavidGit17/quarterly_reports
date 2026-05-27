@@ -531,8 +531,25 @@ export default function FacilitatorProjectFormPage() {
 
   if (!isReady && !errorMessage) {
     return (
-      <div className="coordinator-system min-h-screen bg-[#f8f9fa] flex items-center justify-center">
-        <p className={FORM_META_CLASS}>Loading...</p>
+      <div className="coordinator-system min-h-screen" style={{ background: FORM_BACKGROUND }}>
+        <div className="max-w-4xl mx-auto px-4 py-10 animate-pulse">
+          <div className="h-4 w-16 bg-slate-200 rounded mb-6" />
+          <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
+            <div className="h-7 w-48 bg-slate-200 rounded mb-2" />
+            <div className="h-4 w-64 bg-slate-200 rounded mb-4" />
+            <div className="h-4 w-32 bg-slate-200 rounded" />
+          </div>
+          <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
+            <div className="h-5 w-36 bg-slate-200 rounded mb-3" />
+            <div className="h-10 w-full bg-slate-200 rounded" />
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className={`${FORM_SURFACE_CLASS} p-6 mb-4`}>
+              <div className="h-5 w-48 bg-slate-200 rounded mb-3" />
+              <div className="h-10 w-full bg-slate-200 rounded" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

@@ -7,6 +7,8 @@ import {
   getHydratedFormState,
   toProjectSlug,
   type ProjectFormConfigs,
+  type FormTitles,
+  type FormMeta,
 } from "@/lib/shared/form-storage";
 import { ChevronRight, FileText, Eye } from "lucide-react";
 
@@ -17,6 +19,8 @@ export default function FormsOverviewPage() {
   const [quarterConfigs, setQuarterConfigs] = useState<
     Record<string, { startMonth?: string; endMonth?: string }>
   >({});
+  const [formTitles, setFormTitles] = useState<FormTitles>({});
+  const [formMeta, setFormMeta] = useState<FormMeta>({ lastSavedAt: null });
   const [isLoading, setIsLoading] = useState(true);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
 
@@ -43,6 +47,8 @@ export default function FormsOverviewPage() {
       setIsAdmin(true);
       setFormConfigs(formState.formConfigs);
       setQuarterConfigs(formState.quarterConfigs);
+      setFormTitles(formState.formTitles);
+      setFormMeta(formState.formMeta);
       setIsLoading(false);
     } catch {
       router.push("/login");
@@ -55,8 +61,30 @@ export default function FormsOverviewPage() {
 
   if (!isAdmin || isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="text-slate-600">Loading...</p>
+      <div className="animate-pulse">
+        <div className="mb-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="h-9 w-48 bg-slate-200 rounded mb-2" />
+              <div className="h-4 w-64 bg-slate-200 rounded" />
+            </div>
+            <div className="h-10 w-28 bg-slate-200 rounded-lg" />
+          </div>
+        </div>
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-lg border border-slate-200 p-6">
+              <div className="flex items-center justify-between">
+                <div className="h-5 w-48 bg-slate-200 rounded" />
+                <div className="h-4 w-4 bg-slate-200 rounded" />
+              </div>
+              <div className="mt-4 space-y-2">
+                <div className="h-4 w-full bg-slate-200 rounded" />
+                <div className="h-4 w-3/4 bg-slate-200 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -130,9 +158,9 @@ export default function FormsOverviewPage() {
                     <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100">
                       <FileText className="h-5 w-5 text-slate-700" />
                     </div>
-                    <div>
+                      <div>
                       <h2 className="text-lg font-semibold text-slate-900">
-                        {project}
+                        {formTitles[toProjectSlug(project)] || project}
                       </h2>
                       <p className="text-sm text-slate-600 mt-0.5">
                         Quarter: {getQuarterLabel(project)} • {fields.length}{" "}
