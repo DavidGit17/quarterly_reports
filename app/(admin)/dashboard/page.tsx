@@ -241,7 +241,7 @@ export default function DashboardPage() {
                 )}
               </div>
               <div className="overflow-y-auto" style={{ maxHeight: 400 }}>
-                <ResponsiveContainer width="100%" height={Math.max(200, reportsPerProject.length * 36)}>
+                <ResponsiveContainer width="100%" height={Math.max(200, reportsPerProject.length * 24)}>
                   <BarChart data={reportsPerProject} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
@@ -250,7 +250,7 @@ export default function DashboardPage() {
                       contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
                       formatter={(value: number) => [value, "Reports"]}
                     />
-                    <Bar dataKey="value" fill="#334155" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="value" fill="#334155" radius={[0, 4, 4, 0]} barSize={12} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -270,7 +270,7 @@ export default function DashboardPage() {
                     contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
                     formatter={(value: number) => [value, "Reports"]}
                   />
-                  <Bar dataKey="value" fill="#334155" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" fill="#334155" radius={[4, 4, 0, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

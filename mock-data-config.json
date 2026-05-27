@@ -4,7 +4,7 @@
     "coordinators": 10,
     "facilitators": 10
   },
-  "reports": 200,
+  "reports": 500,
   "projects": [
     "Haksolok", "Sukacita", "Tunas", "Murna", "Ninjay", "SuViMung", "Hiba",
     "Akar", "Bakti", "Cahaya", "Damai", "Elok", "Gading", "Harum",
@@ -15,7 +15,17 @@
     "Guna", "Hikmah", "Indah", "Jaya", "Karya",
     "Luhur", "Maju", "Nila", "Perdana", "Raya",
     "Sejahtera", "Utama", "Wahana", "Mandiri", "Prima",
-    "Citra", "Dharma", "Mitra", "Krida", "Satria"
+    "Citra", "Dharma", "Mitra", "Krida", "Satria",
+    "Angkasa", "Bumi", "Cipta", "Duta", "Esa",
+    "Gita", "Harta", "Ilham", "Jasa", "Kasih",
+    "Laras", "Mutiara", "Nada", "Ombak", "Pasir",
+    "Rasa", "Sinar", "Taman", "Usaha", "Warna",
+    "Amanah", "Bina", "Cendana", "Dahsyat", "Empat",
+    "Gemilang", "Harmoni", "Integritas", "Juara", "Kharisma",
+    "Loyal", "Mulia", "Nasional", "Orientasi", "Prestasi",
+    "Relasi", "Sukses", "Tekun", "Ulet", "Visioner",
+    "Adil", "Berani", "Cerdas", "Disiplin", "Efektif",
+    "Gigih", "Hebat", "Inovatif", "Jujur", "Kreatif"
   ],
   "quarters": ["Q1", "Q2", "Q3", "Q4"],
   "emailPrefix": "mailtesterinfinity",
