@@ -1,58 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-
-interface Report {
-  id: string;
-  projectName: string;
-  quarter: string;
-  createdByUsername: string;
-  createdAt: string;
-}
-
-type ReportsResponse = {
-  reports?: Report[];
-  pagination?: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-  message?: string;
-};
-
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
 
 export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [reports, setReports] = useState<Report[]>([]);
-  const [totalReportsCount, setTotalReportsCount] = useState(0);
+  const [totalProjects, setTotalProjects] = useState(0);
+  const [totalReports, setTotalReports] = useState(0);
   const [coordinatorCount, setCoordinatorCount] = useState(0);
   const [facilitatorCount, setFacilitatorCount] = useState(0);
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const [reportsResponse, usersResponse] = await Promise.all([
-          fetch("/api/reports?page=1&limit=100", { cache: "no-store" }),
+        const [reportsResponse, usersResponse, projectsResponse] = await Promise.all([
+          fetch("/api/reports?page=1&limit=1", { cache: "no-store" }),
           fetch("/api/admin/users?limit=1", { cache: "no-store" }),
+          fetch("/api/projects", { cache: "no-store" }),
         ]);
 
         if (reportsResponse.status === 401) {
@@ -65,20 +33,20 @@ export default function DashboardPage() {
           return;
         }
 
-        const reportsData = (await reportsResponse.json()) as ReportsResponse;
-
-        if (!reportsResponse.ok) {
-          setErrorMessage(reportsData.message || "Unable to load reports.");
-          return;
+        if (reportsResponse.ok) {
+          const reportsData = await reportsResponse.json() as { pagination?: { total: number } };
+          setTotalReports(reportsData.pagination?.total ?? 0);
         }
-
-        setReports(reportsData.reports || []);
-        setTotalReportsCount(reportsData.pagination?.total ?? reportsData.reports?.length ?? 0);
 
         if (usersResponse.ok) {
           const usersData = await usersResponse.json() as { counts?: { coordinator: number; facilitator: number } };
           setCoordinatorCount(usersData.counts?.coordinator ?? 0);
           setFacilitatorCount(usersData.counts?.facilitator ?? 0);
+        }
+
+        if (projectsResponse.ok) {
+          const projectsData = await projectsResponse.json() as { projects?: unknown[] };
+          setTotalProjects(projectsData.projects?.length ?? 0);
         }
       } catch {
         setErrorMessage("Unable to load dashboard right now.");
@@ -89,50 +57,6 @@ export default function DashboardPage() {
 
     void loadDashboard();
   }, [router]);
-
-  const reportData = useMemo(() => {
-    const grouped: Record<string, Record<string, Report[]>> = {};
-
-    reports.forEach((report) => {
-      const projectName = report.projectName;
-      const quarter = report.quarter;
-
-      if (!grouped[projectName]) {
-        grouped[projectName] = {};
-      }
-
-      if (!grouped[projectName][quarter]) {
-        grouped[projectName][quarter] = [];
-      }
-
-      grouped[projectName][quarter].push(report);
-    });
-
-    return grouped;
-  }, [reports]);
-
-  const topProjects = useMemo(() => {
-    const counts: Record<string, number> = {};
-    reports.forEach((r) => {
-      counts[r.projectName] = (counts[r.projectName] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10);
-  }, [reports]);
-
-  const reportsPerMonth = useMemo(() => {
-    const counts = new Array(12).fill(0);
-    reports.forEach((r) => {
-      const month = new Date(r.createdAt).getMonth();
-      counts[month]++;
-    });
-    return counts.map((count, i) => ({ name: MONTHS[i], value: count }));
-  }, [reports]);
-
-  const totalProjects = Object.keys(reportData).length;
-  const totalReports = totalReportsCount;
 
   if (isUnauthorized) {
     return (
@@ -240,64 +164,6 @@ export default function DashboardPage() {
         {errorMessage && (
           <div className="bg-red-50 rounded-lg border border-red-200 p-4 mb-6">
             <p className="text-sm text-red-700">{errorMessage}</p>
-          </div>
-        )}
-
-        {/* Charts */}
-        {reports.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Reports Per Project */}
-            <div className="bg-white rounded-lg border border-slate-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-900">
-                  Top Projects
-                </h2>
-                {totalProjects > 10 && (
-                  <span className="text-xs text-slate-500">
-                    top 10 of {totalProjects}
-                  </span>
-                )}
-              </div>
-              {topProjects.length > 0 ? (
-                <ResponsiveContainer width="100%" height={Math.max(200, topProjects.length * 36)}>
-                  <BarChart data={topProjects} layout="vertical" margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis type="number" tick={{ fontSize: 12, fill: "#64748b" }} />
-                    <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#334155" }} width={120} />
-                    <Tooltip
-                      contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
-                      formatter={(value: number) => [value, "Reports"]}
-                    />
-                    <Bar dataKey="value" fill="#334155" radius={[0, 4, 4, 0]} barSize={16} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-sm text-slate-500">No data</p>
-              )}
-            </div>
-
-            {/* Reports Per Month */}
-            <div className="bg-white rounded-lg border border-slate-200 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">
-                Reports Over Time
-              </h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={reportsPerMonth} margin={{ left: 0, right: 20, top: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#64748b" }} />
-                  <YAxis tick={{ fontSize: 12, fill: "#64748b" }} />
-                  <Tooltip
-                    contentStyle={{ fontSize: 13, borderRadius: 8, border: "1px solid #e2e8f0" }}
-                    formatter={(value: number) => [value, "Reports"]}
-                  />
-                  <Bar dataKey="value" fill="#334155" radius={[4, 4, 0, 0]} barSize={20} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg border border-slate-200 p-12 text-center">
-            <p className="text-slate-600">No reports yet.</p>
           </div>
         )}
       </div>
