@@ -106,14 +106,22 @@ export default function CoordinatorDashboard() {
               Quarterly Reports Dashboard
             </p>
           </div>
-          <Link
-            href="/profile"
-            className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-            aria-label="Go to profile"
-            title="Profile"
-          >
-            <CircleUserRound className="h-7 w-7" />
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/my-reports"
+              className="text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+            >
+              View Reports
+            </Link>
+            <Link
+              href="/profile"
+              className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+              aria-label="Go to profile"
+              title="Profile"
+            >
+              <CircleUserRound className="h-7 w-7" />
+            </Link>
+          </div>
         </div>
 
         {/* New Report Card */}
