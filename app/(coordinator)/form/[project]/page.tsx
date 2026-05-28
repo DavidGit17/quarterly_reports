@@ -140,7 +140,6 @@ export default function ProjectFormPage() {
   const [isAccessDenied, setIsAccessDenied] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("");
-  const [cycleError, setCycleError] = useState("");
   const [activeCycleId, setActiveCycleId] = useState("");
 
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -229,10 +228,6 @@ export default function ProjectFormPage() {
           const activeCycle = (cycleData.cycles || [])[0];
           if (activeCycle) {
             setActiveCycleId(activeCycle.id);
-          } else {
-            setCycleError(
-              "No active reporting period for this project.",
-            );
           }
         } catch {
           // allow form to proceed if cycle API fails
@@ -567,27 +562,6 @@ export default function ProjectFormPage() {
             className={FORM_LINK_CLASS}
           >
             Return to Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (cycleError) {
-    return (
-      <div className="coordinator-system min-h-screen bg-[#f8f9fa] flex items-center justify-center px-4">
-        <div className={`${FORM_SURFACE_CLASS} p-8 w-full max-w-md text-center`}>
-          <h1 className="mb-3 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d]">
-            No Active Reporting Period
-          </h1>
-          <p className={`${FORM_META_CLASS} mb-5`}>
-            {cycleError}
-          </p>
-          <Link
-            href="/my-reports"
-            className={FORM_LINK_CLASS}
-          >
-            My Reports
           </Link>
         </div>
       </div>
