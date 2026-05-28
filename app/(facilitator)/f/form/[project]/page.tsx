@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
+  CircleUserRound,
   Eye,
   Star,
   Upload,
@@ -72,7 +73,7 @@ const FORM_ICON_BUTTON_CLASS =
 const FORM_SECONDARY_ACTION_CLASS =
   "text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-700 cursor-pointer";
 const FORM_PRIMARY_BUTTON_CLASS =
-  "inline-flex items-center justify-center rounded-xl bg-[#2563EB] px-8 py-3 text-[16px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-blue-200 active:bg-[#1e40af] cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center rounded-xl bg-[#4b6358] px-8 py-3 text-[16px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-[#344b41] focus:outline-none focus:ring-2 focus:ring-[#cee9db] active:bg-[#2a3d35] cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
 
 const formatDateInput = (value: string) => {
   const digitsOnly = value.replace(/\D/g, "").slice(0, 8);
@@ -570,14 +571,26 @@ export default function FacilitatorProjectFormPage() {
         )}
 
         <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
-          <button
-            type="button"
-            onClick={() => router.push("/f")}
-            className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#2563EB]"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
-          </button>
+          <div className="flex items-center justify-between mb-6">
+            <button
+              type="button"
+              onClick={() => router.push("/f")}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </button>
+            {!isPreviewMode && (
+              <Link
+                href="/profile"
+                className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+                aria-label="Go to profile"
+                title="Profile"
+              >
+                <CircleUserRound className="h-6 w-6" />
+              </Link>
+            )}
+          </div>
           <h2 className="mb-2 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] sm:text-[30px] sm:leading-10 sm:tracking-[-0.02em]">
             {projectName} {quarterRange} {currentYear} Reports
           </h2>
