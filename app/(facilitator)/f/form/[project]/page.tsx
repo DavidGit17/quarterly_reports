@@ -126,6 +126,7 @@ export default function FacilitatorProjectFormPage() {
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [activeCycleId, setActiveCycleId] = useState("");
 
+  const formRef = useRef<HTMLFormElement>(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const nativeDateInputRefs = useRef<Record<string, HTMLInputElement | null>>(
     {},
@@ -594,7 +595,14 @@ export default function FacilitatorProjectFormPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          onInvalid={() => {
+            formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="space-y-6"
+        >
           {errorMessage && (
             <div className="rounded-lg border border-[#ffdad6] bg-[#ffdad6]/50 p-4">
               <p className="font-ui text-[14px] leading-5 text-[#93000a]">
