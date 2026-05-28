@@ -4,14 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
+  ArrowLeft,
   CalendarDays,
-  CircleUserRound,
   Eye,
   Star,
   Upload,
   X,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   BIBLE_BOOKS,
   getHydratedFormState,
@@ -73,7 +72,7 @@ const FORM_ICON_BUTTON_CLASS =
 const FORM_SECONDARY_ACTION_CLASS =
   "text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-700 cursor-pointer";
 const FORM_PRIMARY_BUTTON_CLASS =
-  "inline-flex items-center justify-center rounded-xl bg-blue-700 px-8 py-3 text-[16px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-200 active:bg-blue-900 cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center rounded-xl bg-[#2563EB] px-8 py-3 text-[16px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-blue-200 active:bg-[#1e40af] cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
 
 const formatDateInput = (value: string) => {
   const digitsOnly = value.replace(/\D/g, "").slice(0, 8);
@@ -102,20 +101,6 @@ const toDisplayDate = (isoDate: string) => {
 
 const isDateField = (field: FormFieldConfig) => /\bdate\b/i.test(field.label);
 
-const getUserInitials = (username: string) => {
-  const parts = username.trim().split(/\s+/);
-
-  if (parts.length === 0 || !parts[0]) {
-    return "U";
-  }
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 1).toUpperCase();
-  }
-
-  return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
-};
-
 export default function FacilitatorProjectFormPage() {
   const router = useRouter();
   const params = useParams<{ project: string }>();
@@ -125,7 +110,6 @@ export default function FacilitatorProjectFormPage() {
   const [quarter, setQuarter] = useState("");
   const [projectName, setProjectName] = useState("");
   const [coordinatorName, setCoordinatorName] = useState("Facilitator");
-  const [profileImagePreview, setProfileImagePreview] = useState("");
   const [formValues, setFormValues] = useState<FieldValueMap>({});
   const [fileValues, setFileValues] = useState<FileValueMap>({});
   const [uploadingFiles, setUploadingFiles] = useState<UploadingMap>({});
@@ -188,8 +172,6 @@ export default function FacilitatorProjectFormPage() {
           if (username) {
             setCoordinatorName(username);
           }
-
-          setProfileImagePreview(data.user.profileImage || "");
 
           const assignedProject = data.user.project || "";
 
@@ -496,7 +478,7 @@ export default function FacilitatorProjectFormPage() {
       }
 
       submitRedirectTimerRef.current = setTimeout(() => {
-        router.push("/f/my-reports");
+        router.push("/f");
       }, 1800);
     } catch {
       setErrorMessage("Unable to submit report right now.");
@@ -505,11 +487,11 @@ export default function FacilitatorProjectFormPage() {
     }
   };
 
-  const handleGoToHistory = () => {
+  const handleGoToDashboard = () => {
     if (submitRedirectTimerRef.current) {
       clearTimeout(submitRedirectTimerRef.current);
     }
-    router.push("/f/my-reports");
+    router.push("/f");
   };
 
   const [currentYear, setCurrentYear] = useState<number>(
@@ -586,47 +568,16 @@ export default function FacilitatorProjectFormPage() {
           </div>
         )}
 
-        <div className="sticky top-0 z-10 mb-6 -mx-4 px-4 bg-[#f8f9fa] pt-4 pb-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] md:text-[30px] md:leading-10 md:tracking-[-0.02em]">
-              {isPreviewMode ? "Form Preview" : "Quarterly Report Submission"}
-            </h1>
-            <div className="flex items-center gap-4">
-              {!isPreviewMode && (
-                <Link
-                  href="/f/my-reports"
-                  className={FORM_LINK_CLASS}
-                >
-                  My Reports
-                </Link>
-              )}
-              {!isPreviewMode && (
-                <Link
-                  href="/profile"
-                  className="inline-flex items-center text-slate-400 transition-colors duration-200 hover:text-slate-600"
-                  aria-label="Go to profile"
-                  title="Profile"
-                >
-                  <Avatar className="h-9 w-9 border border-slate-200">
-                    {profileImagePreview ? (
-                      <AvatarImage src={profileImagePreview} alt="Profile" />
-                    ) : null}
-                    <AvatarFallback className="bg-slate-100 text-xs font-medium text-slate-600">
-                      {coordinatorName ? (
-                        getUserInitials(coordinatorName)
-                      ) : (
-                        <CircleUserRound className="h-4 w-4" />
-                      )}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-
         <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
-          <h2 className="mb-4 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] sm:text-[30px] sm:leading-10 sm:tracking-[-0.02em]">
+          <button
+            type="button"
+            onClick={() => router.push("/f")}
+            className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#2563EB]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </button>
+          <h2 className="mb-2 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] sm:text-[30px] sm:leading-10 sm:tracking-[-0.02em]">
             {projectName} {quarterRange} {currentYear} Reports
           </h2>
           <h3 className="mb-6 font-heading text-[20px] font-medium leading-7 text-[#191c1d]">
@@ -1008,14 +959,14 @@ export default function FacilitatorProjectFormPage() {
                 Report submitted successfully
               </h3>
               <p className="text-sm text-slate-500 mb-5">
-                Redirecting to submitted reports history...
+                Redirecting to dashboard...
               </p>
               <button
                 type="button"
-                onClick={handleGoToHistory}
+                onClick={handleGoToDashboard}
                 className={`${FORM_PRIMARY_BUTTON_CLASS} w-full py-2.5`}
               >
-                Go to History now
+                Go to Dashboard
               </button>
             </div>
           </div>
