@@ -582,14 +582,22 @@ export default function ProjectFormPage() {
               Back to Dashboard
             </button>
             {!isPreviewMode && (
-              <Link
-                href="/profile"
-                className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-                aria-label="Go to profile"
-                title="Profile"
-              >
-                <CircleUserRound className="h-6 w-6" />
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/my-reports"
+                  className="text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+                >
+                  View Reports
+                </Link>
+                <Link
+                  href="/profile"
+                  className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+                  aria-label="Go to profile"
+                  title="Profile"
+                >
+                  <CircleUserRound className="h-6 w-6" />
+                </Link>
+              </div>
             )}
           </div>
           <h2 className="mb-2 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] sm:text-[30px] sm:leading-10 sm:tracking-[-0.02em]">
