@@ -17,7 +17,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#F6F9FC]">
       <Sidebar />
       <div className="md:ml-[260px] flex min-h-screen flex-col">
         <Header onMobileMenuClick={() => setMobileMenuOpen(true)} />
@@ -36,7 +36,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         >
           <div className="flex items-center h-16 px-6 border-b border-slate-200">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-slate-700 text-sm font-semibold text-white">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-sm font-semibold text-white">
                 QR
               </div>
               <div className="min-w-0">
@@ -63,7 +63,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "group relative flex items-center gap-3 rounded px-3 py-2.5 text-sm font-medium transition-colors",
+                      "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                       isActive
                         ? "bg-slate-50 text-slate-900"
                         : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
@@ -71,7 +71,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {isActive && (
-                      <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-slate-700" />
+                      <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-[#2563EB]" />
                     )}
                     <span
                       className={cn(

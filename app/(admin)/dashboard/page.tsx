@@ -62,7 +62,7 @@ export default function DashboardPage() {
     return (
       <>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="bg-white rounded-lg border border-slate-200 p-8 max-w-md text-center">
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 max-w-md text-center shadow-sm">
             <h1 className="text-2xl font-bold text-slate-900 mb-4">
               Access Denied
             </h1>
@@ -96,19 +96,19 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Total Projects</p>
               <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
             </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Total Reports</p>
               <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
             </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Active Coordinators</p>
               <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
             </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Active Facilitators</p>
               <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
             </div>
@@ -134,25 +134,25 @@ export default function DashboardPage() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Total Projects</p>
               <p className="text-3xl font-bold text-slate-900">
                 {totalProjects}
               </p>
             </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Total Reports</p>
               <p className="text-3xl font-bold text-slate-900">
                 {totalReports}
               </p>
             </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Active Coordinators</p>
               <p className="text-3xl font-bold text-slate-900">
                 {coordinatorCount}
               </p>
             </div>
-            <div className="bg-white rounded-lg border border-slate-200 p-6 transition-colors">
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Active Facilitators</p>
               <p className="text-3xl font-bold text-slate-900">
                 {facilitatorCount}
@@ -162,7 +162,7 @@ export default function DashboardPage() {
         </div>
 
         {errorMessage && (
-          <div className="bg-red-50 rounded-lg border border-red-200 p-4 mb-6">
+          <div className="bg-red-50 rounded-xl border border-red-200 p-4 mb-6">
             <p className="text-sm text-red-700">{errorMessage}</p>
           </div>
         )}

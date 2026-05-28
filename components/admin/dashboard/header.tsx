@@ -94,23 +94,23 @@ const mockNotifications: Notification[] = [
 const typeColors: Record<string, { dot: string; bg: string; label: string }> =
   {
     approval: {
-      dot: "bg-[#d68a3c]",
-      bg: "bg-[#fdf1e6] text-[#8a5a1e]",
+      dot: "bg-amber-500",
+      bg: "bg-amber-50 text-amber-700",
       label: "Approval",
     },
     report: {
-      dot: "bg-[#555f6d]",
-      bg: "bg-[#edeeef] text-[#424845]",
+      dot: "bg-slate-500",
+      bg: "bg-slate-100 text-slate-600",
       label: "Report",
     },
     alert: {
-      dot: "bg-[#ba1a1a]",
-      bg: "bg-[#ffdad6] text-[#93000a]",
+      dot: "bg-red-500",
+      bg: "bg-red-50 text-red-700",
       label: "Alert",
     },
     system: {
-      dot: "bg-[#727974]",
-      bg: "bg-[#edeeef] text-[#424845]",
+      dot: "bg-slate-400",
+      bg: "bg-slate-100 text-slate-600",
       label: "System",
     },
   };
@@ -165,32 +165,32 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#c2c8c3] bg-white">
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
       <div className="flex h-16 items-center justify-between px-4 md:px-10">
         {/* Left: Mobile menu and search */}
         <div className="flex items-center gap-4 flex-1 md:flex-none">
           <button
             onClick={onMobileMenuClick}
-            className="md:hidden p-2 hover:bg-[#f3f4f5] rounded transition-colors"
+            className="md:hidden p-2 hover:bg-slate-100 rounded-xl transition-colors"
             aria-label="Toggle menu"
           >
-            <Menu className="w-5 h-5 text-[#555f6d]" />
+            <Menu className="w-5 h-5 text-slate-500" />
           </button>
 
           {/* Desktop search */}
           <div className="hidden md:flex relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#727974]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
               type="search"
               placeholder="Search reports..."
-              className="rounded border-[#c2c8c3] bg-[#f3f4f5] pl-10 pr-4 text-[#191c1d] placeholder:text-[#727974] focus-visible:ring-[#b2cdbf]/60"
+              className="rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#2563EB]/20"
             />
           </div>
         </div>
 
         {/* Right: Title (mobile) and actions */}
         <div className="md:hidden flex-1 text-center">
-          <h2 className="text-sm font-semibold text-[#191c1d]">Reports</h2>
+          <h2 className="text-sm font-semibold text-slate-900">Reports</h2>
         </div>
 
         {/* Right: Actions */}
@@ -198,10 +198,10 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           {/* Notifications */}
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-              <button className="relative p-2 hover:bg-[#f3f4f5] rounded transition-colors">
-                <Bell className="w-5 h-5 text-[#555f6d]" />
+              <button className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                <Bell className="w-5 h-5 text-slate-500" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[#ba1a1a] text-white text-[11px] font-semibold leading-none">
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold leading-none">
                     {unreadCount}
                   </span>
                 )}
@@ -210,16 +210,16 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
             <PopoverContent
               align="end"
               sideOffset={8}
-              className="w-[400px] p-0 border-[#c2c8c3] rounded-xl shadow-[0_4px_12px_rgba(90,100,114,0.08)] bg-white overflow-hidden"
+              className="w-[400px] p-0 border-slate-200 rounded-2xl shadow-lg bg-white overflow-hidden"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-[#c2c8c3]">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-heading text-[16px] font-semibold leading-6 text-[#191c1d]">
+                  <h3 className="font-heading text-[16px] font-semibold leading-6 text-slate-900">
                     Notifications
                   </h3>
                   {unreadCount > 0 && (
-                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#4b6358] text-white text-[11px] font-semibold leading-none font-ui">
+                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#2563EB] text-white text-[11px] font-semibold leading-none font-ui">
                       {unreadCount}
                     </span>
                   )}
@@ -228,7 +228,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllAsRead}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded text-[12px] font-medium text-[#555f6d] hover:text-[#344b41] hover:bg-[#f3f4f5] transition-colors font-ui"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-[12px] font-medium text-slate-500 hover:text-[#2563EB] hover:bg-slate-100 transition-colors font-ui"
                     >
                       <Check className="w-3 h-3" />
                       Mark all read
@@ -237,7 +237,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                   {notifications.length > 0 && (
                     <button
                       onClick={handleClearAll}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded text-[12px] font-medium text-[#ba1a1a] hover:text-[#93000a] hover:bg-[#ffdad6] transition-colors font-ui"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-[12px] font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors font-ui"
                     >
                       <Trash2 className="w-3 h-3" />
                       Clear all
@@ -249,12 +249,12 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
               {/* List */}
               <div className="max-h-[420px] overflow-y-auto">
                 {notifications.length > 0 ? (
-                  <div className="divide-y divide-[#e7e8e9]">
+                  <div className="divide-y divide-slate-100">
                     {notifications.map((n) => (
                       <div
                         key={n.id}
                         className={`px-5 py-4 transition-colors ${
-                          n.read ? "bg-white" : "bg-[#f8f9fa]"
+                          n.read ? "bg-white" : "bg-slate-50"
                         }`}
                       >
                         <div className="flex gap-3">
@@ -262,7 +262,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                           <div className="mt-1.5 flex-shrink-0">
                             <div
                               className={`w-2 h-2 rounded-full ${
-                                typeColors[n.type]?.dot || "bg-[#727974]"
+                                typeColors[n.type]?.dot || "bg-slate-400"
                               }`}
                             />
                           </div>
@@ -272,22 +272,22 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-0.5">
-                                  <p className="font-ui text-[14px] font-semibold leading-5 text-[#191c1d]">
+                                  <p className="font-ui text-[14px] font-semibold leading-5 text-slate-900">
                                     {n.title}
                                   </p>
                                   <span
                                     className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium leading-none font-ui ${
                                       typeColors[n.type]?.bg ||
-                                      "bg-[#edeeef] text-[#424845]"
+                                      "bg-slate-100 text-slate-600"
                                     }`}
                                   >
                                     {typeColors[n.type]?.label || "Notification"}
                                   </span>
                                 </div>
-                                <p className="font-ui text-[13px] leading-[18px] text-[#424845] mt-0.5">
+                                <p className="font-ui text-[13px] leading-[18px] text-slate-600 mt-0.5">
                                   {n.message}
                                 </p>
-                                <p className="font-data text-[11px] leading-4 text-[#727974] mt-1.5">
+                                <p className="font-data text-[11px] leading-4 text-slate-400 mt-1.5">
                                   {formatIsoDateTime(n.timestamp)}
                                 </p>
                                 {n.actionUrl && (
@@ -297,7 +297,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                                       router.push(n.actionUrl!);
                                       setOpen(false);
                                     }}
-                                    className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#c2c8c3] bg-white text-[12px] font-medium text-[#555f6d] hover:bg-[#f3f4f5] hover:text-[#344b41] transition-colors font-ui"
+                                    className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-slate-200 bg-white text-[12px] font-medium text-slate-500 hover:bg-slate-50 hover:text-[#2563EB] transition-colors font-ui"
                                   >
                                     <Eye className="w-3 h-3" />
                                     Open
@@ -310,7 +310,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                                 {!n.read && (
                                   <button
                                     onClick={() => handleMarkAsRead(n.id)}
-                                    className="p-1 rounded text-[#727974] hover:text-[#4b6358] hover:bg-[#cee9db]/30 transition-colors"
+                                    className="p-1 rounded-xl text-slate-400 hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
                                     title="Mark as read"
                                   >
                                     <Check className="w-3.5 h-3.5" />
@@ -318,7 +318,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                                 )}
                                 <button
                                   onClick={() => handleDelete(n.id)}
-                                  className="p-1 rounded text-[#727974] hover:text-[#ba1a1a] hover:bg-[#ffdad6]/50 transition-colors"
+                                  className="p-1 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                   title="Delete"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -332,8 +332,8 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                   </div>
                 ) : (
                   <div className="px-5 py-12 text-center">
-                    <Bell className="w-8 h-8 text-[#c2c8c3] mx-auto mb-3" />
-                    <p className="font-ui text-[14px] leading-5 text-[#727974]">
+                    <Bell className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                    <p className="font-ui text-[14px] leading-5 text-slate-400">
                       No notifications yet.
                     </p>
                   </div>
@@ -341,11 +341,11 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
               </div>
 
               {/* Footer */}
-              <div className="border-t border-[#c2c8c3] px-5 py-3">
+              <div className="border-t border-slate-200 px-5 py-3">
                 <Link
                   href="/dashboard/notifications"
                   onClick={() => setOpen(false)}
-                  className="block w-full text-center font-ui text-[13px] font-medium leading-5 text-[#4b6358] hover:text-[#344b41] transition-colors"
+                  className="block w-full text-center font-ui text-[13px] font-medium leading-5 text-[#2563EB] hover:text-[#1D4ED8] transition-colors"
                 >
                   View all notifications
                 </Link>
@@ -357,12 +357,12 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="p-1 hover:bg-[#f3f4f5] rounded transition-colors">
-                  <Avatar className="w-8 h-8 border border-[#c2c8c3]">
+                <button className="p-1 hover:bg-slate-100 rounded-xl transition-colors">
+                  <Avatar className="w-8 h-8 border border-slate-200">
                     {user.profileImage ? (
                       <AvatarImage src={user.profileImage} alt={user.username} />
                     ) : null}
-                    <AvatarFallback className="bg-[#e1e3e4] font-ui text-[13px] font-semibold text-[#344b41]">
+                    <AvatarFallback className="bg-slate-100 font-ui text-[13px] font-semibold text-slate-600">
                       {getUserInitials(user.username)}
                     </AvatarFallback>
                   </Avatar>
@@ -370,10 +370,10 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
-                  <p className="font-ui text-[14px] font-medium text-[#191c1d]">
+                  <p className="font-ui text-[14px] font-medium text-slate-900">
                     {user.username}
                   </p>
-                  <p className="font-ui text-[12px] text-[#727974]">
+                  <p className="font-ui text-[12px] text-slate-400">
                     {user.email}
                   </p>
                 </div>
@@ -399,13 +399,13 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
       </div>
 
       {/* Mobile search bar */}
-      <div className="md:hidden border-t border-[#c2c8c3] px-4 py-3">
+      <div className="md:hidden border-t border-slate-200 px-4 py-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#727974]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             type="search"
             placeholder="Search reports..."
-            className="w-full rounded border-[#c2c8c3] bg-[#f3f4f5] pl-10 pr-4 text-[#191c1d] placeholder:text-[#727974] focus-visible:ring-[#b2cdbf]/60"
+            className="w-full rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#2563EB]/20"
           />
         </div>
       </div>
