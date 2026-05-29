@@ -1063,7 +1063,7 @@ export default function AdminFormBuilderPage() {
                                   label: nextValue,
                                 });
                               }}
-                              className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:border-[#004446] focus:outline-none focus:ring-0"
+                              className="w-full border border-slate-300 rounded-2xl px-4 py-3 text-base font-semibold focus:border-[#004446] focus:outline-none focus:ring-0"
                               placeholder={
                                 field.label || "Enter label name..."
                               }
@@ -1246,7 +1246,7 @@ export default function AdminFormBuilderPage() {
                             }));
                             updateField(field.id, { label: nextValue });
                           }}
-                          className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:border-[#004446] focus:outline-none focus:ring-0"
+                          className="w-full border border-slate-300 rounded-2xl px-4 py-3 text-base font-semibold focus:border-[#004446] focus:outline-none focus:ring-0"
                           placeholder={field.label || "Enter label name..."}
                         />
                       </div>

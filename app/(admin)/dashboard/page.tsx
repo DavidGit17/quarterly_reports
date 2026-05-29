@@ -93,44 +93,10 @@ export default function DashboardPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div>
-        <div className="mb-8">
-          <div className="flex items-start justify-between gap-4 mb-6">
-            <div>
-              <div className="h-9 w-72 bg-slate-200 rounded animate-pulse mb-2" />
-              <div className="h-5 w-56 bg-slate-200 rounded animate-pulse" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
-              <p className="text-sm text-slate-600 mb-2">Total Projects</p>
-              <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
-              <p className="text-sm text-slate-600 mb-2">Total Reports</p>
-              <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
-              <p className="text-sm text-slate-600 mb-2">Active Coordinators</p>
-              <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
-              <p className="text-sm text-slate-600 mb-2">Active Facilitators</p>
-              <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <div>
-        {/* Header */}
+        {/* Header — always rendered for fast LCP */}
         <div className="mb-8">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
@@ -147,27 +113,43 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Total Projects</p>
-              <p className="text-3xl font-bold text-slate-900">
-                {totalProjects}
-              </p>
+              {isLoading ? (
+                <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
+              ) : (
+                <p className="text-3xl font-bold text-slate-900">
+                  {totalProjects}
+                </p>
+              )}
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Total Reports</p>
-              <p className="text-3xl font-bold text-slate-900">
-                {totalReports}
-              </p>
+              {isLoading ? (
+                <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
+              ) : (
+                <p className="text-3xl font-bold text-slate-900">
+                  {totalReports}
+                </p>
+              )}
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Active Coordinators</p>
-              <p className="text-3xl font-bold text-slate-900">
-                {coordinatorCount}
-              </p>
+              {isLoading ? (
+                <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
+              ) : (
+                <p className="text-3xl font-bold text-slate-900">
+                  {coordinatorCount}
+                </p>
+              )}
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 p-6 transition-colors shadow-sm">
               <p className="text-sm text-slate-600 mb-2">Active Facilitators</p>
-              <p className="text-3xl font-bold text-slate-900">
-                {facilitatorCount}
-              </p>
+              {isLoading ? (
+                <div className="h-9 w-16 bg-slate-200 rounded animate-pulse" />
+              ) : (
+                <p className="text-3xl font-bold text-slate-900">
+                  {facilitatorCount}
+                </p>
+              )}
             </div>
           </div>
         </div>
