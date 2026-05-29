@@ -29,7 +29,7 @@ export function ProjectsTable({
 }: ProjectsTableProps) {
   if (isLoading) {
     return (
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
+      <div className="border border-slate-200 rounded-2xl overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
@@ -57,14 +57,14 @@ export function ProjectsTable({
 
   if (projects.length === 0) {
     return (
-      <div className="border border-slate-200 rounded-lg p-8 text-center">
+      <div className="border border-slate-200 rounded-2xl p-8 text-center">
         <p className="text-slate-500">No projects found</p>
       </div>
     );
   }
 
   return (
-    <div className="border border-slate-200 rounded-lg overflow-hidden">
+    <div className="border border-slate-200 rounded-2xl overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50">

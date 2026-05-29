@@ -52,10 +52,10 @@ const getQuarterLabel = (startMonth: string, endMonth: string) =>
 const fileAcceptTypes =
   ".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,image/*,video/*,audio/*";
 const FORM_FIELD_CLASS =
-  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-[#004446] focus:outline-none focus:ring-0 disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
 const FORM_DATE_FIELD_CLASS = `${FORM_FIELD_CLASS} pr-12`;
 const FORM_CUSTOM_SELECT_TRIGGER_CLASS =
-  "h-auto w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 shadow-none transition-all duration-200 hover:border-slate-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus-visible:border-blue-400 focus-visible:ring-2 focus-visible:ring-blue-100 data-[placeholder]:text-slate-400";
+  "h-auto w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 shadow-none transition-all duration-200 hover:border-slate-300 focus:border-[#004446] focus:ring-0 focus-visible:border-[#004446] focus-visible:ring-0 data-[placeholder]:text-slate-400";
 const FORM_CUSTOM_SELECT_CONTENT_CLASS =
   "rounded-xl border border-slate-100 bg-white text-slate-800 shadow-lg";
 const FORM_CUSTOM_SELECT_ITEM_CLASS =
@@ -193,8 +193,6 @@ export default function FacilitatorProjectFormPage() {
         }
 
         const {
-          defaultFields: baseDefaultFields,
-          customConfigs: customFormConfigs,
           formConfigs: configs,
           quarterConfigs: projectQuarters,
         } = await getHydratedFormState();
@@ -217,20 +215,11 @@ export default function FacilitatorProjectFormPage() {
           // allow form to proceed if cycle API fails
         }
 
-        const projectCustomFields = customFormConfigs[normalizedProject] || [];
-        const defaultFieldIds = new Set(
-          baseDefaultFields.map((field) => field.id),
-        );
+        let projectFields = configs[normalizedProject] || [];
 
-        const filteredCustomFields = projectCustomFields.filter(
-          (field) =>
-            !defaultFieldIds.has(field.id) &&
-            !["region-name", "team-size", "main-project-update"].includes(
-              field.id,
-            ),
+        projectFields = projectFields.filter(
+          (field) => !["region-name", "team-size", "main-project-update"].includes(field.id),
         );
-
-        let projectFields = [...baseDefaultFields, ...filteredCustomFields];
 
         projectFields = projectFields.map((field, projectIndex) => {
           const position = projectIndex + 1;
@@ -574,11 +563,15 @@ export default function FacilitatorProjectFormPage() {
           <div className="flex items-center justify-between mb-6">
             <button
               type="button"
-              onClick={() => router.push("/f")}
+              onClick={() =>
+                isPreviewMode
+                  ? router.push("/dashboard/forms-overview")
+                  : router.push("/f")
+              }
               className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              {isPreviewMode ? "Back" : "Back to Dashboard"}
             </button>
             {!isPreviewMode && (
               <div className="flex items-center gap-4">

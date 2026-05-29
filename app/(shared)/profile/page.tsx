@@ -127,6 +127,54 @@ function ProfileContent() {
   }, [router]);
 
   const role: UserRole = sessionUser?.role || "coordinator";
+  const isAdmin = role === "admin";
+
+  const adminColors = {
+    background: "#F6F9FC",
+    avatar: "bg-slate-100 text-slate-700",
+    navIcon: "text-[#2563EB]",
+    sidebarHeading: "text-slate-900",
+    sidebarDesc: "text-slate-500",
+    label: "text-slate-500",
+    value: "text-slate-900",
+    muted: "text-slate-500",
+    divider: "divide-slate-200",
+    border: "border-slate-200",
+    backBtn: "text-slate-500 hover:text-slate-700",
+    btnPrimary: "bg-[#2563EB] text-white hover:bg-blue-700",
+    btnOutline: "border-slate-200 text-slate-600 hover:bg-slate-50",
+    logout: "border-red-200 text-red-600 hover:bg-red-50",
+    sidebarBg: "bg-white",
+    sidebarNavBg: "bg-slate-50",
+    cardBg: "bg-white",
+    inputBg: "bg-slate-50",
+  };
+  const cfColors = {
+    background: `
+      radial-gradient(circle at top left, #DFF7E8 0%, transparent 45%),
+      radial-gradient(circle at center, #CFF6F2 0%, transparent 55%),
+      radial-gradient(circle at bottom left, #BFE8FF 0%, transparent 50%),
+      linear-gradient(135deg, #EAFDFF 0%, #D8F7FF 45%, #F8FEFF 100%)
+    `,
+    avatar: "bg-[#e8f5ee] text-[#4b6358]",
+    navIcon: "text-[#4b6358]",
+    sidebarHeading: "text-[#1a1c1e]",
+    sidebarDesc: "text-[#5e6a6e]",
+    label: "text-[#424845]",
+    value: "text-[#1a1c1e]",
+    muted: "text-[#5e6a6e]",
+    divider: "divide-slate-100",
+    border: "border-slate-100",
+    backBtn: "text-[#5e6a6e] hover:text-[#4b6358]",
+    btnPrimary: "bg-[#4b6358] text-white hover:bg-[#344b41]",
+    btnOutline: "border-slate-200 text-[#5e6a6e] hover:bg-slate-50",
+    logout: "border-[#ffdad6] text-[#ba1a1a] hover:bg-[#ffdad6]/45",
+    sidebarBg: "bg-[#f8fafc]",
+    sidebarNavBg: "bg-white",
+    cardBg: "bg-white",
+    inputBg: "bg-[#f8fafc]",
+  };
+  const c = isAdmin ? adminColors : cfColors;
 
   const profileData =
     role === "admin"
@@ -273,41 +321,34 @@ function ProfileContent() {
   return (
     <div
       className="min-h-screen"
-      style={{
-        background: `
-          radial-gradient(circle at top left, #DFF7E8 0%, transparent 45%),
-          radial-gradient(circle at center, #CFF6F2 0%, transparent 55%),
-          radial-gradient(circle at bottom left, #BFE8FF 0%, transparent 50%),
-          linear-gradient(135deg, #EAFDFF 0%, #D8F7FF 45%, #F8FEFF 100%)
-        `,
-      }}
+      style={{ background: c.background }}
     >
       <div className="mx-auto max-w-5xl px-4 py-10">
         <button
           type="button"
           onClick={() => router.push(dashboardHref)}
-          className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+          className={`mb-6 inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${c.backBtn}`}
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Dashboard
         </button>
 
-        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+        <div className={`rounded-2xl border shadow-sm overflow-hidden ${c.border} ${c.cardBg}`}>
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr]">
-            <aside className="border-r border-slate-100 bg-[#f8fafc] p-6">
-              <h1 className="mb-1 font-heading text-[20px] font-semibold leading-7 text-[#1a1c1e]">
+            <aside className={`border-r p-6 ${c.border} ${c.sidebarBg}`}>
+              <h1 className={`mb-1 font-heading text-[20px] font-semibold leading-7 ${c.sidebarHeading}`}>
                 Account
               </h1>
-              <p className="mb-6 text-sm text-[#5e6a6e]">
+              <p className={`mb-6 text-sm ${c.sidebarDesc}`}>
                 Manage your account info.
               </p>
 
               <nav className="space-y-1">
                 <Link
                   href="/profile"
-                  className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-[#1a1c1e] shadow-sm"
+                  className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium shadow-sm ${c.border} ${c.sidebarNavBg} ${c.sidebarHeading}`}
                 >
-                  <UserCircle2 className="h-4 w-4 text-[#4b6358]" />
+                  <UserCircle2 className={`h-4 w-4 ${c.navIcon}`} />
                   Profile
                 </Link>
               </nav>
@@ -316,16 +357,16 @@ function ProfileContent() {
             <main>
               <div className="mx-auto max-w-2xl px-6 py-8">
                 <div className="mb-6">
-                  <h2 className="font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#1a1c1e]">
+                  <h2 className={`font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] ${c.sidebarHeading}`}>
                     Profile details
                   </h2>
-                  <p className="mt-1 text-sm text-[#5e6a6e]">
+                  <p className={`mt-1 text-sm ${c.muted}`}>
                     Keep your identity and access details up to date.
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-slate-100 bg-white shadow-sm">
-                  <div className="flex items-center justify-between gap-3 border-b border-slate-100 p-4">
+                <div className={`rounded-2xl border shadow-sm ${c.border} ${c.cardBg}`}>
+                  <div className={`flex items-center justify-between gap-3 border-b p-4 ${c.border}`}>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
@@ -340,7 +381,7 @@ function ProfileContent() {
                               alt="Profile image"
                             />
                           ) : null}
-                          <AvatarFallback className="bg-[#e8f5ee] text-sm font-semibold text-[#4b6358]">
+                          <AvatarFallback className={`text-sm font-semibold ${c.avatar}`}>
                             {getUserInitials(profileData.username)}
                           </AvatarFallback>
                         </Avatar>
@@ -350,10 +391,10 @@ function ProfileContent() {
                       </button>
 
                       <div>
-                        <p className="text-sm font-semibold text-[#1a1c1e]">
+                        <p className={`text-sm font-semibold ${c.sidebarHeading}`}>
                           {profileData.username}
                         </p>
-                        <p className="text-sm text-[#5e6a6e]">
+                        <p className={`text-sm ${c.muted}`}>
                           {profileData.email}
                         </p>
                       </div>
@@ -364,37 +405,39 @@ function ProfileContent() {
                       variant="outline"
                       size="sm"
                       onClick={openUpdateModal}
-                      className="h-8 rounded-xl border-slate-200 px-3 text-xs font-medium text-[#5e6a6e] hover:bg-slate-50"
+                      className={`h-8 rounded-xl px-3 text-xs font-medium ${c.btnOutline}`}
                     >
                       Edit Profile
                     </Button>
                   </div>
 
-                  <div className="divide-y divide-slate-100">
+                  <div className={`divide-y ${c.divider}`}>
                     <div className="grid grid-cols-[110px_1fr] items-center px-4 py-3 text-sm">
-                      <span className="text-xs font-medium uppercase tracking-wide text-[#424845]">
+                      <span className={`text-xs font-medium uppercase tracking-wide ${c.label}`}>
                         Email
                       </span>
-                      <span className="text-right font-medium text-[#1a1c1e]">
+                      <span className={`text-right font-medium ${c.value}`}>
                         {profileData.email}
                       </span>
                     </div>
                     <div className="grid grid-cols-[110px_1fr] items-center px-4 py-3 text-sm">
-                      <span className="text-xs font-medium uppercase tracking-wide text-[#424845]">
+                      <span className={`text-xs font-medium uppercase tracking-wide ${c.label}`}>
                         Role
                       </span>
-                      <span className="text-right font-medium text-[#1a1c1e]">
+                      <span className={`text-right font-medium ${c.value}`}>
                         {profileData.roleLabel}
                       </span>
                     </div>
-                    <div className="grid grid-cols-[110px_1fr] items-center px-4 py-3 text-sm">
-                      <span className="text-xs font-medium uppercase tracking-wide text-[#424845]">
-                        Project
-                      </span>
-                      <span className="text-right font-medium text-[#1a1c1e]">
-                        {profileData.project}
-                      </span>
-                    </div>
+                    {!isAdmin && (
+                      <div className="grid grid-cols-[110px_1fr] items-center px-4 py-3 text-sm">
+                        <span className={`text-xs font-medium uppercase tracking-wide ${c.label}`}>
+                          Project
+                        </span>
+                        <span className={`text-right font-medium ${c.value}`}>
+                          {profileData.project}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -405,21 +448,21 @@ function ProfileContent() {
                 <div className="mt-4 flex items-center gap-3 overflow-x-auto pb-1">
                   <Link
                     href={profileData.destinationHref}
-                    className="inline-flex h-9 items-center whitespace-nowrap rounded-xl bg-[#4b6358] px-4 text-xs font-medium text-white transition-colors hover:bg-[#344b41]"
+                    className={`inline-flex h-9 items-center whitespace-nowrap rounded-xl px-4 text-xs font-medium transition-colors ${c.btnPrimary}`}
                   >
                     {profileData.destinationLabel}
                   </Link>
                   {role !== "admin" && (
                     <Link
                       href={role === "facilitator" ? "/f/my-reports" : "/my-reports"}
-                      className="inline-flex h-9 items-center whitespace-nowrap rounded-xl border border-slate-200 bg-white px-4 text-xs font-medium text-[#5e6a6e] transition-colors hover:bg-slate-50"
+                      className={`inline-flex h-9 items-center whitespace-nowrap rounded-xl border px-4 text-xs font-medium transition-colors ${c.btnOutline} ${c.cardBg}`}
                     >
                       View My Reports
                     </Link>
                   )}
                   <button
                     onClick={handleLogout}
-                    className="inline-flex h-9 items-center whitespace-nowrap rounded-xl border border-[#ffdad6] bg-white px-4 text-xs font-medium text-[#ba1a1a] transition-colors hover:bg-[#ffdad6]/45"
+                    className={`inline-flex h-9 items-center whitespace-nowrap rounded-xl border px-4 text-xs font-medium transition-colors ${c.logout} ${c.cardBg}`}
                   >
                     Logout
                   </button>
@@ -431,17 +474,17 @@ function ProfileContent() {
 
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent
-            className="max-w-xl rounded-2xl border border-slate-100 bg-white p-0 shadow-sm"
+            className={`max-w-xl rounded-2xl border p-0 shadow-sm ${c.border} ${c.cardBg}`}
             showCloseButton={false}
           >
             <div className="p-8">
               <DialogHeader>
-                <DialogTitle className="font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#1a1c1e]">
+                <DialogTitle className={`font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] ${c.sidebarHeading}`}>
                   Update profile
                 </DialogTitle>
               </DialogHeader>
 
-              <div className="mt-6 rounded-2xl border border-slate-100 bg-[#f8fafc] p-5 space-y-4">
+              <div className={`mt-6 rounded-2xl border p-5 space-y-4 ${c.border} ${c.inputBg}`}>
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16 border border-slate-200">
                     {uploadImage || draftImage ? (
@@ -450,7 +493,7 @@ function ProfileContent() {
                         alt="Draft profile image"
                       />
                     ) : null}
-                    <AvatarFallback className="bg-[#e8f5ee] text-base font-semibold text-[#4b6358]">
+                    <AvatarFallback className={`text-base font-semibold ${c.avatar}`}>
                       {getUserInitials(profileData.username)}
                     </AvatarFallback>
                   </Avatar>
@@ -463,7 +506,7 @@ function ProfileContent() {
                         onChange={handleProfileImageChange}
                         className="hidden"
                       />
-                      <span className="inline-flex cursor-pointer items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#5e6a6e] transition-colors hover:bg-slate-50">
+                      <span className={`inline-flex cursor-pointer items-center rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${c.btnOutline} ${c.cardBg}`}>
                         Upload
                       </span>
                     </label>
@@ -471,8 +514,8 @@ function ProfileContent() {
                     {(uploadImage || draftImage) && (
                       <button
                         type="button"
-                        onClick={handleRemoveImage}
-                        className="text-sm font-medium text-[#ba1a1a] hover:text-[#ba1a1a]/80"
+                          onClick={handleRemoveImage}
+                        className={`text-sm font-medium ${isAdmin ? "text-red-600 hover:text-red-700" : "text-[#ba1a1a] hover:text-[#ba1a1a]/80"}`}
                       >
                         Remove
                       </button>
@@ -480,13 +523,13 @@ function ProfileContent() {
                   </div>
                 </div>
 
-                <p className="text-sm text-[#5e6a6e]">
+                <p className={`text-sm ${c.muted}`}>
                   Recommended size 1:1, up to 10MB.
                 </p>
 
                 {uploadImage && (
                   <div className="space-y-3">
-                    <div className="relative h-56 w-full overflow-hidden rounded-xl border border-slate-200 bg-black/5">
+                    <div className={`relative h-56 w-full overflow-hidden rounded-xl border bg-black/5 ${c.border}`}>
                       <Cropper
                         image={uploadImage}
                         crop={crop}
@@ -501,7 +544,7 @@ function ProfileContent() {
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-medium text-[#5e6a6e]">
+                      <label className={`mb-1 block text-xs font-medium ${c.muted}`}>
                         Zoom
                       </label>
                       <input
@@ -532,7 +575,7 @@ function ProfileContent() {
                     type="button"
                     onClick={handleSaveProfileImage}
                     disabled={isSavingImage}
-                    className="rounded-xl bg-[#4b6358] text-sm text-white transition-colors hover:bg-[#344b41]"
+                    className={`rounded-xl text-sm text-white transition-colors ${c.btnPrimary}`}
                   >
                     {isSavingImage ? "Saving..." : "Save"}
                   </Button>

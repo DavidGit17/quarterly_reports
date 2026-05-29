@@ -36,7 +36,7 @@ export function DataTab({
 }: DataTabProps) {
   return (
     <>
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle>Data Management</CardTitle>
           <CardDescription>
@@ -44,7 +44,7 @@ export function DataTab({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2 p-4 bg-slate-100 rounded-lg">
+          <div className="space-y-2 p-4 bg-slate-100 rounded-2xl">
             <p className="font-medium text-slate-900">Export All Data</p>
             <p className="text-sm text-slate-800">
               Download all your reports and settings in CSV format
@@ -54,7 +54,7 @@ export function DataTab({
             </Button>
           </div>
 
-          <div className="space-y-2 p-4 bg-slate-50 rounded-lg">
+          <div className="space-y-2 p-4 bg-slate-50 rounded-2xl">
             <p className="font-medium text-slate-900">Backup Database</p>
             <p className="text-sm text-slate-600">
               Create a backup of your entire database
@@ -68,7 +68,7 @@ export function DataTab({
             </Button>
           </div>
 
-          <div className="space-y-2 p-4 bg-red-50 rounded-lg border border-red-200">
+          <div className="space-y-2 p-4 bg-red-50 rounded-2xl border border-red-200">
             <p className="font-medium text-red-900">Danger Zone</p>
             <p className="text-sm text-red-800">
               Delete all your data permanently (cannot be undone)

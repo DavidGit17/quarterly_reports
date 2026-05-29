@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "../status-badge";
 import { formatIsoDate } from "@/lib/shared/date-format";
 import { Eye, Edit2, Trash2, Download } from "lucide-react";
 
@@ -44,7 +43,7 @@ export function ReportsTable({
 }: ReportsTableProps) {
   if (isLoading) {
     return (
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
+      <div className="border border-slate-200 rounded-2xl overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
@@ -53,7 +52,6 @@ export function ReportsTable({
               <TableHead>Language</TableHead>
               <TableHead>Quarter</TableHead>
               <TableHead>Submitted By</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Submission Date</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -61,7 +59,7 @@ export function ReportsTable({
           <TableBody>
             {[1, 2, 3].map((i) => (
               <TableRow key={i}>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((j) => (
+                {[1, 2, 3, 4, 5, 6, 7].map((j) => (
                   <TableCell key={j} className="h-12">
                     <div className="h-4 bg-slate-200 rounded animate-pulse" />
                   </TableCell>
@@ -76,14 +74,14 @@ export function ReportsTable({
 
   if (reports.length === 0) {
     return (
-      <div className="border border-slate-200 rounded-lg p-8 text-center">
+      <div className="border border-slate-200 rounded-2xl p-8 text-center">
         <p className="text-slate-500">No reports found</p>
       </div>
     );
   }
 
   return (
-    <div className="border border-slate-200 rounded-lg overflow-x-auto">
+    <div className="border border-slate-200 rounded-2xl overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow className="bg-slate-50">
@@ -92,7 +90,6 @@ export function ReportsTable({
             <TableHead>Language</TableHead>
             <TableHead>Quarter</TableHead>
             <TableHead>Submitted By</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead>Submission Date</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -113,9 +110,6 @@ export function ReportsTable({
               <TableCell className="text-slate-600">
                 {report.submittedBy}
               </TableCell>
-              <TableCell>
-                <StatusBadge status={report.status} />
-              </TableCell>
               <TableCell className="text-slate-600">
                 {formatIsoDate(report.submissionDate)}
               </TableCell>
@@ -133,7 +127,7 @@ export function ReportsTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(report)}
-                    title="Edit report status"
+                    title="Edit report responses"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>

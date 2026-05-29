@@ -30,7 +30,7 @@ export function SecurityTab({
   onReset,
 }: SecurityTabProps) {
   return (
-    <Card>
+    <Card className="rounded-2xl">
       <CardHeader>
         <CardTitle>Security Settings</CardTitle>
         <CardDescription>
@@ -75,7 +75,7 @@ export function SecurityTab({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-slate-700 hover:bg-slate-800 text-white"
+            className="bg-[#2563EB] hover:bg-blue-700 text-white"
           >
             Save Changes
           </Button>

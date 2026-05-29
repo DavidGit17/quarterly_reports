@@ -28,7 +28,7 @@ export function NotificationsTab({
   onReset,
 }: NotificationsTabProps) {
   return (
-    <Card>
+    <Card className="rounded-2xl">
       <CardHeader>
         <CardTitle>Notification Preferences</CardTitle>
         <CardDescription>
@@ -70,7 +70,7 @@ export function NotificationsTab({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-slate-700 hover:bg-slate-800 text-white"
+            className="bg-[#2563EB] hover:bg-blue-700 text-white"
           >
             Save Changes
           </Button>

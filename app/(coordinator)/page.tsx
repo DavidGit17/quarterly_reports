@@ -3,7 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CircleUserRound, FileText, ArrowRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import {
+  CircleUserRound,
+  FileText,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from "lucide-react";
 import { toProjectSlug } from "@/lib/shared/form-storage";
 
 type MeResponse = {
@@ -37,7 +44,11 @@ export default function CoordinatorDashboard() {
   const [isReady, setIsReady] = useState(false);
 
   const [reports, setReports] = useState<Report[]>([]);
-  const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, total: 0 });
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchValue, setSearchValue] = useState("");
@@ -47,15 +58,23 @@ export default function CoordinatorDashboard() {
     const load = async () => {
       try {
         const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.status === 401) { router.push("/login"); return; }
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
         const data = (await res.json()) as MeResponse;
-        if (data.user?.role !== "coordinator") { router.push("/dashboard"); return; }
+        if (data.user?.role !== "coordinator") {
+          router.push("/dashboard");
+          return;
+        }
         setUsername(data.user?.username || "Coordinator");
         if (data.user?.project) {
           setFormHref(`/form/${toProjectSlug(data.user.project)}`);
         }
         setIsReady(true);
-      } catch { router.push("/login"); }
+      } catch {
+        router.push("/login");
+      }
     };
     void load();
   }, [router]);
@@ -67,14 +86,19 @@ export default function CoordinatorDashboard() {
       params.set("page", String(page));
       params.set("limit", "10");
       if (search) params.set("search", search);
-      const res = await fetch(`/api/my-reports?${params.toString()}`, { cache: "no-store" });
+      const res = await fetch(`/api/my-reports?${params.toString()}`, {
+        cache: "no-store",
+      });
       if (res.ok) {
         const data = (await res.json()) as MyReportsResponse;
         setReports(data.reports);
         setPagination(data.pagination);
       }
-    } catch { /* ignore */ }
-    finally { setIsLoading(false); }
+    } catch {
+      /* ignore */
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -85,12 +109,19 @@ export default function CoordinatorDashboard() {
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const formatTime = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return d.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
   };
 
   return (
@@ -134,7 +165,9 @@ export default function CoordinatorDashboard() {
           </div>
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-[#1a1c1e]">New Report</h2>
-            <p className="text-sm text-[#5e6a6e]">Submit a new quarterly report</p>
+            <p className="text-sm text-[#5e6a6e]">
+              Submit a new quarterly report
+            </p>
           </div>
           <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-[#4b6358] transition-colors" />
         </Link>
@@ -143,8 +176,12 @@ export default function CoordinatorDashboard() {
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-100">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#1a1c1e]">My Reports</h2>
-              <p className="text-sm text-[#5e6a6e]">{pagination.total} report{pagination.total !== 1 ? "s" : ""}</p>
+              <h2 className="text-lg font-semibold text-[#1a1c1e]">
+                My Reports
+              </h2>
+              <p className="text-sm text-[#5e6a6e]">
+                {pagination.total} report{pagination.total !== 1 ? "s" : ""}
+              </p>
             </div>
             <div className="relative mt-3">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -152,8 +189,11 @@ export default function CoordinatorDashboard() {
                 type="text"
                 placeholder="Search by quarter..."
                 value={searchValue}
-                onChange={(e) => { setSearchValue(e.target.value); setCurrentPage(1); }}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-[#1a1c1e] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#cee9db] focus:border-[#4b6358] transition-colors"
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-[#1a1c1e] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446] transition-colors"
               />
             </div>
           </div>
@@ -165,10 +205,14 @@ export default function CoordinatorDashboard() {
               ))}
             </div>
           ) : errorMessage ? (
-            <div className="p-6 text-center text-sm text-red-600">{errorMessage}</div>
+            <div className="p-6 text-center text-sm text-red-600">
+              {errorMessage}
+            </div>
           ) : reports.length === 0 ? (
             <div className="p-12 text-center">
-              <p className="text-sm text-[#5e6a6e] mb-3">No reports found{searchValue ? " matching your search" : ""}.</p>
+              <p className="text-sm text-[#5e6a6e] mb-3">
+                No reports found{searchValue ? " matching your search" : ""}.
+              </p>
               {!searchValue && (
                 <Link
                   href={formHref || "/select"}
@@ -185,20 +229,41 @@ export default function CoordinatorDashboard() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-100">
-                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#424845]">Project</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#424845]">Quarter</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#424845]">Date</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#424845]">Time</th>
-                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-[#424845]">Action</th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#424845]">
+                        Project
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#424845]">
+                        Quarter
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#424845]">
+                        Date
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#424845]">
+                        Time
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-[#424845]">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {reports.map((report) => (
-                      <tr key={report.id} className="transition-colors hover:bg-[#cee9db]/25">
-                        <td className="px-6 py-4 text-sm font-medium text-[#1a1c1e]">{report.projectName}</td>
-                        <td className="px-6 py-4 text-sm text-[#5e6a6e]">{report.quarter}</td>
-                        <td className="px-6 py-4 text-sm text-[#5e6a6e]">{formatDate(report.createdAt)}</td>
-                        <td className="px-6 py-4 text-sm text-[#5e6a6e]">{formatTime(report.createdAt)}</td>
+                      <tr
+                        key={report.id}
+                        className="transition-colors hover:bg-[#cee9db]/25"
+                      >
+                        <td className="px-6 py-4 text-sm font-medium text-[#1a1c1e]">
+                          {report.projectName}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-[#5e6a6e]">
+                          {report.quarter}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-[#5e6a6e]">
+                          {formatDate(report.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-[#5e6a6e]">
+                          {formatTime(report.createdAt)}
+                        </td>
                         <td className="px-6 py-4 text-right">
                           <Link
                             href={`/report/${report.id}`}
@@ -231,7 +296,11 @@ export default function CoordinatorDashboard() {
                     <button
                       type="button"
                       disabled={currentPage >= pagination.totalPages}
-                      onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
+                      onClick={() =>
+                        setCurrentPage((p) =>
+                          Math.min(pagination.totalPages, p + 1),
+                        )
+                      }
                       className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <ChevronRight className="h-4 w-4" />

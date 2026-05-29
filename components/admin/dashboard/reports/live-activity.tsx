@@ -7,7 +7,7 @@ interface LiveActivityProps {
 export function LiveActivity({ sessions }: LiveActivityProps) {
   if (sessions.length === 0) {
     return (
-      <div className="border border-slate-200 rounded-lg p-6 mb-6">
+      <div className="border border-slate-200 rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-slate-900 mb-4">
           Active Submission Sessions
         </h2>
@@ -19,7 +19,7 @@ export function LiveActivity({ sessions }: LiveActivityProps) {
   }
 
   return (
-    <div className="border border-slate-200 rounded-lg mb-6">
+    <div className="border border-slate-200 rounded-2xl mb-6">
       <div className="px-6 py-4 border-b border-slate-200">
         <h2 className="text-base font-semibold text-slate-900">
           Active Submission Sessions

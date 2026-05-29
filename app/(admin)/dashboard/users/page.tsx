@@ -318,7 +318,7 @@ export default function UsersPage() {
         action={
           <Button
             onClick={openCreate}
-            className="bg-slate-700 hover:bg-slate-800 text-white gap-2"
+            className="bg-[#2563EB] hover:bg-blue-700 text-white gap-2"
           >
             <Plus className="w-4 h-4" />
             Add User
@@ -327,18 +327,18 @@ export default function UsersPage() {
       />
 
       {successMessage && (
-        <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           {successMessage}
         </div>
       )}
 
       {errorMessage && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {errorMessage}
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-1.5 mb-4 p-1 bg-slate-100 rounded-lg">
+      <div className="flex flex-wrap items-center gap-1.5 mb-4 p-1 bg-slate-100 rounded-2xl">
         {[
           { key: "all" as const, label: "All", icon: Users },
           { key: "coordinator" as const, label: "Coordinators", icon: UserCheck },
@@ -351,7 +351,7 @@ export default function UsersPage() {
               key={key}
               type="button"
               onClick={() => setRoleFilter(key === roleFilter ? "all" : key)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
                 roleFilter === key
                   ? "bg-white text-slate-900 shadow-sm border border-slate-200"
                   : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
@@ -395,7 +395,7 @@ export default function UsersPage() {
         }
       />
 
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
+      <div className="border border-slate-200 rounded-2xl overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">

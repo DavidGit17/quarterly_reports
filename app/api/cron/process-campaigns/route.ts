@@ -7,25 +7,29 @@ import { sendCampaignEmail } from "@/server/email/campaign-email";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-export async function GET() {
+function validateCronRequest(request: Request): boolean {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) return true;
+  const headerValue = request.headers.get("x-cron-secret");
+  return headerValue === cronSecret;
+}
+
+export async function GET(request: Request) {
+  if (!validateCronRequest(request)) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
   return processCampaigns();
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!validateCronRequest(request)) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
   return processCampaigns();
 }
 
 async function processCampaigns() {
   try {
-    const authHeader = process.env.CRON_SECRET
-      ? { "x-cron-secret": process.env.CRON_SECRET }
-      : null;
-
-    if (authHeader) {
-      // In production Vercel Cron, auth is handled via Vercel's CRON_SECRET env.
-      // This check is a safety net for direct access.
-    }
-
     const campaignsCollection = await getEmailCampaignsCollection();
     const now = new Date();
 

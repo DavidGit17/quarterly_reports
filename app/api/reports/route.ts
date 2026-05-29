@@ -7,6 +7,7 @@ import {
   toReportResponse,
   type DynamicReportField,
 } from "@/server/reports/reports";
+import { getFormDistributionCollection } from "@/server/form-distribution/form-distribution";
 
 type CreateReportPayload = {
   projectName?: string;
@@ -87,6 +88,38 @@ export async function POST(request: Request) {
         { message: "All report fields must be filled." },
         { status: 400 },
       );
+    }
+
+    const distributionCollection = await getFormDistributionCollection();
+    const activeRules = await distributionCollection
+      .find({
+        status: "active",
+        projects: assignedProject,
+      })
+      .toArray();
+
+    const now = new Date();
+
+    for (const rule of activeRules) {
+      if (rule.expirationDate) {
+        const expDate = new Date(rule.expirationDate);
+        if (!isNaN(expDate.getTime()) && now > expDate) {
+          return NextResponse.json(
+            { message: "This form has expired. Please contact your administrator." },
+            { status: 403 },
+          );
+        }
+      }
+
+      if (rule.deadline) {
+        const deadlineDate = new Date(rule.deadline);
+        if (!isNaN(deadlineDate.getTime()) && now > deadlineDate) {
+          return NextResponse.json(
+            { message: "The submission deadline has passed." },
+            { status: 403 },
+          );
+        }
+      }
     }
 
     const reportsCollection = await getReportsCollection();

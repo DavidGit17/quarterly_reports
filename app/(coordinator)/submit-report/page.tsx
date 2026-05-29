@@ -221,7 +221,10 @@ function SubmitReportContent() {
               <div className="h-10 w-full bg-slate-200 rounded" />
             </div>
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-lg border border-slate-200 p-6">
+              <div
+                key={i}
+                className="bg-white rounded-lg border border-slate-200 p-6"
+              >
                 <div className="h-5 w-48 bg-slate-200 rounded mb-3" />
                 <div className="h-10 w-full bg-slate-200 rounded" />
               </div>
@@ -276,7 +279,7 @@ function SubmitReportContent() {
               required
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
-              className="w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-sky-600"
+              className="w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-[#004446]"
               placeholder="Enter project name"
             />
           </div>
@@ -307,7 +310,7 @@ function SubmitReportContent() {
                     required={field.required !== false}
                     value={formValues[field.id] || ""}
                     onChange={(e) => handleTextChange(field.id, e.target.value)}
-                    className="w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-sky-600"
+                    className="w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-[#004446]"
                     placeholder="Enter your answer"
                   />
                 )}
@@ -318,7 +321,7 @@ function SubmitReportContent() {
                     required={field.required !== false}
                     value={formValues[field.id] || ""}
                     onChange={(e) => handleTextChange(field.id, e.target.value)}
-                    className="no-number-spinner w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-sky-600"
+                    className="no-number-spinner w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-base text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-[#004446]"
                     placeholder="Enter number"
                   />
                 )}
@@ -328,7 +331,7 @@ function SubmitReportContent() {
                     required={field.required !== false}
                     value={formValues[field.id] || ""}
                     onChange={(e) => handleTextChange(field.id, e.target.value)}
-                    className="w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-base text-slate-900 placeholder:text-slate-500 min-h-28 resize-y focus:outline-none focus:border-sky-600"
+                    className="w-full border-0 border-b border-slate-300 bg-transparent px-0 py-3 text-base text-slate-900 placeholder:text-slate-500 min-h-28 resize-y focus:outline-none focus:border-[#004446]"
                     placeholder="Enter your answer"
                   />
                 )}

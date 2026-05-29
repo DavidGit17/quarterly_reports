@@ -4,11 +4,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+type SessionUser = {
+  username: string;
+  role: string;
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [totalProjects, setTotalProjects] = useState(0);
   const [totalReports, setTotalReports] = useState(0);
   const [coordinatorCount, setCoordinatorCount] = useState(0);
@@ -17,12 +23,17 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const [reportsResponse, usersResponse, projectsResponse] = await Promise.all([
+        const [authResponse, reportsResponse, usersResponse, projectsResponse] = await Promise.all([
+          fetch("/api/auth/me", { cache: "no-store" }),
           fetch("/api/reports?page=1&limit=1", { cache: "no-store" }),
           fetch("/api/admin/users?limit=1", { cache: "no-store" }),
           fetch("/api/projects", { cache: "no-store" }),
         ]);
 
+        if (authResponse.ok) {
+          const authData = await authResponse.json() as { user?: SessionUser };
+          if (authData.user) setUser(authData.user);
+        }
         if (reportsResponse.status === 401) {
           router.push("/login");
           return;
@@ -88,10 +99,8 @@ export default function DashboardPage() {
         <div className="mb-8">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-              <p className="text-slate-600 text-sm mt-1">
-                Welcome back! Here's your quarterly reports overview.
-              </p>
+              <div className="h-9 w-72 bg-slate-200 rounded animate-pulse mb-2" />
+              <div className="h-5 w-56 bg-slate-200 rounded animate-pulse" />
             </div>
           </div>
 
@@ -125,9 +134,11 @@ export default function DashboardPage() {
         <div className="mb-8">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+              <h1 className="text-3xl font-bold text-slate-900">
+                Welcome back{user ? `, ${user.username}` : ""}!
+              </h1>
               <p className="text-slate-600 text-sm mt-1">
-                Welcome back! Here's your quarterly reports overview.
+                Here's your quarterly reports overview.
               </p>
             </div>
           </div>

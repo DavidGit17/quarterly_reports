@@ -202,7 +202,7 @@ export default function NotificationsPage() {
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`border rounded-lg p-4 transition-all ${
+                    className={`border rounded-2xl p-4 transition-all ${
                       notification.read
                         ? "bg-white border-slate-200"
                         : "bg-slate-100 border-slate-200"
@@ -282,7 +282,7 @@ export default function NotificationsPage() {
                 ))}
               </div>
             ) : (
-              <div className="bg-white border border-slate-200 rounded-lg p-12 text-center">
+              <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center">
                 <Bell className="w-8 h-8 text-slate-400 mx-auto mb-3" />
                 <p className="text-slate-600 text-sm">
                   No notifications yet. Check back soon!
@@ -293,7 +293,7 @@ export default function NotificationsPage() {
 
           {/* Notification Preferences */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="rounded-2xl">
               <CardHeader>
                 <CardTitle className="text-base">Preferences</CardTitle>
                 <CardDescription className="text-xs">
@@ -375,13 +375,13 @@ export default function NotificationsPage() {
 
                 <div className="pt-4">
                   {saveMessage && (
-                    <p className="mb-3 rounded-md bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
+                    <p className="mb-3 rounded-xl bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
                       {saveMessage}
                     </p>
                   )}
                   <Button
                     onClick={handleSavePreferences}
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white text-sm"
+                    className="w-full bg-[#2563EB] hover:bg-blue-700 text-white text-sm"
                   >
                     Save Preferences
                   </Button>

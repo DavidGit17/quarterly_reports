@@ -1,0 +1,30 @@
+[build]
+  command = "npm run build"
+
+# Node.js version — Next.js 16 requires >= 18.18
+# Set in Netlify UI: Site > Site settings > Build & deploy > Environment > Node.js version
+# Or use environment variable: AWS_LAMBDA_JS_RUNTIME = nodejs20.x
+
+# Next.js is auto-detected by Netlify from package.json
+# No publish directory needed — managed by Next.js Runtime
+
+[build.environment]
+  NEXT_PUBLIC_APP_URL = "https://your-site.netlify.app"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Netlify does NOT support vercel.json crons.
+# Set up scheduled execution via external cron service:
+#
+#   1. Go to https://cron-job.org (free)
+#   2. Create job: POST https://your-site.netlify.app/api/form-distribution/process
+#   3. Headers: { "x-cron-secret": "<your-CRON_SECRET>" }
+#   4. Schedule: Every 5 minutes
+#
+#   Repeat for: POST https://your-site.netlify.app/api/cron/process-campaigns
+#   Schedule: Every 15 minutes

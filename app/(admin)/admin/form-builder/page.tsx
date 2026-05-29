@@ -583,7 +583,7 @@ export default function AdminFormBuilderPage() {
                     updateFn(field.id, { choices: newChoices });
                   }}
                   disabled={choice === "Other"}
-                  className={`flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 ${
+                  className={`flex-1 border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446] ${
                     choice === "Other"
                       ? "bg-slate-100 text-slate-600 cursor-not-allowed"
                       : ""
@@ -651,7 +651,7 @@ export default function AdminFormBuilderPage() {
                 onChange={(e) =>
                   updateFn(field.id, { ratingLevels: parseInt(e.target.value) })
                 }
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+                className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446]"
               >
                 <option value={3}>3</option>
                 <option value={4}>4</option>
@@ -670,7 +670,7 @@ export default function AdminFormBuilderPage() {
                 onChange={(e) =>
                   updateFn(field.id, { ratingSymbol: e.target.value })
                 }
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+                className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446]"
               >
                 <option value="Star">★ Star</option>
                 <option value="Heart">♥ Heart</option>
@@ -723,7 +723,7 @@ export default function AdminFormBuilderPage() {
             <button
               type="button"
               onClick={resetDefaults}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-2xl border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
             >
               Reset to defaults
             </button>
@@ -731,7 +731,7 @@ export default function AdminFormBuilderPage() {
         </div>
 
         {/* Edit Mode Selector */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6 mb-8">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
           <label className="block text-sm font-semibold text-slate-900 mb-4">
             Edit Mode
           </label>
@@ -744,12 +744,12 @@ export default function AdminFormBuilderPage() {
                 }
               }}
               disabled={isProjectScopedEdit}
-              className={`rounded-lg border-2 px-4 py-3 text-sm font-semibold transition-all ${
+              className={`rounded-2xl border-2 px-4 py-3 text-sm font-semibold transition-all ${
                 activeFieldMode === "default"
                   ? "border-slate-700 bg-slate-100 text-slate-800"
                   : isProjectScopedEdit
                     ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
               }`}
             >
               <span className="block font-semibold">
@@ -759,7 +759,7 @@ export default function AdminFormBuilderPage() {
             <button
               type="button"
               onClick={() => setActiveFieldMode("custom")}
-              className={`rounded-lg border-2 px-4 py-3 text-sm font-semibold transition-all ${
+              className={`rounded-2xl border-2 px-4 py-3 text-sm font-semibold transition-all ${
                 activeFieldMode === "custom"
                   ? "border-slate-700 bg-slate-100 text-slate-800"
                   : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
@@ -771,7 +771,7 @@ export default function AdminFormBuilderPage() {
         </div>
 
         {/* Configuration Panel */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6 mb-8 space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 space-y-6">
           {/* Share Form Link */}
           <div>
             <h3 className="text-sm font-semibold text-slate-900 mb-3">
@@ -782,7 +782,7 @@ export default function AdminFormBuilderPage() {
               <button
                 type="button"
                 onClick={handleCopyFormLink}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-100 text-slate-900 text-sm font-medium hover:bg-slate-200 transition-colors active:bg-slate-300"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 text-slate-900 text-sm font-medium hover:bg-slate-200 transition-colors active:bg-slate-300"
               >
                 Copy Form Link
               </button>
@@ -791,7 +791,7 @@ export default function AdminFormBuilderPage() {
                 target="_blank"
                 rel="noreferrer"
                 aria-disabled={!whatsappShareLink}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors"
                 onClick={(event) => {
                   if (!whatsappShareLink) {
                     event.preventDefault();
@@ -819,7 +819,7 @@ export default function AdminFormBuilderPage() {
               <select
                 value={selectedProject}
                 onChange={(e) => setSelectedProject(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700 appearance-none bg-no-repeat bg-white"
+                className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
                 style={{
                   paddingRight: "2.5rem",
                   backgroundPosition: "right 1rem center",
@@ -844,13 +844,13 @@ export default function AdminFormBuilderPage() {
                   type="text"
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  className="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
+                  className="flex-1 border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446]"
                   placeholder="Project name"
                 />
                 <button
                   type="button"
                   onClick={addProject}
-                  className="px-4 py-2.5 rounded-lg bg-slate-700 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
                 >
                   Add
                 </button>
@@ -883,7 +883,7 @@ export default function AdminFormBuilderPage() {
                       },
                     }))
                   }
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700 appearance-none bg-no-repeat bg-white"
+                  className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
                   style={{
                     paddingRight: "2.5rem",
                     backgroundPosition: "right 1rem center",
@@ -913,7 +913,7 @@ export default function AdminFormBuilderPage() {
                       },
                     }))
                   }
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700 appearance-none bg-no-repeat bg-white"
+                  className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
                   style={{
                     paddingRight: "2.5rem",
                     backgroundPosition: "right 1rem center",
@@ -953,7 +953,7 @@ export default function AdminFormBuilderPage() {
                     ref={(element) => {
                       fieldRefs.current[field.id] = element;
                     }}
-                    className={`bg-white rounded-lg border p-5 transition-colors ${
+                    className={`bg-white rounded-2xl border p-5 transition-colors ${
                       recentlyAddedFieldId === field.id
                         ? "border-slate-700 bg-slate-50 ring-2 ring-slate-200"
                         : "border-slate-200 hover:border-slate-300"
@@ -971,7 +971,7 @@ export default function AdminFormBuilderPage() {
                         <button
                           type="button"
                           onClick={() => copyField(field, "default")}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                           title="Copy field"
                         >
                           <Copy className="h-4 w-4" />
@@ -980,7 +980,7 @@ export default function AdminFormBuilderPage() {
                           type="button"
                           onClick={() => moveFieldUp(field.id, "default")}
                           disabled={index === 0}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors ${
                             index === 0
                               ? "text-slate-300 cursor-not-allowed"
                               : "text-slate-500 hover:text-green-600 hover:bg-green-50"
@@ -993,7 +993,7 @@ export default function AdminFormBuilderPage() {
                           type="button"
                           onClick={() => moveFieldDown(field.id, "default")}
                           disabled={index === defaultFields.length - 1}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors ${
                             index === defaultFields.length - 1
                               ? "text-slate-300 cursor-not-allowed"
                               : "text-slate-500 hover:text-green-600 hover:bg-green-50"
@@ -1011,7 +1011,7 @@ export default function AdminFormBuilderPage() {
                             });
                             setDeleteDialogOpen(true);
                           }}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                           title="Delete field"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -1035,7 +1035,7 @@ export default function AdminFormBuilderPage() {
                             }));
                             updateDefaultField(field.id, { label: nextValue });
                           }}
-                          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
+                          className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446]"
                           placeholder={field.label || "Enter label name..."}
                         />
                       </div>
@@ -1048,7 +1048,7 @@ export default function AdminFormBuilderPage() {
                           {fieldTypeOptions.map((typeOption) => (
                             <label
                               key={typeOption}
-                              className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                              className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                                 field.type === typeOption
                                   ? "border-slate-700 bg-slate-100"
                                   : "border-slate-300 bg-white hover:border-slate-400"
@@ -1134,7 +1134,7 @@ export default function AdminFormBuilderPage() {
 
               <div className="grid gap-4">
                 {selectedFields.length === 0 ? (
-                  <div className="bg-slate-50 rounded-lg border border-slate-200 p-8 text-center">
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8 text-center">
                     <p className="text-slate-600 text-sm">
                       No custom fields yet. Add custom fields to extend the
                       form.
@@ -1147,7 +1147,7 @@ export default function AdminFormBuilderPage() {
                       ref={(element) => {
                         fieldRefs.current[field.id] = element;
                       }}
-                      className={`bg-white rounded-lg border p-5 transition-colors ${
+                      className={`bg-white rounded-2xl border p-5 transition-colors ${
                         recentlyAddedFieldId === field.id
                           ? "border-slate-700 bg-slate-50 ring-2 ring-slate-200"
                           : "border-slate-200 hover:border-slate-300"
@@ -1165,7 +1165,7 @@ export default function AdminFormBuilderPage() {
                           <button
                             type="button"
                             onClick={() => copyField(field, "custom")}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                             title="Copy field"
                           >
                             <Copy className="h-4 w-4" />
@@ -1174,7 +1174,7 @@ export default function AdminFormBuilderPage() {
                             type="button"
                             onClick={() => moveFieldUp(field.id, "custom")}
                             disabled={index === 0}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors ${
                               index === 0
                                 ? "text-slate-300 cursor-not-allowed"
                                 : "text-slate-500 hover:text-green-600 hover:bg-green-50"
@@ -1187,7 +1187,7 @@ export default function AdminFormBuilderPage() {
                             type="button"
                             onClick={() => moveFieldDown(field.id, "custom")}
                             disabled={index === selectedFields.length - 1}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors ${
                               index === selectedFields.length - 1
                                 ? "text-slate-300 cursor-not-allowed"
                                 : "text-slate-500 hover:text-green-600 hover:bg-green-50"
@@ -1205,7 +1205,7 @@ export default function AdminFormBuilderPage() {
                               });
                               setDeleteDialogOpen(true);
                             }}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                             title="Delete field"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1228,7 +1228,7 @@ export default function AdminFormBuilderPage() {
                               }));
                               updateField(field.id, { label: nextValue });
                             }}
-                            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
+                            className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446]"
                             placeholder={field.label || "Enter label name..."}
                           />
                         </div>
@@ -1241,7 +1241,7 @@ export default function AdminFormBuilderPage() {
                             {fieldTypeOptions.map((typeOption) => (
                               <label
                                 key={typeOption}
-                                className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                                   field.type === typeOption
                                     ? "border-slate-700 bg-slate-100"
                                     : "border-slate-300 bg-white hover:border-slate-400"
@@ -1321,21 +1321,21 @@ export default function AdminFormBuilderPage() {
         <div className="mt-10 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
           <Link
             href="/dashboard"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50 transition-colors"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50 transition-colors"
           >
             Cancel
           </Link>
           <button
             type="button"
             onClick={resetAllProjectsToDefaults}
-            className="flex-1 sm:flex-none px-6 py-3 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
           >
             Reset All Projects
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 sm:flex-none px-6 py-3 rounded-lg bg-slate-700 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
+            className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
           >
             Save Form Structure
           </button>
@@ -1349,7 +1349,7 @@ export default function AdminFormBuilderPage() {
                 <button
                   type="button"
                   onClick={scrollToTop}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
                   aria-label="Scroll to top"
                   title="Scroll to top"
                 >
@@ -1360,7 +1360,7 @@ export default function AdminFormBuilderPage() {
                 <button
                   type="button"
                   onClick={scrollToBottom}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
                   aria-label="Scroll to bottom"
                   title="Scroll to bottom"
                 >
@@ -1373,7 +1373,7 @@ export default function AdminFormBuilderPage() {
               onClick={
                 activeFieldMode === "default" ? addDefaultField : addNewField
               }
-              className="inline-flex items-center gap-2 rounded bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 active:bg-slate-900"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:bg-slate-900"
               title={`Add a new ${activeFieldLabel}. ${activeFieldCount} ${activeFieldCount === 1 ? "field" : "fields"} currently.`}
             >
               <Plus className="h-4 w-4" />

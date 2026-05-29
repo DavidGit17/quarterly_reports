@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
 import { Toolbar } from "@/components/admin/dashboard/toolbar";
@@ -25,22 +24,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Download } from "lucide-react";
-import { mockActiveSessions } from "@/components/admin/dashboard/mock-data";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, ChevronLeft, ChevronRight, Download } from "lucide-react";
 
 const ReportsSummary = dynamic(
   () =>
-    import(
-      "@/components/admin/dashboard/reports/reports-summary"
-    ).then((mod) => ({ default: mod.ReportsSummary })),
-  { ssr: false },
-);
-
-const LiveActivity = dynamic(
-  () =>
-    import(
-      "@/components/admin/dashboard/reports/live-activity"
-    ).then((mod) => ({ default: mod.LiveActivity })),
+    import("@/components/admin/dashboard/reports/reports-summary").then(
+      (mod) => ({ default: mod.ReportsSummary }),
+    ),
   { ssr: false },
 );
 
@@ -80,14 +71,6 @@ type ReportResponse = {
   report?: ReportSubmission;
   message?: string;
 };
-
-const statusOptions: Array<{ value: ReportStatus; label: string }> = [
-  { value: "draft", label: "Draft" },
-  { value: "submitted", label: "Submitted" },
-  { value: "approval-pending", label: "Approval Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
-];
 
 const textEncoder = new TextEncoder();
 
@@ -177,7 +160,7 @@ const createZip = (files: Array<{ name: string; content: string }>) => {
   writeUint32(endRecord, 12, centralDirectorySize);
   writeUint32(endRecord, 16, offset);
 
-  return new Blob([...chunks, ...centralDirectory, endRecord], {
+  return new Blob([...chunks, ...centralDirectory, endRecord] as BlobPart[], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 };
@@ -194,8 +177,7 @@ const createWorkbookBlob = (
       (row) =>
         `<row>${row
           .map(
-            (cell) =>
-              `<c t="inlineStr"><is><t>${escapeXml(cell)}</t></is></c>`,
+            (cell) => `<c t="inlineStr"><is><t>${escapeXml(cell)}</t></is></c>`,
           )
           .join("")}</row>`,
     )
@@ -255,13 +237,24 @@ const getReportDisplayId = (report: ReportSubmission) => {
   return `${projectPart}-${submittedYear}-${quarterPart}`;
 };
 
+const FORM_FIELD_CLASS =
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-[rgb(52,118,123)] focus:outline-none focus:ring-0 disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
+const FORM_SURFACE_CLASS =
+  "rounded-2xl bg-white shadow-sm border border-slate-100";
+const FORM_LABEL_CLASS = "block text-[16px] font-medium text-slate-800";
+const FORM_REQUIRED_CLASS = "text-red-400 font-semibold";
+const FORM_META_CLASS = "text-sm text-slate-500";
+const FORM_PRIMARY_BUTTON_CLASS =
+  "inline-flex items-center justify-center rounded-xl bg-[rgb(52,118,123)] px-6 py-2.5 text-[15px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-[rgb(42,98,102)] focus:outline-none focus:ring-2 focus:ring-[rgb(52,118,123)] active:bg-[rgb(34,82,86)] cursor-pointer";
+
 const getReportGroupKey = (report: ReportSubmission) =>
   `${report.projectName.toLowerCase()}|${new Date(report.createdAt).getFullYear()}|${report.quarter.toLowerCase()}`;
 
 const getReportDisplayIds = (reports: ReportSubmission[]) => {
   const sortedReports = [...reports].sort((first, second) => {
     const dateComparison =
-      new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime();
+      new Date(first.createdAt).getTime() -
+      new Date(second.createdAt).getTime();
 
     if (dateComparison !== 0) {
       return dateComparison;
@@ -334,24 +327,30 @@ const getReportRows = (reports: ReportSubmission[]) => {
 };
 
 export default function ReportsPage() {
-  const router = useRouter();
   const [reports, setReports] = useState<ReportSubmission[]>([]);
-  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+    totalPages: 0,
+  });
   const [searchValue, setSearchValue] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [projectFilter, setProjectFilter] = useState("all");
   const [quarterFilter, setQuarterFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | ReportStatus>("all");
-  const [cycleFilter, setCycleFilter] = useState("all");
-  const [cycles, setCycles] = useState<Array<{ id: string; name: string }>>(
-    [],
-  );
+  const [dateFilter, setDateFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [editingReport, setEditingReport] =
-    useState<ReportsTableReport | null>(null);
-  const [editStatus, setEditStatus] = useState<ReportStatus>("submitted");
+  const [viewingReport, setViewingReport] = useState<ReportsTableReport | null>(
+    null,
+  );
+  const [editingReport, setEditingReport] = useState<ReportsTableReport | null>(
+    null,
+  );
+  const [editFields, setEditFields] = useState<
+    Array<{ fieldId: string; label: string; value: string }>
+  >([]);
   const [deletingReport, setDeletingReport] =
     useState<ReportsTableReport | null>(null);
 
@@ -365,14 +364,17 @@ export default function ReportsPage() {
       params.set("limit", "50");
       if (searchValue) params.set("search", searchValue);
       if (projectFilter !== "all") params.set("project", projectFilter);
-      if (quarterFilter !== "all") params.set("quarter", quarterFilter);
-      if (statusFilter !== "all") params.set("status", statusFilter);
-      if (cycleFilter !== "all") params.set("cycleId", cycleFilter);
+      if (dateFilter) {
+        params.set("date", dateFilter);
+      } else if (quarterFilter !== "all") {
+        params.set("quarter", quarterFilter);
+      }
 
-      const response = await fetch(`/api/reports?${params.toString()}`, { cache: "no-store" });
+      const response = await fetch(`/api/reports?${params.toString()}`, {
+        cache: "no-store",
+      });
 
       if (response.status === 401) {
-        router.push("/login");
         return;
       }
 
@@ -384,36 +386,23 @@ export default function ReportsPage() {
       }
 
       setReports(data.reports || []);
-      setPagination(data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 });
+      setPagination(
+        data.pagination || { page: 1, limit: 50, total: 0, totalPages: 0 },
+      );
     } catch {
       setErrorMessage("Unable to load reports right now.");
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchValue, projectFilter, quarterFilter, statusFilter, cycleFilter, router]);
+  }, [currentPage, searchValue, projectFilter, quarterFilter, dateFilter]);
 
   useEffect(() => {
     void loadReports();
   }, [loadReports]);
 
   useEffect(() => {
-    const fetchCycles = async () => {
-      try {
-        const res = await fetch("/api/reporting-cycles");
-        if (res.ok) {
-          const data = await res.json();
-          setCycles(data.cycles || []);
-        }
-      } catch {
-        // non-critical
-      }
-    };
-    fetchCycles();
-  }, []);
-
-  useEffect(() => {
     setCurrentPage(1);
-  }, [searchValue, projectFilter, quarterFilter, statusFilter, cycleFilter]);
+  }, [searchValue, projectFilter, quarterFilter, dateFilter]);
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -436,7 +425,9 @@ export default function ReportsPage() {
     const reportIds = new Set(reportsToExport.map((report) => report.id));
     const fullReports = reports.filter((report) => reportIds.has(report.id));
     const rows = getReportRows(fullReports);
-    const columns = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
+    const columns = Array.from(
+      new Set(rows.flatMap((row) => Object.keys(row))),
+    );
 
     if (rows.length === 0) {
       return;
@@ -448,29 +439,6 @@ export default function ReportsPage() {
         ? `report-${reportsToExport[0].id}.xlsx`
         : "reports-export.xlsx",
     );
-  };
-
-  const updateReportStatus = async () => {
-    if (!editingReport) {
-      return;
-    }
-
-    const response = await fetch(`/api/reports/${editingReport.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: editStatus }),
-    });
-    const data = (await response.json()) as ReportResponse;
-
-    if (!response.ok || !data.report) {
-      setErrorMessage(data.message || "Unable to update report.");
-      return;
-    }
-
-    setReports((prev) =>
-      prev.map((report) => (report.id === data.report?.id ? data.report : report)),
-    );
-    setEditingReport(null);
   };
 
   const deleteReport = async () => {
@@ -494,6 +462,64 @@ export default function ReportsPage() {
     setDeletingReport(null);
   };
 
+  const openViewModal = (report: ReportsTableReport) => {
+    setViewingReport(report);
+  };
+
+  const openEditModal = (report: ReportsTableReport) => {
+    const fullReport = reports.find((r) => r.id === report.id);
+    if (fullReport) {
+      setEditFields(
+        fullReport.dynamicFields.map((f) => ({
+          fieldId: f.fieldId,
+          label: f.label,
+          value: Array.isArray(f.value) ? f.value.join(", ") : f.value,
+        })),
+      );
+    }
+    setEditingReport(report);
+  };
+
+  const updateField = (fieldId: string, value: string) => {
+    setEditFields((prev) =>
+      prev.map((f) => (f.fieldId === fieldId ? { ...f, value } : f)),
+    );
+  };
+
+  const saveEditResponses = async () => {
+    if (!editingReport) return;
+
+    const dynamicFields = editFields.map((f) => ({
+      fieldId: f.fieldId,
+      label: f.label,
+      value: f.value,
+    }));
+
+    const response = await fetch(`/api/reports/${editingReport.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dynamicFields }),
+    });
+    const data = (await response.json()) as ReportResponse;
+
+    if (!response.ok || !data.report) {
+      setErrorMessage(data.message || "Unable to update report.");
+      return;
+    }
+
+    setReports((prev) =>
+      prev.map((report) =>
+        report.id === data.report?.id ? data.report : report,
+      ),
+    );
+    setEditingReport(null);
+    setEditFields([]);
+  };
+
+  const viewingReportData = viewingReport
+    ? reports.find((r) => r.id === viewingReport.id)
+    : null;
+
   return (
     <main className="flex-1 p-4 md:p-6">
       <PageHeader
@@ -501,7 +527,7 @@ export default function ReportsPage() {
         subtitle="View and manage submitted quarterly reports"
         action={
           <Button
-            className="bg-slate-700 hover:bg-slate-800 text-white gap-2"
+            className="bg-[#2563EB] hover:bg-blue-700 text-white gap-2"
             onClick={() => void exportReports(tableReports)}
             disabled={tableReports.length === 0}
           >
@@ -511,15 +537,10 @@ export default function ReportsPage() {
         }
       />
 
-      <ReportsSummary
-        reports={tableReports}
-        activeSessions={mockActiveSessions}
-      />
-
-      <LiveActivity sessions={mockActiveSessions} />
+      <ReportsSummary reports={tableReports} />
 
       {errorMessage && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {errorMessage}
         </div>
       )}
@@ -529,12 +550,15 @@ export default function ReportsPage() {
         onSearchChange={setSearchInput}
         onSearchSubmit={handleSearch}
         searchPlaceholder="Search by project, quarter, or coordinator..."
+        searchInputClassName="caret-[rgb(52,118,123)] focus:ring-2 focus:ring-[rgb(52,118,123)] focus:border-[rgb(52,118,123)] text-[17px] leading-7"
         filters={
           <div className="flex gap-2 flex-wrap">
+            {/* Projects dropdown — separate */}
             <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All projects" />
+              <SelectTrigger className="w-[240px]">
+                <SelectValue placeholder="Search by Project" />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="all">All Projects</SelectItem>
                 {uniqueProjects.map((project) => (
@@ -545,53 +569,76 @@ export default function ReportsPage() {
               </SelectContent>
             </Select>
 
-            <Select value={quarterFilter} onValueChange={setQuarterFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All quarters" />
+            {/* Quarter / Date dropdown */}
+            <Select value="filters" onValueChange={() => {}}>
+              <SelectTrigger className="w-[260px]">
+                <SelectValue>
+                  Quarter / Date
+                </SelectValue>
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Quarters</SelectItem>
-                {uniqueQuarters.map((quarter) => (
-                  <SelectItem key={quarter} value={quarter}>
-                    {quarter}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
 
-            <Select
-              value={cycleFilter}
-              onValueChange={setCycleFilter}
-            >
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="All cycles" />
-              </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Cycles</SelectItem>
-                {cycles.map((cycle) => (
-                  <SelectItem key={cycle.id} value={cycle.id}>
-                    {cycle.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <div className="grid grid-cols-2 gap-5 p-3 min-w-[460px] max-w-[460px]">
+                  <div>
+                    <div className="mb-3 text-xs font-semibold text-slate-500">
+                      Quarter
+                    </div>
 
-            <Select
-              value={statusFilter}
-              onValueChange={(value) =>
-                setStatusFilter(value as "all" | ReportStatus)
-              }
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
+                    <div className="space-y-1 max-h-[220px] overflow-y-auto">
+                      <button
+                        type="button"
+                        onClick={() => setQuarterFilter("all")}
+                        className={`w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-slate-100 ${quarterFilter === "all" ? "bg-slate-100 font-medium" : ""}`}
+                      >
+                        All Quarters
+                      </button>
+
+                      {uniqueQuarters.map((quarter) => (
+                        <button
+                          key={quarter}
+                          type="button"
+                          onClick={() => setQuarterFilter(quarter)}
+                          className={`w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-slate-100 ${quarterFilter === quarter ? "bg-slate-100 font-medium" : ""}`}
+                        >
+                          {quarter}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-3 text-xs font-semibold text-slate-500">
+                      Date
+                    </div>
+
+                    <div className="space-y-3">
+                      <input
+                        type="date"
+                        value={dateFilter}
+                        onChange={(e) => setDateFilter(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm outline-none transition-all duration-200 hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-[rgba(107,114,128,0.18)] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:rounded-xl [&::-webkit-calendar-picker-indicator]:p-1.5 [&::-webkit-calendar-picker-indicator]:opacity-75 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
+                      />
+                      <style jsx>{`
+                        input[type="date"] {
+                          color-scheme: light;
+                          accent-color: #6b7280;
+                        }
+
+                        input[type="date"]::-webkit-calendar-picker-indicator {
+                          filter: grayscale(1) opacity(0.75);
+                        }
+                      `}</style>
+
+                      <button
+                        type="button"
+                        onClick={() => setDateFilter("")}
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100"
+                      >
+                        Clear Date Filter
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </SelectContent>
             </Select>
           </div>
@@ -601,18 +648,17 @@ export default function ReportsPage() {
       <ReportsTable
         reports={tableReports}
         isLoading={isLoading}
-        onView={(report) => router.push(`/report/${report.id}`)}
-        onEdit={(report) => {
-          setEditingReport(report);
-          setEditStatus(report.status);
-        }}
+        onView={openViewModal}
+        onEdit={openEditModal}
         onDelete={setDeletingReport}
         onExport={(report) => void exportReports([report])}
       />
 
       <div className="flex items-center justify-between mt-4">
         <div className="text-sm text-slate-600">
-          {pagination.total > 0 ? `Showing ${Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–${Math.min(pagination.page * pagination.limit, pagination.total)} of ${pagination.total} reports` : "No reports"}
+          {pagination.total > 0
+            ? `Showing ${Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}–${Math.min(pagination.page * pagination.limit, pagination.total)} of ${pagination.total} reports`
+            : "No reports"}
         </div>
         {pagination.totalPages > 1 && (
           <div className="flex items-center gap-2">
@@ -639,43 +685,222 @@ export default function ReportsPage() {
         )}
       </div>
 
+      {/* View Report Modal */}
       <Dialog
-        open={Boolean(editingReport)}
-        onOpenChange={(open) => !open && setEditingReport(null)}
+        open={Boolean(viewingReport)}
+        onOpenChange={(open) => !open && setViewingReport(null)}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Report Status</DialogTitle>
-            <DialogDescription>
-              Update the review status for {editingReport?.id}.
-            </DialogDescription>
-          </DialogHeader>
-          <Select
-            value={editStatus}
-            onValueChange={(value) => setEditStatus(value as ReportStatus)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((status) => (
-                <SelectItem key={status.value} value={status.value}>
-                  {status.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingReport(null)}>
-              Cancel
-            </Button>
-            <Button onClick={() => void updateReportStatus()}>
-              Save Status
-            </Button>
-          </DialogFooter>
+        <DialogContent className="!w-[82vw] !max-w-[82vw] max-h-[95vh] overflow-y-auto bg-[#f8f9fa] border-none p-0 shadow-none">
+          <DialogTitle className="sr-only">
+            {viewingReport?.displayId || "Report Details"}
+          </DialogTitle>
+
+          {viewingReportData && (
+            <div className="min-h-screen">
+              <div className="w-full max-w-none px-10 py-10">
+                <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
+                  <div className="flex items-center justify-between mb-6">
+                    <button
+                      type="button"
+                      onClick={() => setViewingReport(null)}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Back to Reports
+                    </button>
+                  </div>
+
+                  <h2 className="mb-2 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] sm:text-[30px] sm:leading-10 sm:tracking-[-0.02em]">
+                    {viewingReport?.displayId}
+                  </h2>
+
+                  <h3 className="mb-6 font-heading text-[20px] font-medium leading-7 text-[#191c1d]">
+                    Quarterly Reports
+                  </h3>
+
+                  <p className="mb-5 font-ui text-[16px] leading-6 text-[#424845]">
+                    Full report details and submitted responses.
+                  </p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className={`${FORM_SURFACE_CLASS} p-6`}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
+                      <div>
+                        <p className={`${FORM_LABEL_CLASS} mb-2`}>Project</p>
+                        <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
+                          {viewingReportData.projectName}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className={`${FORM_LABEL_CLASS} mb-2`}>Quarter</p>
+                        <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
+                          {viewingReportData.quarter}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className={`${FORM_LABEL_CLASS} mb-2`}>Submitted By</p>
+                        <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
+                          {viewingReportData.createdByUsername}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className={`${FORM_LABEL_CLASS} mb-2`}>Submission Date</p>
+                        <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
+                          {viewingReportData.createdAt.slice(0, 10)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {viewingReportData.dynamicFields.map((field) => (
+                      <div key={field.fieldId} className="pt-6">
+                        <label className={`${FORM_LABEL_CLASS} mb-3`}>
+                          {field.label.replace(/^(\d+)\./, "$1. ")}
+                        </label>
+
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] text-slate-800 break-words whitespace-pre-wrap">
+                          {Array.isArray(field.value)
+                            ? field.value.join(", ")
+                            : field.value}
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="flex flex-col sm:flex-row gap-4 pt-8">
+                      <button
+                        type="button"
+                        onClick={() => setViewingReport(null)}
+                        className={FORM_PRIMARY_BUTTON_CLASS}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
+      {/* Edit Report Responses Modal */}
+      <Dialog
+        open={Boolean(editingReport)}
+        onOpenChange={(open) =>
+          !open && (setEditingReport(null), setEditFields([]))
+        }
+      >
+        <DialogContent className="!w-[82vw] !max-w-[82vw] max-h-[95vh] overflow-y-auto bg-[#f8f9fa] border-none p-0 shadow-none">
+          <DialogTitle className="sr-only">
+            {editingReport
+              ? `Edit ${editingReport.projectName} Report`
+              : "Edit Report"}
+          </DialogTitle>
+          <div className="min-h-screen">
+            <div className="w-full max-w-none px-10 py-10">
+              <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
+                <div className="flex items-center justify-between mb-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingReport(null);
+                      setEditFields([]);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Reports
+                  </button>
+                </div>
+                <h2 className="mb-2 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] sm:text-[30px] sm:leading-10 sm:tracking-[-0.02em]">
+                  {editingReport
+                    ? `${editingReport.projectName} ${editingReport.quarter} ${new Date(editingReport.submissionDate).getFullYear()} Reports`
+                    : "Edit Responses"}
+                </h2>
+                <h3 className="mb-6 font-heading text-[20px] font-medium leading-7 text-[#191c1d]">
+                  Quarterly Reports
+                </h3>
+                <p className="mb-5 font-ui text-[16px] leading-6 text-[#424845]">
+                  Update the submitted form responses for this report.
+                </p>
+                <p className="font-data text-[12px] font-medium leading-4 text-[#424845]">
+                  <span className={FORM_REQUIRED_CLASS}>*</span> Required
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                <div className={`${FORM_SURFACE_CLASS} p-6`}>
+                  <div className="pb-6">
+                    <p className={`${FORM_LABEL_CLASS} mb-2`}>Quarter</p>
+                    <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
+                      {editingReport?.quarter || "-"}
+                    </p>
+                  </div>
+
+                  {editFields.length === 0 ? (
+                    <div className="pt-6">
+                      <p className={FORM_META_CLASS}>
+                        No responses are available for this report yet.
+                      </p>
+                    </div>
+                  ) : (
+                    editFields.map((field) => (
+                      <div key={field.fieldId} className="pt-6">
+                        <label className={`${FORM_LABEL_CLASS} mb-3`}>
+  {field.label.replace(/^(\d+)\./, "$1. ")}{" "}
+  <span className={FORM_REQUIRED_CLASS}>*</span>
+</label>
+                        <input
+                          type="text"
+                          value={field.value}
+                          onChange={(e) =>
+                            updateField(field.fieldId, e.target.value)
+                          }
+                          onFocus={(e) => {
+                            const value = e.target.value;
+                            requestAnimationFrame(() => {
+                              e.target.setSelectionRange(
+                                value.length,
+                                value.length,
+                              );
+                            });
+                          }}
+                          className={FORM_FIELD_CLASS}
+                          placeholder="Enter your answer"
+                        />
+                      </div>
+                    ))
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-4 pt-8">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingReport(null);
+                        setEditFields([]);
+                      }}
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-8 py-3 text-[16px] font-semibold leading-6 text-slate-600 transition-all duration-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#004446] cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className={FORM_PRIMARY_BUTTON_CLASS}
+                      onClick={() => void saveEditResponses()}
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
       <Dialog
         open={Boolean(deletingReport)}
         onOpenChange={(open) => !open && setDeletingReport(null)}

@@ -340,22 +340,17 @@ const safeParse = <T>(value: string | null, fallback: T): T => {
 export const getBaseDefaultFields = () => sharedDefaultFields;
 export const getDefaultFormConfigs = () => defaultFormConfigs;
 
-const getValidProjectKeys = () => Object.keys(defaultFormConfigs);
+const getValidProjectKeys = (): string[] => {
+  const baseKeys = Object.keys(defaultFormConfigs);
+  const customConfigs = getCustomFormConfigs();
+  return [...new Set([...baseKeys, ...Object.keys(customConfigs)])];
+};
 
 export const getCustomFieldsFromConfigs = (
   configs: ProjectFormConfigs,
-  defaultFields: FormFieldConfig[],
+  _defaultFields: FormFieldConfig[],
 ): ProjectFormConfigs => {
-  const defaultIds = new Set(defaultFields.map((field) => field.id));
-  const custom: ProjectFormConfigs = {};
-
-  for (const [project, fields] of Object.entries(configs)) {
-    custom[project] = (fields || []).filter(
-      (field) => !defaultIds.has(field.id),
-    );
-  }
-
-  return custom;
+  return { ...configs };
 };
 
 export const buildFormConfigs = (
@@ -363,21 +358,31 @@ export const buildFormConfigs = (
   customConfigs: ProjectFormConfigs,
 ): ProjectFormConfigs => {
   const normalizedConfigs: ProjectFormConfigs = {};
+  const predefinedProjects = new Set(Object.keys(defaultFormConfigs));
 
   for (const projectKey of getValidProjectKeys()) {
-    normalizedConfigs[projectKey] = [
-      ...defaultFields,
-      ...(customConfigs[projectKey] || []),
-    ];
+    const projectCustomFields = customConfigs[projectKey] || [];
+
+    if (predefinedProjects.has(projectKey)) {
+      const customIds = new Set(
+        projectCustomFields.map((field) => field.id),
+      );
+      const filteredDefaults = defaultFields.filter(
+        (field) => !customIds.has(field.id),
+      );
+      normalizedConfigs[projectKey] = [
+        ...filteredDefaults,
+        ...projectCustomFields,
+      ];
+    } else {
+      normalizedConfigs[projectKey] = [...projectCustomFields];
+    }
   }
 
-  // Also include dynamically created projects from customConfigs
+  // Also include any projects from customConfigs not already processed
   for (const [projectKey, fields] of Object.entries(customConfigs)) {
     if (!normalizedConfigs[projectKey]) {
-      normalizedConfigs[projectKey] = [
-        ...defaultFields,
-        ...fields,
-      ];
+      normalizedConfigs[projectKey] = [...fields];
     }
   }
 
@@ -427,24 +432,10 @@ export const getCustomFormConfigs = (): ProjectFormConfigs => {
     return {};
   }
 
-  const saved = safeParse<ProjectFormConfigs>(
+  return safeParse<ProjectFormConfigs>(
     localStorage.getItem(FORM_CONFIGS_STORAGE_KEY),
     {},
   );
-
-  if (Object.keys(saved).length === 0) {
-    return {};
-  }
-
-  const defaultFields = getDefaultFields();
-
-  // If we have less than 27 default fields, we're in a legacy state
-  // Don't filter out fields if we're still using old defaults
-  if (defaultFields.length < 27) {
-    return saved;
-  }
-
-  return getCustomFieldsFromConfigs(saved, defaultFields);
 };
 export const getDefaultQuarterConfigs = () => defaultQuarterConfigs;
 
@@ -614,6 +605,27 @@ export const saveFormConfigs = (configs: ProjectFormConfigs) => {
   localStorage.setItem(FORM_CONFIGS_STORAGE_KEY, JSON.stringify(configs));
 };
 
+const FORM_BASELINES_STORAGE_KEY = "project-form-baselines";
+
+export const getFormBaselines = (): ProjectFormConfigs => {
+  if (!ensureBrowser()) return {};
+  return safeParse<ProjectFormConfigs>(
+    localStorage.getItem(FORM_BASELINES_STORAGE_KEY), {},
+  );
+};
+
+export const saveFormBaselines = (baselines: ProjectFormConfigs) => {
+  if (!ensureBrowser()) return;
+  localStorage.setItem(FORM_BASELINES_STORAGE_KEY, JSON.stringify(baselines));
+};
+
+export const setFormBaseline = (projectName: string, fields: FormFieldConfig[]) => {
+  if (!ensureBrowser()) return;
+  const baselines = getFormBaselines();
+  baselines[projectName] = fields;
+  saveFormBaselines(baselines);
+};
+
 export const getProjectConfig = (
   project: string,
   configs: ProjectFormConfigs,
@@ -684,6 +696,10 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
 
   const apiConfigs = await fetchApiConfigs();
 
+  // Prefer localStorage as source of truth — API data is used only as a
+  // fallback for categories that are empty locally. This prevents a failed
+  // PUT (auth error, etc.) from overwriting just-saved local changes with
+  // stale API data on the next GET.
   if (apiConfigs) {
     const rawDefaults = apiConfigs["default-fields"];
     const rawProjectConfigs = apiConfigs["project-form-configs"];
@@ -691,7 +707,7 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
     const rawFormTitles = apiConfigs["form-titles"];
     const rawFormMeta = apiConfigs["form-meta"];
 
-    if (rawDefaults) {
+    if (rawDefaults && defaultFields.length === 0) {
       try {
         const parsedDefaults = JSON.parse(rawDefaults) as FormFieldConfig[];
         if (Array.isArray(parsedDefaults) && parsedDefaults.length > 0) {
@@ -703,7 +719,7 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
       }
     }
 
-    if (rawProjectConfigs) {
+    if (rawProjectConfigs && Object.keys(customConfigs).length === 0) {
       try {
         const parsedConfigs = JSON.parse(
           rawProjectConfigs,
@@ -720,7 +736,7 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
       }
     }
 
-    if (rawQuarters) {
+    if (rawQuarters && Object.keys(quarterConfigs).length === 0) {
       try {
         const parsedQuarters = JSON.parse(
           rawQuarters,
@@ -735,7 +751,7 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
       }
     }
 
-    if (rawFormTitles) {
+    if (rawFormTitles && Object.keys(formTitles).length === 0) {
       try {
         const parsedFormTitles = JSON.parse(rawFormTitles) as FormTitles;
         if (parsedFormTitles && typeof parsedFormTitles === "object") {
@@ -747,7 +763,7 @@ export const getHydratedFormState = async (): Promise<HydratedFormState> => {
       }
     }
 
-    if (rawFormMeta) {
+    if (rawFormMeta && !formMeta.lastSavedAt) {
       try {
         const parsedFormMeta = JSON.parse(rawFormMeta) as FormMeta;
         if (parsedFormMeta && typeof parsedFormMeta === "object") {

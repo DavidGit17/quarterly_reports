@@ -205,7 +205,7 @@ export default function ProjectsPage() {
         action={
           <Button
             onClick={openCreateProject}
-            className="bg-slate-700 hover:bg-slate-800 text-white gap-2"
+            className="bg-[#2563EB] hover:bg-blue-700 text-white gap-2"
           >
             <Plus className="w-4 h-4" />
             Create Project
@@ -214,7 +214,7 @@ export default function ProjectsPage() {
       />
 
       {error && (
-        <div className="mb-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -225,13 +225,13 @@ export default function ProjectsPage() {
         <div className="animate-pulse space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-lg border border-slate-200 p-4">
+              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-4">
                 <div className="h-4 w-20 bg-slate-200 rounded mb-2" />
                 <div className="h-8 w-12 bg-slate-200 rounded" />
               </div>
             ))}
           </div>
-          <div className="border border-slate-200 rounded-lg overflow-hidden">
+          <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <div className="bg-slate-50 p-3">
               <div className="h-4 w-32 bg-slate-200 rounded" />
             </div>

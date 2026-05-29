@@ -44,7 +44,7 @@ export function AccountTab({
   onReset,
 }: AccountTabProps) {
   return (
-    <Card>
+    <Card className="rounded-2xl">
       <CardHeader>
         <CardTitle>Account Information</CardTitle>
         <CardDescription>
@@ -111,7 +111,7 @@ export function AccountTab({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-slate-700 hover:bg-slate-800 text-white"
+            className="bg-[#2563EB] hover:bg-blue-700 text-white"
           >
             Save Changes
           </Button>

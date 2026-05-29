@@ -7,6 +7,7 @@ interface ToolbarProps {
   onSearchChange: (value: string) => void;
   onSearchSubmit?: () => void;
   searchPlaceholder?: string;
+  searchInputClassName?: string;
   filters?: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;
@@ -17,6 +18,7 @@ export function Toolbar({
   onSearchChange,
   onSearchSubmit,
   searchPlaceholder = "Search...",
+  searchInputClassName,
   filters,
   actions,
   className,
@@ -34,7 +36,7 @@ export function Toolbar({
         className,
       )}
     >
-      <div className="flex flex-1 items-center gap-2 min-w-0">
+      <div className="flex flex-1 items-center gap-2 min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-1.5">
         <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
         <Input
           type="text"
@@ -42,7 +44,7 @@ export function Toolbar({
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="border-0 bg-transparent outline-none flex-1 min-w-0"
+          className={cn("border-0 bg-transparent outline-none flex-1 min-w-0 p-0 h-auto", searchInputClassName)}
         />
       </div>
 

@@ -136,7 +136,7 @@ export default function SettingsPage() {
         subtitle="Manage your account, system, and notification preferences"
       />
       {savedMessage && (
-        <div className="mb-4 max-w-4xl rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+        <div className="mb-4 max-w-4xl rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
           {savedMessage}
         </div>
       )}

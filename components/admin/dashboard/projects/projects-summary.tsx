@@ -46,7 +46,7 @@ export function ProjectsSummary({ projects }: ProjectsSummaryProps) {
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.label}>
+          <Card key={stat.label} className="rounded-2xl">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">
                 {stat.label}

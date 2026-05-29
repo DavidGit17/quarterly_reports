@@ -15,6 +15,8 @@ import {
   saveFormConfigs,
   saveFormTitles,
   saveFormMeta,
+  setFormBaseline,
+  getFormBaselines,
   pushFormConfigsToApi,
   pushDefaultFieldsToApi,
   pushQuarterConfigsToApi,
@@ -122,9 +124,6 @@ export default function AdminFormBuilderPage() {
   const [copyMessage, setCopyMessage] = useState("");
   const [origin, setOrigin] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [activeFieldMode, setActiveFieldMode] = useState<"default" | "custom">(
-    "custom",
-  );
   const [isProjectScopedEdit, setIsProjectScopedEdit] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState<{
     id: string;
@@ -146,6 +145,7 @@ export default function AdminFormBuilderPage() {
     string | null
   >(null);
   const [formTitles, setFormTitles] = useState<FormTitles>({});
+  const [createFormTitle, setCreateFormTitle] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const isDirtyRef = useRef(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -160,25 +160,23 @@ export default function AdminFormBuilderPage() {
     canScrollUp: false,
   });
 
-  const projectOptions = useMemo(() => {
-    const options = new Set<string>(COORDINATOR_PROJECT_OPTIONS);
-    Object.keys(configs).forEach((project) => options.add(project));
-    return Array.from(options);
-  }, [configs]);
-
   const selectedFields: FormFieldConfig[] =
     configs[selectedProject] || EMPTY_FIELDS;
+  const predefinedProjects = useMemo(
+    () => new Set(COORDINATOR_PROJECT_OPTIONS),
+    [],
+  );
   const scopedProjectFields = useMemo(() => {
     if (!isProjectScopedEdit) return [];
-    return [...defaultFields, ...selectedFields];
-  }, [isProjectScopedEdit, defaultFields, selectedFields]);
-  const activeFieldCount =
-    activeFieldMode === "default"
-      ? defaultFields.length
-      : selectedFields.length;
-  const activeFieldLabel =
-    activeFieldMode === "default" ? "default field" : "custom field";
-
+    if (predefinedProjects.has(selectedProject)) {
+      const customIds = new Set(selectedFields.map((field) => field.id));
+      const filteredDefaults = defaultFields.filter(
+        (field) => !customIds.has(field.id),
+      );
+      return [...filteredDefaults, ...selectedFields];
+    }
+    return [...selectedFields];
+  }, [isProjectScopedEdit, defaultFields, selectedFields, predefinedProjects, selectedProject]);
   useEffect(() => {
     const loadFormState = async () => {
       const {
@@ -207,16 +205,10 @@ export default function AdminFormBuilderPage() {
 
       if (projectParam) {
         setIsProjectScopedEdit(true);
-        setActiveFieldMode("custom");
         setSelectedProject(projectParam);
       } else {
         setIsProjectScopedEdit(false);
-        const projectKeys = Object.keys(customConfigs);
-        if (projectKeys.length > 0) {
-          setSelectedProject(projectKeys[0]);
-        } else if (COORDINATOR_PROJECT_OPTIONS.length > 0) {
-          setSelectedProject(COORDINATOR_PROJECT_OPTIONS[0]);
-        }
+        setSelectedProject("");
       }
     };
 
@@ -363,41 +355,35 @@ export default function AdminFormBuilderPage() {
 
   const updateField = (fieldId: string, updates: Partial<FormFieldConfig>) => {
     setConfigs((prev) => {
-      const updatedProjectFields = (prev[selectedProject] || []).map(
-        (field) => {
-          if (field.id !== fieldId) {
-            return field;
-          }
-
-          return {
-            ...field,
-            ...updates,
-          };
-        },
+      const currentFields = prev[selectedProject] || [];
+      const existingIndex = currentFields.findIndex(
+        (f) => f.id === fieldId,
       );
 
-      return {
-        ...prev,
-        [selectedProject]: updatedProjectFields,
-      };
+      if (existingIndex >= 0) {
+        const updatedProjectFields = currentFields.map((field) =>
+          field.id === fieldId ? { ...field, ...updates } : field,
+        );
+        return {
+          ...prev,
+          [selectedProject]: updatedProjectFields,
+        };
+      }
+
+      // Field not yet in configs — create an override from the default
+      const defaultField = defaultFields.find((f) => f.id === fieldId);
+      if (defaultField) {
+        return {
+          ...prev,
+          [selectedProject]: [
+            ...currentFields,
+            { ...defaultField, ...updates },
+          ],
+        };
+      }
+
+      return prev;
     });
-    markDirty();
-  };
-
-  const addDefaultField = () => {
-    const newFieldId = `default-field-${Math.random().toString(36).substr(2, 9)}`;
-
-    setDefaultFields((prev) => {
-      const newField: FormFieldConfig = {
-        id: newFieldId,
-        label: "",
-        type: "text",
-        required: true,
-      };
-
-      return [...prev, newField];
-    });
-    setPendingAddedFieldId(newFieldId);
     markDirty();
   };
 
@@ -438,37 +424,6 @@ export default function AdminFormBuilderPage() {
     markDirty();
   };
 
-  const addProject = () => {
-    const trimmedProjectName = newProjectName.trim();
-    if (!trimmedProjectName) {
-      return;
-    }
-
-    setConfigs((prev) => {
-      if (prev[trimmedProjectName]) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        [trimmedProjectName]: [],
-      };
-    });
-
-    setQuarterConfigs((prev) => ({
-      ...prev,
-      [trimmedProjectName]: prev[trimmedProjectName] ||
-        (prev[selectedProject] ?? undefined) || {
-          startMonth: "January",
-          endMonth: "March",
-        },
-    }));
-
-    setSelectedProject(trimmedProjectName);
-    setNewProjectName("");
-    markDirty();
-  };
-
   const handleSave = async () => {
     const defaultsToSave = isProjectScopedEdit
       ? initialDefaultFieldsRef.current
@@ -480,40 +435,65 @@ export default function AdminFormBuilderPage() {
     const now = new Date().toISOString();
     const meta: FormMeta = { lastSavedAt: now };
 
+    const titlesToSave: FormTitles = isProjectScopedEdit
+      ? formTitles
+      : { ...formTitles, [selectedProject]: createFormTitle };
+
     saveDefaultFields(defaultsToSave);
     saveFormConfigs(customConfigsToSave);
+    if (!isProjectScopedEdit) {
+      const projectFields = customConfigsToSave[selectedProject] || [];
+      setFormBaseline(selectedProject, projectFields);
+    }
     saveProjectQuarters(quarterConfigs);
-    saveFormTitles(formTitles);
+    saveFormTitles(titlesToSave);
     saveFormMeta(meta);
     await Promise.all([
       pushDefaultFieldsToApi(defaultsToSave),
       pushFormConfigsToApi(customConfigsToSave),
       pushQuarterConfigsToApi(quarterConfigs),
-      pushFormTitlesToApi(formTitles),
+      pushFormTitlesToApi(titlesToSave),
       pushFormMetaToApi(meta),
     ]);
     setLastSavedAt(now);
     isDirtyRef.current = false;
     setIsDirty(false);
-    router.push("/dashboard/forms-overview");
+    window.location.href = "/dashboard/forms-overview";
   };
 
   const resetDefaults = async () => {
-    const defaultFields = getBaseDefaultFields();
-    const defaults: ProjectFormConfigs = {};
-    const defaultQuarters = getDefaultQuarterConfigs();
-    setDefaultFields(defaultFields);
-    setConfigs(defaults);
-    setQuarterConfigs(defaultQuarters);
-    setSelectedProject(COORDINATOR_PROJECT_OPTIONS[0] || "");
-    saveDefaultFields(defaultFields);
-    saveFormConfigs(defaults);
-    saveProjectQuarters(defaultQuarters);
-    await Promise.all([
-      pushDefaultFieldsToApi(defaultFields),
-      pushFormConfigsToApi(defaults),
-      pushQuarterConfigsToApi(defaultQuarters),
-    ]);
+    const predefined = new Set(COORDINATOR_PROJECT_OPTIONS as unknown as string[]);
+
+    if (predefined.has(selectedProject)) {
+      const defaultFields = getBaseDefaultFields();
+      const defaults: ProjectFormConfigs = {};
+      const defaultQuarters = getDefaultQuarterConfigs();
+      setDefaultFields(defaultFields);
+      setConfigs(defaults);
+      setQuarterConfigs(defaultQuarters);
+      setSelectedProject(COORDINATOR_PROJECT_OPTIONS[0] || "");
+      saveDefaultFields(defaultFields);
+      saveFormConfigs(defaults);
+      saveProjectQuarters(defaultQuarters);
+      await Promise.all([
+        pushDefaultFieldsToApi(defaultFields),
+        pushFormConfigsToApi(defaults),
+        pushQuarterConfigsToApi(defaultQuarters),
+      ]);
+    } else {
+      const baselines = getFormBaselines();
+      const baselineFields = baselines[selectedProject] || [];
+      const updatedConfigs = {
+        ...configs,
+        [selectedProject]: [...baselineFields],
+      };
+      setConfigs((prev) => ({
+        ...prev,
+        [selectedProject]: [...baselineFields],
+      }));
+      saveFormConfigs(updatedConfigs);
+      await pushFormConfigsToApi(updatedConfigs);
+    }
     isDirtyRef.current = false;
     setIsDirty(false);
   };
@@ -623,7 +603,7 @@ export default function AdminFormBuilderPage() {
                     updateFn(field.id, { choices: newChoices });
                   }}
                   disabled={choice === "Other"}
-                  className={`flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 ${
+                  className={`flex-1 border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:border-[#004446] focus:outline-none focus:ring-0 ${
                     choice === "Other"
                       ? "bg-slate-100 text-slate-600 cursor-not-allowed"
                       : ""
@@ -691,7 +671,7 @@ export default function AdminFormBuilderPage() {
                 onChange={(e) =>
                   updateFn(field.id, { ratingLevels: parseInt(e.target.value) })
                 }
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+                className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:border-[#004446] focus:outline-none focus:ring-0"
               >
                 <option value={3}>3</option>
                 <option value={4}>4</option>
@@ -710,7 +690,7 @@ export default function AdminFormBuilderPage() {
                 onChange={(e) =>
                   updateFn(field.id, { ratingSymbol: e.target.value })
                 }
-                className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200"
+                className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:border-[#004446] focus:outline-none focus:ring-0"
               >
                 <option value="Star">★ Star</option>
                 <option value="Heart">♥ Heart</option>
@@ -745,7 +725,7 @@ export default function AdminFormBuilderPage() {
             <div>
               <Link
                 href="/dashboard/forms-overview"
-                className="mb-3 inline-flex items-center gap-2 rounded px-1 py-1 text-base font-medium text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
+                className="mb-3 inline-flex items-center gap-2 rounded-xl px-1 py-1 text-base font-medium text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
               >
                 <ArrowLeft className="h-5 w-5" />
                 Back
@@ -754,33 +734,8 @@ export default function AdminFormBuilderPage() {
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
                   Form Builder
                 </h1>
-                <div className="flex items-center gap-3 mt-1">
-                  <span
-                    className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-                      isDirty
-                        ? "text-amber-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block w-1.5 h-1.5 rounded-full ${
-                        isDirty ? "bg-amber-500" : "bg-green-500"
-                      }`}
-                    />
-                    {isDirty ? "Unsaved changes" : "Saved"}
-                  </span>
-                  {lastSavedAt && !isDirty && (
-                    <span className="text-xs text-slate-400">
-                      Last saved{" "}
-                      {new Date(lastSavedAt).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  )}
-                </div>
                 <p className="text-slate-500 mt-1">
-                  Configure questions, defaults, and project reporting forms.
+                  Create and manage form fields for each project.
                 </p>
               </div>
             </div>
@@ -788,7 +743,7 @@ export default function AdminFormBuilderPage() {
               <button
                 type="button"
                 onClick={resetDefaults}
-                className="inline-flex items-center justify-center px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                className="inline-flex items-center justify-center px-4 py-2 rounded-2xl border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 Reset to defaults
               </button>
@@ -796,48 +751,8 @@ export default function AdminFormBuilderPage() {
           </div>
         </div>
 
-        {/* Edit Mode Selector */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6 mb-8">
-          <label className="block text-sm font-semibold text-slate-900 mb-4">
-            Edit Mode
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                if (!isProjectScopedEdit) {
-                  setActiveFieldMode("default");
-                }
-              }}
-              disabled={isProjectScopedEdit}
-              className={`rounded-lg border-2 px-4 py-3 text-sm font-semibold transition-all ${
-                activeFieldMode === "default"
-                  ? "border-slate-700 bg-slate-100 text-slate-800"
-                  : isProjectScopedEdit
-                    ? "border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-              }`}
-            >
-              <span className="block font-semibold">
-                Coordinator Default Fields
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFieldMode("custom")}
-              className={`rounded-lg border-2 px-4 py-3 text-sm font-semibold transition-all ${
-                activeFieldMode === "custom"
-                  ? "border-slate-700 bg-slate-100 text-slate-800"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-              }`}
-            >
-              <span className="block font-semibold">Custom Field Labels</span>
-            </button>
-          </div>
-        </div>
-
         {/* Configuration Panel */}
-        <div className="bg-white rounded-lg border border-slate-200 p-6 mb-8 space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 space-y-6">
           {/* Form Title */}
           <div>
             <label className="block text-sm font-semibold text-slate-900 mb-3">
@@ -845,118 +760,64 @@ export default function AdminFormBuilderPage() {
             </label>
             <input
               type="text"
-              value={formTitles[selectedProject] || ""}
+              value={
+                isProjectScopedEdit
+                  ? formTitles[selectedProject] || ""
+                  : createFormTitle
+              }
               onChange={(e) => {
-                setFormTitles((prev) => ({
-                  ...prev,
-                  [selectedProject]: e.target.value,
-                }));
+                if (isProjectScopedEdit) {
+                  setFormTitles((prev) => ({
+                    ...prev,
+                    [selectedProject]: e.target.value,
+                  }));
+                } else {
+                  setCreateFormTitle(e.target.value);
+                }
                 markDirty();
               }}
-              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
-              placeholder={`${selectedProject} Quarterly Report`}
+              className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:border-[#004446] focus:outline-none focus:ring-0"
+              placeholder={
+                isProjectScopedEdit
+                  ? `${selectedProject} Quarterly Report`
+                  : "e.g. Haksolok Quarterly Report"
+              }
             />
           </div>
 
           <div className="border-t border-slate-200" />
 
-          {/* Share Form Link */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-900 mb-3">
-              Share form link for{" "}
-              <span className="text-slate-700">{selectedProject}</span>
-            </h3>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={handleCopyFormLink}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-100 text-slate-900 text-sm font-medium hover:bg-slate-200 transition-colors active:bg-slate-300"
-              >
-                Copy Form Link
-              </button>
-              <a
-                href={whatsappShareLink || "#"}
-                target="_blank"
-                rel="noreferrer"
-                aria-disabled={!whatsappShareLink}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors"
-                onClick={(event) => {
-                  if (!whatsappShareLink) {
-                    event.preventDefault();
-                  }
-                }}
-              >
-                Share via WhatsApp
-              </a>
-            </div>
-            {copyMessage && (
-              <p className="text-xs text-green-600 mt-2 font-medium">
-                {copyMessage}
-              </p>
-            )}
-          </div>
-
-          <div className="border-t border-slate-200"></div>
-
           {/* Project Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {isProjectScopedEdit ? (
             <div>
               <label className="block text-sm font-semibold text-slate-900 mb-3">
-                Select Project
+                Project
               </label>
-              <select
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                disabled={isProjectScopedEdit}
-                className={`w-full border rounded-lg px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-200 appearance-none bg-no-repeat ${
-                  isProjectScopedEdit
-                    ? "border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
-                    : "border-slate-300 bg-white focus:border-slate-700"
-                }`}
-                style={{
-                  paddingRight: "2.5rem",
-                  backgroundPosition: "right 1rem center",
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23334155' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                }}
-              >
-                {projectOptions.map((project) => (
-                  <option key={project} value={project}>
-                    {project}
-                  </option>
-                ))}
-              </select>
-              {isProjectScopedEdit && (
-                <p className="text-xs text-slate-500 mt-1.5">
-                  Project is locked while editing. Go back to Forms Overview to edit a different project.
-                </p>
-              )}
-            </div>
-
-            {/* Add Project */}
-            {!isProjectScopedEdit && (
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-3">
-                  Add New Project
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newProjectName}
-                    onChange={(e) => setNewProjectName(e.target.value)}
-                    className="flex-1 border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
-                    placeholder="Project name"
-                  />
-                  <button
-                    type="button"
-                    onClick={addProject}
-                    className="px-4 py-2.5 rounded-lg bg-slate-700 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
-                  >
-                    Add
-                  </button>
-                </div>
+              <div className="w-full border border-slate-200 bg-slate-50 rounded-2xl px-4 py-2.5 text-sm font-medium text-slate-500">
+                {selectedProject}
               </div>
-            )}
-          </div>
+              <p className="text-xs text-slate-500 mt-1.5">
+                Project is locked while editing. Go back to Forms Overview to
+                edit a different project.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 mb-3">
+                Project Name
+              </label>
+              <input
+                type="text"
+                value={newProjectName}
+                onChange={(e) => {
+                  setNewProjectName(e.target.value);
+                  setSelectedProject(e.target.value.trim());
+                }}
+                className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:border-[#004446] focus:outline-none focus:ring-0"
+                placeholder="e.g. Haksolok"
+              />
+            </div>
+          )}
 
           <div className="border-t border-slate-200"></div>
 
@@ -984,7 +845,7 @@ export default function AdminFormBuilderPage() {
                     }));
                     markDirty();
                   }}
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700 appearance-none bg-no-repeat bg-white"
+                  className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:border-[#004446] focus:outline-none focus:ring-0 appearance-none bg-no-repeat bg-white"
                   style={{
                     paddingRight: "2.5rem",
                     backgroundPosition: "right 1rem center",
@@ -1015,7 +876,7 @@ export default function AdminFormBuilderPage() {
                     }));
                     markDirty();
                   }}
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700 appearance-none bg-no-repeat bg-white"
+                  className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:border-[#004446] focus:outline-none focus:ring-0 appearance-none bg-no-repeat bg-white"
                   style={{
                     paddingRight: "2.5rem",
                     backgroundPosition: "right 1rem center",
@@ -1033,29 +894,278 @@ export default function AdminFormBuilderPage() {
           </div>
         </div>
 
+        {/* Share Form Link */}
+        {(isProjectScopedEdit || newProjectName.trim()) && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Share form link for{" "}
+                <span className="text-slate-700">{selectedProject}</span>
+              </h3>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleCopyFormLink}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 text-slate-900 text-sm font-medium hover:bg-slate-200 transition-colors active:bg-slate-300"
+              >
+                <Copy className="h-4 w-4" />
+                Copy Form Link
+              </button>
+              <a
+                href={whatsappShareLink || "#"}
+                target="_blank"
+                rel="noreferrer"
+                aria-disabled={!whatsappShareLink}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors"
+                onClick={(event) => {
+                  if (!whatsappShareLink) {
+                    event.preventDefault();
+                  }
+                }}
+              >
+                Share via WhatsApp
+              </a>
+            </div>
+          </div>
+          {copyMessage && (
+            <p className="text-xs text-green-600 mt-2 font-medium">
+              {copyMessage}
+            </p>
+          )}
+        </div>
+        )}
+
         {/* Fields Section */}
         <div className="space-y-8">
-          {activeFieldMode === "default" ? (
-            <div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">
-                    Default Form Fields
-                  </h2>
-                  <p className="text-slate-600 text-sm mt-1">
-                    {defaultFields.length} fields shared across all projects.
+          <div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">
+                  {isProjectScopedEdit
+                    ? `${selectedProject} Form Fields`
+                    : "Form Fields"}
+                </h2>
+                <p className="text-slate-600 text-sm mt-1">
+                  {isProjectScopedEdit
+                    ? `Edit all fields for ${selectedProject}. Modified default fields are saved as project-specific overrides.`
+                    : "Add a new project above, then add fields for it."}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              {isProjectScopedEdit ? (
+                scopedProjectFields.length === 0 ? (
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8 text-center">
+                    <p className="text-slate-600 text-sm">
+                      No fields configured for this project.
+                    </p>
+                  </div>
+                ) : (
+                  scopedProjectFields.map((field, index) => {
+                    const isDefault = defaultFields.some(
+                      (df) => df.id === field.id,
+                    );
+                    return (
+                      <div
+                        key={field.id}
+                        className={`bg-white rounded-2xl border p-5 transition-colors hover:border-slate-300 ${
+                          isDefault ? "border-slate-200" : "border-slate-200"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                          <div className="flex-1">
+                            <div className="inline-flex items-center gap-2 mb-2">
+                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-200 text-slate-600 text-xs font-semibold">
+                                {index + 1}
+                              </span>
+                              {isDefault && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-xl text-xs font-medium bg-slate-200 text-slate-600">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => copyField(field, "custom")}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                              title="Copy field"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                moveFieldUp(field.id, "custom")
+                              }
+                              disabled={index === 0}
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors ${
+                                index === 0
+                                  ? "text-slate-300 cursor-not-allowed"
+                                  : "text-slate-500 hover:text-green-600 hover:bg-green-50"
+                              }`}
+                              title="Move up"
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                moveFieldDown(field.id, "custom")
+                              }
+                              disabled={
+                                index === scopedProjectFields.length - 1
+                              }
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors ${
+                                index === scopedProjectFields.length - 1
+                                  ? "text-slate-300 cursor-not-allowed"
+                                  : "text-slate-500 hover:text-green-600 hover:bg-green-50"
+                              }`}
+                              title="Move down"
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFieldToDelete({
+                                  id: field.id,
+                                  scope: "custom",
+                                });
+                                setDeleteDialogOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                              title="Delete field"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-2">
+                              Label
+                            </label>
+                            <input
+                              type="text"
+                              value={customLabelDrafts[field.id] ?? field.label}
+                              onChange={(e) => {
+                                const nextValue = e.target.value;
+                                setCustomLabelDrafts((prev) => ({
+                                  ...prev,
+                                  [field.id]: nextValue,
+                                }));
+                                updateField(field.id, {
+                                  label: nextValue,
+                                });
+                              }}
+                              className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:border-[#004446] focus:outline-none focus:ring-0"
+                              placeholder={
+                                field.label || "Enter label name..."
+                              }
+                            />
+                          </div>
+                          <div>{renderFieldOptions(field, updateField)}</div>
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-700 mb-3">
+                              Field Type
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {fieldTypeOptions.map((typeOption) => (
+                                <label
+                                  key={typeOption}
+                                  className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                                    field.type === typeOption
+                                      ? "border-slate-700 bg-slate-100"
+                                      : "border-slate-300 bg-white hover:border-slate-400"
+                                  }`}
+                                >
+                                  <div className="flex items-center">
+                                    <input
+                                      type="radio"
+                                      name={`field-type-${field.id}`}
+                                      value={typeOption}
+                                      checked={field.type === typeOption}
+                                      onChange={() =>
+                                        updateField(field.id, {
+                                          type: typeOption,
+                                        })
+                                      }
+                                      className="w-5 h-5 text-slate-700 cursor-pointer"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-3 flex-1">
+                                    {fieldTypeConfig[typeOption]?.icon}
+                                    <span className="font-medium text-slate-700">
+                                      {fieldTypeConfig[typeOption]
+                                        ?.label || typeOption}
+                                    </span>
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="border-t border-slate-200 pt-4">
+                            <div className="flex items-center justify-end gap-6">
+                              <div className="flex items-center gap-2">
+                                <label className="text-sm font-medium text-slate-700">
+                                  {field.type === "textarea"
+                                    ? "Long answer"
+                                    : "Required"}
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    updateField(field.id, {
+                                      required: !field.required,
+                                    })
+                                  }
+                                  className={`relative inline-flex w-12 h-7 rounded-full transition-colors ${
+                                    field.required
+                                      ? "bg-slate-700"
+                                      : "bg-slate-300"
+                                  }`}
+                                >
+                                  <span
+                                    className={`inline-block w-5 h-5 rounded-full bg-white transition-transform ${
+                                      field.required
+                                        ? "translate-x-6"
+                                        : "translate-x-1"
+                                    } my-auto`}
+                                  />
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                className="text-slate-400 hover:text-slate-600"
+                              >
+                                <MoreVertical className="h-5 w-5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )
+              ) : selectedFields.length === 0 ? (
+                <div className="bg-slate-50 rounded-2xl border border-slate-200 p-8 text-center">
+                  <p className="text-slate-600 text-sm">
+                    No fields yet. Add fields for your project.
                   </p>
                 </div>
-              </div>
-
-              <div className="grid gap-4">
-                {defaultFields.map((field, index) => (
+              ) : (
+                selectedFields.map((field, index) => (
                   <div
-                    key={`default-${field.id}`}
+                    key={field.id}
                     ref={(element) => {
                       fieldRefs.current[field.id] = element;
                     }}
-                    className={`bg-white rounded-lg border p-5 transition-colors ${
+                    className={`bg-white rounded-2xl border p-5 transition-colors ${
                       recentlyAddedFieldId === field.id
                         ? "border-slate-700 bg-slate-50 ring-2 ring-slate-200"
                         : "border-slate-200 hover:border-slate-300"
@@ -1064,7 +1174,7 @@ export default function AdminFormBuilderPage() {
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="flex-1">
                         <div className="inline-flex items-center gap-2 mb-2">
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-800 text-xs font-semibold">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
                             {index + 1}
                           </span>
                         </div>
@@ -1072,17 +1182,17 @@ export default function AdminFormBuilderPage() {
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => copyField(field, "default")}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                          onClick={() => copyField(field, "custom")}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                           title="Copy field"
                         >
                           <Copy className="h-4 w-4" />
                         </button>
                         <button
                           type="button"
-                          onClick={() => moveFieldUp(field.id, "default")}
+                          onClick={() => moveFieldUp(field.id, "custom")}
                           disabled={index === 0}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors ${
                             index === 0
                               ? "text-slate-300 cursor-not-allowed"
                               : "text-slate-500 hover:text-green-600 hover:bg-green-50"
@@ -1093,10 +1203,10 @@ export default function AdminFormBuilderPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => moveFieldDown(field.id, "default")}
-                          disabled={index === defaultFields.length - 1}
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                            index === defaultFields.length - 1
+                          onClick={() => moveFieldDown(field.id, "custom")}
+                          disabled={index === selectedFields.length - 1}
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs transition-colors ${
+                            index === selectedFields.length - 1
                               ? "text-slate-300 cursor-not-allowed"
                               : "text-slate-500 hover:text-green-600 hover:bg-green-50"
                           }`}
@@ -1109,18 +1219,17 @@ export default function AdminFormBuilderPage() {
                           onClick={() => {
                             setFieldToDelete({
                               id: field.id,
-                              scope: "default",
+                              scope: "custom",
                             });
                             setDeleteDialogOpen(true);
                           }}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                           title="Delete field"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
-
                     <div className="grid grid-cols-1 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-2">
@@ -1128,20 +1237,20 @@ export default function AdminFormBuilderPage() {
                         </label>
                         <input
                           type="text"
-                          value={defaultLabelDrafts[field.id] ?? ""}
+                          value={customLabelDrafts[field.id] ?? ""}
                           onChange={(e) => {
                             const nextValue = e.target.value;
-                            setDefaultLabelDrafts((prev) => ({
+                            setCustomLabelDrafts((prev) => ({
                               ...prev,
                               [field.id]: nextValue,
                             }));
-                            updateDefaultField(field.id, { label: nextValue });
+                            updateField(field.id, { label: nextValue });
                           }}
-                          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
+                          className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:border-[#004446] focus:outline-none focus:ring-0"
                           placeholder={field.label || "Enter label name..."}
                         />
                       </div>
-                      <div>{renderFieldOptions(field, updateDefaultField)}</div>
+                      <div>{renderFieldOptions(field, updateField)}</div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-700 mb-3">
                           Field Type
@@ -1150,7 +1259,7 @@ export default function AdminFormBuilderPage() {
                           {fieldTypeOptions.map((typeOption) => (
                             <label
                               key={typeOption}
-                              className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                              className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
                                 field.type === typeOption
                                   ? "border-slate-700 bg-slate-100"
                                   : "border-slate-300 bg-white hover:border-slate-400"
@@ -1163,7 +1272,7 @@ export default function AdminFormBuilderPage() {
                                   value={typeOption}
                                   checked={field.type === typeOption}
                                   onChange={() =>
-                                    updateDefaultField(field.id, {
+                                    updateField(field.id, {
                                       type: typeOption,
                                     })
                                   }
@@ -1173,7 +1282,8 @@ export default function AdminFormBuilderPage() {
                               <div className="flex items-center gap-3 flex-1">
                                 {fieldTypeConfig[typeOption]?.icon}
                                 <span className="font-medium text-slate-700">
-                                  {fieldTypeConfig[typeOption]?.label}
+                                  {fieldTypeConfig[typeOption]?.label ||
+                                    typeOption}
                                 </span>
                               </div>
                             </label>
@@ -1191,12 +1301,14 @@ export default function AdminFormBuilderPage() {
                             <button
                               type="button"
                               onClick={() =>
-                                updateDefaultField(field.id, {
+                                updateField(field.id, {
                                   required: !field.required,
                                 })
                               }
                               className={`relative inline-flex w-12 h-7 rounded-full transition-colors ${
-                                field.required ? "bg-slate-700" : "bg-slate-300"
+                                field.required
+                                  ? "bg-slate-700"
+                                  : "bg-slate-300"
                               }`}
                             >
                               <span
@@ -1218,447 +1330,24 @@ export default function AdminFormBuilderPage() {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                ))
+              )}
             </div>
-          ) : (
-            <div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">
-                    {isProjectScopedEdit
-                      ? `${selectedProject} Form Fields`
-                      : "Custom Fields"}
-                  </h2>
-                  <p className="text-slate-600 text-sm mt-1">
-                    {isProjectScopedEdit
-                      ? "Viewing all fields for this project. Default fields are read-only. Add custom fields below."
-                      : `Add custom fields to extend the ${selectedProject} form.`}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid gap-4">
-                {isProjectScopedEdit ? (
-                  scopedProjectFields.length === 0 ? (
-                    <div className="bg-slate-50 rounded-lg border border-slate-200 p-8 text-center">
-                      <p className="text-slate-600 text-sm">
-                        No fields configured for this project.
-                      </p>
-                    </div>
-                  ) : (
-                    scopedProjectFields.map((field, index) => {
-                      const isDefault = defaultFields.some(
-                        (df) => df.id === field.id,
-                      );
-                      return (
-                        <div
-                          key={field.id}
-                          className={`bg-white rounded-lg border p-5 transition-colors ${
-                            isDefault
-                              ? "border-slate-200 bg-slate-50/50"
-                              : "border-slate-200 hover:border-slate-300"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-4 mb-4">
-                            <div className="flex-1">
-                              <div className="inline-flex items-center gap-2 mb-2">
-                                <span
-                                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold ${
-                                    isDefault
-                                      ? "bg-slate-200 text-slate-600"
-                                      : "bg-purple-100 text-purple-700"
-                                  }`}
-                                >
-                                  {index + 1}
-                                </span>
-                                {isDefault && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-200 text-slate-600">
-                                    Default
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            {!isDefault && (
-                              <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => copyField(field, "custom")}
-                                  className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                                  title="Copy field"
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => moveFieldUp(field.id, "custom")}
-                                  disabled={index === 0}
-                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                                    index === 0
-                                      ? "text-slate-300 cursor-not-allowed"
-                                      : "text-slate-500 hover:text-green-600 hover:bg-green-50"
-                                  }`}
-                                  title="Move up"
-                                >
-                                  <ChevronUp className="h-4 w-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => moveFieldDown(field.id, "custom")}
-                                  disabled={index === scopedProjectFields.length - 1}
-                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                                    index === scopedProjectFields.length - 1
-                                      ? "text-slate-300 cursor-not-allowed"
-                                      : "text-slate-500 hover:text-green-600 hover:bg-green-50"
-                                  }`}
-                                  title="Move down"
-                                >
-                                  <ChevronDown className="h-4 w-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setFieldToDelete({
-                                      id: field.id,
-                                      scope: "custom",
-                                    });
-                                    setDeleteDialogOpen(true);
-                                  }}
-                                  className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                  title="Delete field"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-1 gap-4">
-                            <div>
-                              <label className="block text-xs font-semibold text-slate-700 mb-2">
-                                Label
-                              </label>
-                              {isDefault ? (
-                                <div className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 bg-slate-50">
-                                  {field.label.replace(/^\d+\.\s*/, "")}
-                                </div>
-                              ) : (
-                                <input
-                                  type="text"
-                                  value={customLabelDrafts[field.id] ?? ""}
-                                  onChange={(e) => {
-                                    const nextValue = e.target.value;
-                                    setCustomLabelDrafts((prev) => ({
-                                      ...prev,
-                                      [field.id]: nextValue,
-                                    }));
-                                    updateField(field.id, {
-                                      label: nextValue,
-                                    });
-                                  }}
-                                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
-                                  placeholder={
-                                    field.label || "Enter label name..."
-                                  }
-                                />
-                              )}
-                            </div>
-                            {isDefault ? (
-                              <div>
-                                <label className="block text-xs font-semibold text-slate-700 mb-2">
-                                  Field Type
-                                </label>
-                                <span className="inline-flex items-center px-3 py-2 rounded-lg text-sm bg-slate-100 text-slate-600">
-                                  {fieldTypeConfig[field.type]?.label ||
-                                    field.type}
-                                </span>
-                              </div>
-                            ) : (
-                              <>
-                                <div>
-                                  {renderFieldOptions(field, updateField)}
-                                </div>
-                                <div>
-                                  <label className="block text-xs font-semibold text-slate-700 mb-3">
-                                    Field Type
-                                  </label>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {fieldTypeOptions.map((typeOption) => (
-                                      <label
-                                        key={typeOption}
-                                        className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                          field.type === typeOption
-                                            ? "border-slate-700 bg-slate-100"
-                                            : "border-slate-300 bg-white hover:border-slate-400"
-                                        }`}
-                                      >
-                                        <div className="flex items-center">
-                                          <input
-                                            type="radio"
-                                            name={`field-type-${field.id}`}
-                                            value={typeOption}
-                                            checked={field.type === typeOption}
-                                            onChange={() =>
-                                              updateField(field.id, {
-                                                type: typeOption,
-                                              })
-                                            }
-                                            className="w-5 h-5 text-slate-700 cursor-pointer"
-                                          />
-                                        </div>
-                                        <div className="flex items-center gap-3 flex-1">
-                                          {fieldTypeConfig[typeOption]?.icon}
-                                          <span className="font-medium text-slate-700">
-                                            {fieldTypeConfig[typeOption]
-                                              ?.label || typeOption}
-                                          </span>
-                                        </div>
-                                      </label>
-                                    ))}
-                                  </div>
-                                </div>
-                                <div className="border-t border-slate-200 pt-4">
-                                  <div className="flex items-center justify-end gap-6">
-                                    <div className="flex items-center gap-2">
-                                      <label className="text-sm font-medium text-slate-700">
-                                        {field.type === "textarea"
-                                          ? "Long answer"
-                                          : "Required"}
-                                      </label>
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          updateField(field.id, {
-                                            required: !field.required,
-                                          })
-                                        }
-                                        className={`relative inline-flex w-12 h-7 rounded-full transition-colors ${
-                                          field.required
-                                            ? "bg-slate-700"
-                                            : "bg-slate-300"
-                                        }`}
-                                      >
-                                        <span
-                                          className={`inline-block w-5 h-5 rounded-full bg-white transition-transform ${
-                                            field.required
-                                              ? "translate-x-6"
-                                              : "translate-x-1"
-                                          } my-auto`}
-                                        />
-                                      </button>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      className="text-slate-400 hover:text-slate-600"
-                                    >
-                                      <MoreVertical className="h-5 w-5" />
-                                    </button>
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
-                  )
-                ) : selectedFields.length === 0 ? (
-                  <div className="bg-slate-50 rounded-lg border border-slate-200 p-8 text-center">
-                    <p className="text-slate-600 text-sm">
-                      No custom fields yet. Add custom fields to extend the
-                      form.
-                    </p>
-                  </div>
-                ) : (
-                  selectedFields.map((field, index) => (
-                    <div
-                      key={field.id}
-                      ref={(element) => {
-                        fieldRefs.current[field.id] = element;
-                      }}
-                      className={`bg-white rounded-lg border p-5 transition-colors ${
-                        recentlyAddedFieldId === field.id
-                          ? "border-slate-700 bg-slate-50 ring-2 ring-slate-200"
-                          : "border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-4 mb-4">
-                        <div className="flex-1">
-                          <div className="inline-flex items-center gap-2 mb-2">
-                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">
-                              {index + 1}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => copyField(field, "custom")}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                            title="Copy field"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveFieldUp(field.id, "custom")}
-                            disabled={index === 0}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                              index === 0
-                                ? "text-slate-300 cursor-not-allowed"
-                                : "text-slate-500 hover:text-green-600 hover:bg-green-50"
-                            }`}
-                            title="Move up"
-                          >
-                            <ChevronUp className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveFieldDown(field.id, "custom")}
-                            disabled={index === selectedFields.length - 1}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
-                              index === selectedFields.length - 1
-                                ? "text-slate-300 cursor-not-allowed"
-                                : "text-slate-500 hover:text-green-600 hover:bg-green-50"
-                            }`}
-                            title="Move down"
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setFieldToDelete({
-                                id: field.id,
-                                scope: "custom",
-                              });
-                              setDeleteDialogOpen(true);
-                            }}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
-                            title="Delete field"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-700 mb-2">
-                            Label
-                          </label>
-                          <input
-                            type="text"
-                            value={customLabelDrafts[field.id] ?? ""}
-                            onChange={(e) => {
-                              const nextValue = e.target.value;
-                              setCustomLabelDrafts((prev) => ({
-                                ...prev,
-                                [field.id]: nextValue,
-                              }));
-                              updateField(field.id, { label: nextValue });
-                            }}
-                            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-slate-200 focus:border-slate-700"
-                            placeholder={field.label || "Enter label name..."}
-                          />
-                        </div>
-                        <div>{renderFieldOptions(field, updateField)}</div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-700 mb-3">
-                            Field Type
-                          </label>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {fieldTypeOptions.map((typeOption) => (
-                              <label
-                                key={typeOption}
-                                className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                  field.type === typeOption
-                                    ? "border-slate-700 bg-slate-100"
-                                    : "border-slate-300 bg-white hover:border-slate-400"
-                                }`}
-                              >
-                                <div className="flex items-center">
-                                  <input
-                                    type="radio"
-                                    name={`field-type-${field.id}`}
-                                    value={typeOption}
-                                    checked={field.type === typeOption}
-                                    onChange={() =>
-                                      updateField(field.id, {
-                                        type: typeOption,
-                                      })
-                                    }
-                                    className="w-5 h-5 text-slate-700 cursor-pointer"
-                                  />
-                                </div>
-                                <div className="flex items-center gap-3 flex-1">
-                                  {fieldTypeConfig[typeOption]?.icon}
-                                  <span className="font-medium text-slate-700">
-                                    {fieldTypeConfig[typeOption]?.label ||
-                                      typeOption}
-                                  </span>
-                                </div>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="border-t border-slate-200 pt-4">
-                          <div className="flex items-center justify-end gap-6">
-                            <div className="flex items-center gap-2">
-                              <label className="text-sm font-medium text-slate-700">
-                                {field.type === "textarea"
-                                  ? "Long answer"
-                                  : "Required"}
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateField(field.id, {
-                                    required: !field.required,
-                                  })
-                                }
-                                className={`relative inline-flex w-12 h-7 rounded-full transition-colors ${
-                                  field.required
-                                    ? "bg-slate-700"
-                                    : "bg-slate-300"
-                                }`}
-                              >
-                                <span
-                                  className={`inline-block w-5 h-5 rounded-full bg-white transition-transform ${
-                                    field.required
-                                      ? "translate-x-6"
-                                      : "translate-x-1"
-                                  } my-auto`}
-                                />
-                              </button>
-                            </div>
-                            <button
-                              type="button"
-                              className="text-slate-400 hover:text-slate-600"
-                            >
-                              <MoreVertical className="h-5 w-5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Action Buttons */}
         <div className="mt-10 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
           <Link
             href="/dashboard/forms-overview"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50 transition-colors"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50 transition-colors"
           >
             Cancel
           </Link>
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 sm:flex-none px-6 py-3 rounded-lg bg-slate-700 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
+            className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
           >
             Save Form Structure
           </button>
@@ -1671,7 +1360,7 @@ export default function AdminFormBuilderPage() {
               <button
                 type="button"
                 onClick={scrollToTop}
-                className="inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
                 aria-label="Scroll to top"
                 title="Scroll to top"
               >
@@ -1682,7 +1371,7 @@ export default function AdminFormBuilderPage() {
               <button
                 type="button"
                 onClick={scrollToBottom}
-                className="inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
                 aria-label="Scroll to bottom"
                 title="Scroll to bottom"
               >
@@ -1693,21 +1382,16 @@ export default function AdminFormBuilderPage() {
         )}
 
         {/* Sticky Add Field Button */}
-        {(activeFieldMode === "default" || activeFieldMode === "custom") && (
-          <div className="fixed bottom-5 right-4 z-40 md:right-8">
-            <button
-              type="button"
-              onClick={
-                activeFieldMode === "default" ? addDefaultField : addNewField
-              }
-              className="inline-flex items-center gap-2 rounded bg-slate-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 active:bg-slate-900"
-              title={`Add a new ${activeFieldLabel}. ${activeFieldCount} ${activeFieldCount === 1 ? "field" : "fields"} currently.`}
-            >
-              <Plus className="h-4 w-4" />
-              Add Field
-            </button>
-          </div>
-        )}
+        <div className="fixed bottom-5 right-4 z-40 md:right-8">
+          <button
+            type="button"
+            onClick={addNewField}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:bg-slate-900"
+          >
+            <Plus className="h-4 w-4" />
+            Add Field
+          </button>
+        </div>
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>

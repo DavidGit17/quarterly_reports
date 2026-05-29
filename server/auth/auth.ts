@@ -51,8 +51,8 @@ const ensureUsersIndexes = async (
           name: "users_email_lower_idx",
         },
         {
-          key: { role: 1, status: 1, createdAt: -1 },
-          name: "users_role_status_created_at_idx",
+          key: { role: 1, status: 1, project: 1 },
+          name: "users_role_status_project_idx",
         },
       ])
       .then(() => undefined);

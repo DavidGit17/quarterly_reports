@@ -105,7 +105,7 @@ export default function SelectPage() {
                 type="text"
                 value={project}
                 onChange={(e) => setProject(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-[#004446] focus:outline-none focus:ring-2 focus:ring-[#004446]"
                 placeholder="Type project name"
                 required
               />
@@ -122,7 +122,7 @@ export default function SelectPage() {
                 id="quarter"
                 value={quarter}
                 onChange={(e) => setQuarter(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 transition-all duration-200 hover:border-slate-300 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 transition-all duration-200 hover:border-slate-300 focus:border-[#004446] focus:outline-none focus:ring-2 focus:ring-[#004446]"
                 required
               >
                 <option value="">Select a quarter</option>
@@ -136,7 +136,7 @@ export default function SelectPage() {
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-blue-700 px-8 py-3 text-[16px] font-semibold text-white transition-all duration-200 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="w-full rounded-xl bg-blue-700 px-8 py-3 text-[16px] font-semibold text-white transition-all duration-200 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-[#004446]"
             >
               Continue
             </button>

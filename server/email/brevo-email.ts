@@ -106,6 +106,11 @@ const sendEmail = async (options: SendEmailOptions): Promise<BrevoResponse> => {
 };
 
 /**
+ * Send a raw email (used by automations and other systems)
+ */
+export { sendEmail };
+
+/**
  * Send OTP email
  */
 export const sendOTPEmail = async (

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { X } from "lucide-react";
 import { Header } from "./header";
 import { Sidebar, sidebarItems } from "./sidebar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -13,26 +14,35 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-[#F6F9FC]">
-      <Sidebar />
-      <div className="md:ml-[260px] flex min-h-screen flex-col">
-        <Header onMobileMenuClick={() => setMobileMenuOpen(true)} />
-        <main className="flex-1 overflow-auto">
-          <div className="mx-auto w-full max-w-[1440px] p-4 md:px-10 md:py-6">
-            {children}
-          </div>
-        </main>
+    <div className="flex h-screen bg-[#F6F9FC] overflow-hidden">
+      <Sidebar
+        open={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
+      <div className="flex flex-1 flex-col min-w-0">
+        <div className="fixed top-0 left-0 right-0 z-50">
+          <Header onMobileMenuClick={() => setMobileMenuOpen(true)} />
+        </div>
+        <div
+          className={cn(
+            "flex-1 overflow-y-auto pt-16 transition-all duration-300",
+            sidebarOpen ? "md:ml-65" : "md:ml-16",
+          )}
+        >
+          <div className="w-full p-4 md:px-6 md:py-6">{children}</div>
+        </div>
       </div>
 
       {/* Mobile menu */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent
           side="left"
-          className="w-[260px] border-r border-slate-200 bg-white p-0"
+          className="w-65 border-r border-slate-200 bg-white p-0"
         >
           <div className="flex items-center h-16 px-6 border-b border-slate-200">
             <div className="flex items-center gap-3 min-w-0">
@@ -48,6 +58,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </p>
               </div>
             </div>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="ml-auto p-2 hover:bg-slate-100 rounded-xl transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-500" />
+            </button>
           </div>
           <nav className="flex h-[calc(100dvh-4rem)] flex-col p-3">
             <div className="flex-1 space-y-1.5 overflow-y-auto">

@@ -8,8 +8,8 @@ import {
   Settings,
   FolderKanban,
   UserCog,
-  CalendarDays,
   Send,
+  PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/shared/utils";
 
@@ -37,13 +37,8 @@ export const sidebarItems: SidebarItem[] = [
     icon: <FileText className="w-5 h-5" />,
   },
   {
-    label: "Reporting Cycles",
-    href: "/dashboard/reporting-cycles",
-    icon: <CalendarDays className="w-5 h-5" />,
-  },
-  {
-    label: "Email Campaigns",
-    href: "/dashboard/email-campaigns",
+    label: "Form Automation",
+    href: "/dashboard/form-distribution",
     icon: <Send className="w-5 h-5" />,
   },
   {
@@ -63,30 +58,51 @@ export const sidebarItems: SidebarItem[] = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({
+  open = true,
+  onToggle,
+}: {
+  open?: boolean;
+  onToggle?: () => void;
+}) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex md:w-[260px] md:flex-col md:fixed md:inset-y-0 md:z-50 border-r border-slate-200 bg-white">
-      {/* Logo */}
-      <div className="flex items-center h-16 px-6 border-b border-slate-200">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-sm font-semibold text-white">
-            QR
-          </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-base font-semibold text-slate-950">
-              Quarterly Reports
-            </h1>
-            <p className="text-xs font-medium uppercase tracking-[0.05em] text-slate-500">
-              Admin Dashboard
-            </p>
-          </div>
+    <aside
+      className={cn(
+        "fixed top-16 bottom-0 left-0 z-40 border-r border-slate-200 bg-white transition-all duration-300 hidden md:flex md:flex-col",
+        open ? "w-65" : "w-16",
+      )}
+    >
+      <nav
+        className={cn(
+          "flex-1 overflow-y-auto transition-all duration-300",
+          open ? "px-3 py-4" : "px-2 py-4",
+        )}
+      >
+        <div
+          className={cn(
+            "mb-3 flex items-center",
+            open ? "justify-between px-1" : "justify-center",
+          )}
+        >
+          <span
+            className={cn(
+              "text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400 overflow-hidden whitespace-nowrap transition-all duration-300",
+              open ? "opacity-100 max-w-40" : "opacity-0 max-w-0",
+            )}
+          >
+            Navigation
+          </span>
+          <button
+            type="button"
+            onClick={onToggle}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            <PanelLeft className={cn("h-4 w-4", open ? "" : "rotate-180")} />
+          </button>
         </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
         <div className="space-y-1.5">
           {sidebarItems.map((item) => {
             let isActive = false;
@@ -101,14 +117,21 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  "group relative flex items-center gap-3 rounded-xl py-2.5 text-sm font-medium transition-all duration-300",
+                  open ? "px-3" : "px-2",
                   isActive
                     ? "bg-slate-50 text-slate-900"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                 )}
+                title={!open ? item.label : undefined}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full bg-[#2563EB]" />
+                  <span
+                    className={cn(
+                      "absolute top-2 bottom-2 w-0.5 rounded-full bg-[#2563EB] transition-all duration-300",
+                      open ? "left-0" : "left-1",
+                    )}
+                  />
                 )}
                 <span
                   className={cn(
@@ -120,7 +143,14 @@ export function Sidebar() {
                 >
                   {item.icon}
                 </span>
-                <span className="flex-1">{item.label}</span>
+                <span
+                  className={cn(
+                    "overflow-hidden whitespace-nowrap transition-all duration-300 flex-1",
+                    open ? "opacity-100 max-w-60" : "opacity-0 max-w-0",
+                  )}
+                >
+                  {item.label}
+                </span>
                 {item.badge && (
                   <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-red-500 rounded-full">
                     {item.badge}

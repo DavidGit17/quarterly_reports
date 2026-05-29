@@ -52,20 +52,19 @@ const getQuarterLabel = (startMonth: string, endMonth: string) =>
 const fileAcceptTypes =
   ".doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,image/*,video/*,audio/*";
 const FORM_FIELD_CLASS =
-  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-[#004446] focus:outline-none focus:ring-0 disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
 const FORM_DATE_FIELD_CLASS = `${FORM_FIELD_CLASS} pr-12`;
 const FORM_CUSTOM_SELECT_TRIGGER_CLASS =
-  "h-auto w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 shadow-none transition-all duration-200 hover:border-slate-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus-visible:border-blue-400 focus-visible:ring-2 focus-visible:ring-blue-100 data-[placeholder]:text-slate-400";
+  "h-auto w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 shadow-none transition-all duration-200 hover:border-slate-300 focus:border-[#004446] focus:ring-0 focus-visible:border-[#004446] focus-visible:ring-0 data-[placeholder]:text-slate-400";
 const FORM_CUSTOM_SELECT_CONTENT_CLASS =
   "rounded-xl border border-slate-100 bg-white text-slate-800 shadow-lg";
 const FORM_CUSTOM_SELECT_ITEM_CLASS =
   "cursor-pointer rounded-lg py-2 pl-8 pr-3 text-[14px] text-slate-700 transition-colors duration-150 focus:bg-blue-50 focus:text-blue-800 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white";
-const FORM_SURFACE_CLASS = "rounded-2xl bg-white shadow-sm border border-slate-100";
-const FORM_LABEL_CLASS =
-  "block text-[16px] font-medium text-slate-800";
+const FORM_SURFACE_CLASS =
+  "rounded-2xl bg-white shadow-sm border border-slate-100";
+const FORM_LABEL_CLASS = "block text-[16px] font-medium text-slate-800";
 const FORM_REQUIRED_CLASS = "text-red-400 font-semibold";
-const FORM_META_CLASS =
-  "text-sm text-slate-500";
+const FORM_META_CLASS = "text-sm text-slate-500";
 const FORM_LINK_CLASS =
   "text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-700";
 const FORM_ICON_BUTTON_CLASS =
@@ -73,7 +72,7 @@ const FORM_ICON_BUTTON_CLASS =
 const FORM_SECONDARY_ACTION_CLASS =
   "text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-700 cursor-pointer";
 const FORM_PRIMARY_BUTTON_CLASS =
-  "inline-flex items-center justify-center rounded-xl bg-[#4b6358] px-8 py-3 text-[16px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-[#344b41] focus:outline-none focus:ring-2 focus:ring-[#cee9db] active:bg-[#2a3d35] cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center rounded-xl bg-[#4b6358] px-8 py-3 text-[16px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-[#344b41] focus:outline-none focus:ring-2 focus:ring-[#004446] active:bg-[#2a3d35] cursor-pointer disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed";
 
 const formatDateInput = (value: string) => {
   const digitsOnly = value.replace(/\D/g, "").slice(0, 8);
@@ -117,8 +116,9 @@ export default function ProjectFormPage() {
   const [uploadingFiles, setUploadingFiles] = useState<UploadingMap>({});
   const [uploadProgress, setUploadProgress] = useState<UploadProgressMap>({});
   const [pendingFiles, setPendingFiles] = useState<FileValueMap>({});
-  const [ratingPreviewValues, setRatingPreviewValues] =
-    useState<FieldValueMap>({});
+  const [ratingPreviewValues, setRatingPreviewValues] = useState<FieldValueMap>(
+    {},
+  );
   const [showSubmitPopup, setShowSubmitPopup] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -194,8 +194,6 @@ export default function ProjectFormPage() {
         }
 
         const {
-          defaultFields: baseDefaultFields,
-          customConfigs: customFormConfigs,
           formConfigs: configs,
           quarterConfigs: projectQuarters,
         } = await getHydratedFormState();
@@ -218,20 +216,11 @@ export default function ProjectFormPage() {
           // allow form to proceed if cycle API fails
         }
 
-        const projectCustomFields = customFormConfigs[normalizedProject] || [];
-        const defaultFieldIds = new Set(
-          baseDefaultFields.map((field) => field.id),
-        );
+        let projectFields = configs[normalizedProject] || [];
 
-        const filteredCustomFields = projectCustomFields.filter(
-          (field) =>
-            !defaultFieldIds.has(field.id) &&
-            !["region-name", "team-size", "main-project-update"].includes(
-              field.id,
-            ),
+        projectFields = projectFields.filter(
+          (field) => !["region-name", "team-size", "main-project-update"].includes(field.id),
         );
-
-        let projectFields = [...baseDefaultFields, ...filteredCustomFields];
 
         projectFields = projectFields.map((field, projectIndex) => {
           const position = projectIndex + 1;
@@ -535,17 +524,16 @@ export default function ProjectFormPage() {
   if (isAccessDenied) {
     return (
       <div className="coordinator-system min-h-screen bg-[#f8f9fa] flex items-center justify-center px-4">
-        <div className={`${FORM_SURFACE_CLASS} p-8 w-full max-w-md text-center`}>
+        <div
+          className={`${FORM_SURFACE_CLASS} p-8 w-full max-w-md text-center`}
+        >
           <h1 className="mb-3 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d]">
             Access Denied
           </h1>
           <p className={`${FORM_META_CLASS} mb-5`}>
             You can only access the form for your assigned project.
           </p>
-          <Link
-            href="/login"
-            className={FORM_LINK_CLASS}
-          >
+          <Link href="/login" className={FORM_LINK_CLASS}>
             Return to Login
           </Link>
         </div>
@@ -575,11 +563,15 @@ export default function ProjectFormPage() {
           <div className="flex items-center justify-between mb-6">
             <button
               type="button"
-              onClick={() => router.push("/")}
+              onClick={() =>
+                isPreviewMode
+                  ? router.push("/dashboard/forms-overview")
+                  : router.push("/")
+              }
               className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              {isPreviewMode ? "Back" : "Back to Dashboard"}
             </button>
             {!isPreviewMode && (
               <div className="flex items-center gap-4">
@@ -621,7 +613,10 @@ export default function ProjectFormPage() {
           ref={formRef}
           onSubmit={handleSubmit}
           onInvalid={() => {
-            formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            formRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
           }}
           className="space-y-6"
         >
@@ -635,9 +630,7 @@ export default function ProjectFormPage() {
 
           <div className={`${FORM_SURFACE_CLASS} p-6`}>
             <div className="pb-6">
-              <p className={`${FORM_LABEL_CLASS} mb-2`}>
-                Quarter
-              </p>
+              <p className={`${FORM_LABEL_CLASS} mb-2`}>Quarter</p>
               <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
                 {quarterRange}
               </p>
@@ -858,7 +851,7 @@ export default function ProjectFormPage() {
                               onClick={() =>
                                 handleTextChange(field.id, String(i + 1))
                               }
-                              className={`rounded-sm p-1 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+                              className={`rounded-sm p-1 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#004446] ${
                                 isActive
                                   ? "text-blue-600"
                                   : "text-slate-200 hover:text-blue-500"

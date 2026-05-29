@@ -4,6 +4,10 @@ import { faker } from "@faker-js/faker";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import {
+  getBaseDefaultFields,
+  type FormFieldConfig,
+} from "../lib/shared/form-storage";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,14 +20,19 @@ if (fs.existsSync(envPath)) {
     if (trimmed && !trimmed.startsWith("#")) {
       const eqIdx = trimmed.indexOf("=");
       if (eqIdx > 0) {
-        process.env[trimmed.slice(0, eqIdx).trim()] = trimmed.slice(eqIdx + 1).trim();
+        process.env[trimmed.slice(0, eqIdx).trim()] = trimmed
+          .slice(eqIdx + 1)
+          .trim();
       }
     }
   }
 }
 
 const config: MockDataConfig = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "..", "mock-data-config.json"), "utf-8"),
+  fs.readFileSync(
+    path.resolve(__dirname, "..", "mock-data-config.json"),
+    "utf-8",
+  ),
 );
 
 type UserRole = "coordinator" | "facilitator" | "admin";
@@ -78,19 +87,6 @@ type MockDataConfig = {
   years: number[];
 };
 
-const FIELD_TEMPLATES: Omit<DynamicReportField, "value">[] = [
-  { fieldId: "f1", label: "Project Name", type: "text" },
-  { fieldId: "f2", label: "Beneficiaries Reached", type: "number" },
-  { fieldId: "f3", label: "Activities Conducted", type: "textarea" },
-  { fieldId: "f4", label: "Budget Spent ($)", type: "number" },
-  { fieldId: "f5", label: "Completion %", type: "rating" },
-  { fieldId: "f6", label: "Challenges", type: "textarea" },
-  { fieldId: "f7", label: "Key Achievements", type: "textarea" },
-  { fieldId: "f8", label: "Next Steps", type: "textarea" },
-  { fieldId: "f9", label: "Language", type: "choice" },
-  { fieldId: "f10", label: "Review Status", type: "choice" },
-];
-
 const REPORT_STATUSES: ReportStatus[] = [
   "submitted",
   "submitted",
@@ -102,27 +98,69 @@ const REPORT_STATUSES: ReportStatus[] = [
   "draft",
 ];
 
-const LANGUAGE_OPTIONS = ["English", "Spanish", "French", "Arabic"];
+const COUNTRY_LANGUAGES = [
+  "Arabic",
+  "English",
+  "Urdu",
+  "Hindi",
+  "Bengali",
+  "Punjabi",
+  "Tamil",
+  "Telugu",
+  "Malayalam",
+  "Kannada",
+  "Marathi",
+  "Gujarati",
+  "Sinhala",
+  "Nepali",
+  "Burmese",
+  "Thai",
+  "Khmer",
+  "Lao",
+  "Vietnamese",
+  "Malay",
+  "Indonesian",
+  "Tagalog",
+  "Cebuano",
+  "Japanese",
+  "Korean",
+  "Mandarin Chinese",
+  "Cantonese",
+  "Farsi",
+  "Pashto",
+  "Dari",
+  "Turkish",
+  "Kurdish",
+  "Hebrew",
+  "Swahili",
+  "Amharic",
+  "Somali",
+];
 
-function generateFieldValue(
-  template: Omit<DynamicReportField, "value">,
-): string | string[] {
-  switch (template.type) {
+const DEFAULT_FIELDS = getBaseDefaultFields();
+
+function generateFieldValue(field: FormFieldConfig): string | string[] {
+  if (field.id === "language-name") {
+    return faker.helpers.arrayElement(COUNTRY_LANGUAGES);
+  }
+
+  switch (field.type) {
     case "number":
-      return faker.number.int({ min: 50, max: 5000 }).toString();
+      return faker.number.int({ min: 1, max: 5000 }).toString();
     case "rating":
       return faker.number.int({ min: 1, max: 5 }).toString();
     case "choice":
-      if (template.label === "Language") {
-        return faker.helpers.arrayElement(LANGUAGE_OPTIONS);
-      }
-      return faker.helpers.arrayElement(["Yes", "No", "In Progress"]);
+      return faker.helpers.arrayElement(
+        field.choices || ["Yes", "No", "Maybe"],
+      );
     case "date":
       return faker.date.past({ years: 1 }).toISOString().split("T")[0];
+    case "file":
+      return ["photo-01.jpg", "photo-02.jpg", "photo-03.jpg"];
     case "text":
-      return faker.lorem.words({ min: 2, max: 8 });
+      return faker.lorem.words({ min: 2, max: 6 });
     case "textarea":
-      return faker.lorem.paragraphs({ min: 1, max: 3 });
+      return faker.lorem.paragraphs({ min: 1, max: 2 });
     default:
       return faker.lorem.words(3);
   }
@@ -276,7 +314,10 @@ async function main() {
     for (const { meta, userId } of reporters) {
       if (reportsToInsert.length >= reportCount) break;
 
-      const reportsForThisUser = faker.number.int({ min: minReports, max: maxReports });
+      const reportsForThisUser = faker.number.int({
+        min: minReports,
+        max: maxReports,
+      });
 
       for (let r = 0; r < reportsForThisUser; r++) {
         if (reportsToInsert.length >= reportCount) break;
@@ -285,10 +326,14 @@ async function main() {
         const quarter = faker.helpers.arrayElement(quarters);
         const quarterLabel = `${quarter} ${year}`;
 
-        const dynamicFields: DynamicReportField[] = FIELD_TEMPLATES.map((t) => ({
-          ...t,
-          value: generateFieldValue(t),
-        }));
+        const dynamicFields: DynamicReportField[] = DEFAULT_FIELDS.map(
+          (field) => ({
+            fieldId: field.id,
+            label: field.label,
+            type: field.type,
+            value: generateFieldValue(field),
+          }),
+        );
 
         const fields: Record<string, string | string[]> = {};
         for (const df of dynamicFields) {

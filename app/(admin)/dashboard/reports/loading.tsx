@@ -6,10 +6,10 @@ export default function ReportsLoading() {
         <div className="h-4 w-72 bg-slate-200 rounded" />
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-24 bg-slate-200 rounded-lg" />
+            <div key={i} className="h-24 bg-slate-200 rounded-2xl" />
           ))}
         </div>
-        <div className="h-64 bg-slate-200 rounded-lg" />
+        <div className="h-64 bg-slate-200 rounded-2xl" />
       </div>
     </main>
   );

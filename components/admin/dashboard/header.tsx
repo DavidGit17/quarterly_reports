@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Menu, Search, Bell, LogOut, Check, Trash2, Eye } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Menu, Bell, LogOut, Check, Trash2, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -48,8 +47,7 @@ const mockNotifications: Notification[] = [
     id: "1",
     type: "approval",
     title: "Report Approval Required",
-    message:
-      "Annual Sustainability Report (Spanish) is pending your approval",
+    message: "Annual Sustainability Report (Spanish) is pending your approval",
     timestamp: "2024-02-20T10:30:00",
     read: false,
     actionUrl: "/dashboard/reports",
@@ -58,8 +56,7 @@ const mockNotifications: Notification[] = [
     id: "2",
     type: "report",
     title: "New Report Submitted",
-    message:
-      "Financial Performance Analysis report submitted by Michael Chen",
+    message: "Financial Performance Analysis report submitted by Michael Chen",
     timestamp: "2024-02-20T09:15:00",
     read: false,
   },
@@ -67,8 +64,7 @@ const mockNotifications: Notification[] = [
     id: "3",
     type: "approval",
     title: "Approval Pending",
-    message:
-      "Operational Excellence Initiative report awaiting your review",
+    message: "Operational Excellence Initiative report awaiting your review",
     timestamp: "2024-02-19T14:45:00",
     read: true,
   },
@@ -91,29 +87,28 @@ const mockNotifications: Notification[] = [
   },
 ];
 
-const typeColors: Record<string, { dot: string; bg: string; label: string }> =
-  {
-    approval: {
-      dot: "bg-amber-500",
-      bg: "bg-amber-50 text-amber-700",
-      label: "Approval",
-    },
-    report: {
-      dot: "bg-slate-500",
-      bg: "bg-slate-100 text-slate-600",
-      label: "Report",
-    },
-    alert: {
-      dot: "bg-red-500",
-      bg: "bg-red-50 text-red-700",
-      label: "Alert",
-    },
-    system: {
-      dot: "bg-slate-400",
-      bg: "bg-slate-100 text-slate-600",
-      label: "System",
-    },
-  };
+const typeColors: Record<string, { dot: string; bg: string; label: string }> = {
+  approval: {
+    dot: "bg-amber-500",
+    bg: "bg-amber-50 text-amber-700",
+    label: "Approval",
+  },
+  report: {
+    dot: "bg-slate-500",
+    bg: "bg-slate-100 text-slate-600",
+    label: "Report",
+  },
+  alert: {
+    dot: "bg-red-500",
+    bg: "bg-red-50 text-red-700",
+    label: "Alert",
+  },
+  system: {
+    dot: "bg-slate-400",
+    bg: "bg-slate-100 text-slate-600",
+    label: "System",
+  },
+};
 
 const getUserInitials = (name: string) => {
   const parts = name.trim().split(/\s+/);
@@ -165,10 +160,10 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white">
-      <div className="flex h-16 items-center justify-between px-4 md:px-10">
-        {/* Left: Mobile menu and search */}
-        <div className="flex items-center gap-4 flex-1 md:flex-none">
+    <header className="shrink-0 border-b border-slate-200 bg-white">
+      <div className="flex h-16 items-center justify-between px-3 md:px-4">
+        {/* Left: Mobile menu + Branding */}
+        <div className="flex items-center gap-3">
           <button
             onClick={onMobileMenuClick}
             className="md:hidden p-2 hover:bg-slate-100 rounded-xl transition-colors"
@@ -176,15 +171,18 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           >
             <Menu className="w-5 h-5 text-slate-500" />
           </button>
-
-          {/* Desktop search */}
-          <div className="hidden md:flex relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              type="search"
-              placeholder="Search reports..."
-              className="rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#2563EB]/20"
-            />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-sm font-semibold text-white">
+            QR
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h1 className="truncate text-base font-semibold text-slate-950 leading-tight">
+                Quarterly Reports
+              </h1>
+            </div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.05em] text-slate-500 leading-tight">
+              Admin Dashboard
+            </p>
           </div>
         </div>
 
@@ -201,7 +199,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
               <button className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors">
                 <Bell className="w-5 h-5 text-slate-500" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold leading-none">
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold leading-none">
                     {unreadCount}
                   </span>
                 )}
@@ -210,7 +208,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
             <PopoverContent
               align="end"
               sideOffset={8}
-              className="w-[400px] p-0 border-slate-200 rounded-2xl shadow-lg bg-white overflow-hidden"
+              className="w-100 p-0 border-slate-200 rounded-2xl shadow-lg bg-white overflow-hidden"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
@@ -219,7 +217,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                     Notifications
                   </h3>
                   {unreadCount > 0 && (
-                    <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#2563EB] text-white text-[11px] font-semibold leading-none font-ui">
+                    <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#2563EB] text-white text-[11px] font-semibold leading-none font-ui">
                       {unreadCount}
                     </span>
                   )}
@@ -247,7 +245,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
               </div>
 
               {/* List */}
-              <div className="max-h-[420px] overflow-y-auto">
+              <div className="max-h-105 overflow-y-auto">
                 {notifications.length > 0 ? (
                   <div className="divide-y divide-slate-100">
                     {notifications.map((n) => (
@@ -259,7 +257,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                       >
                         <div className="flex gap-3">
                           {/* Type indicator */}
-                          <div className="mt-1.5 flex-shrink-0">
+                          <div className="mt-1.5 shrink-0">
                             <div
                               className={`w-2 h-2 rounded-full ${
                                 typeColors[n.type]?.dot || "bg-slate-400"
@@ -281,10 +279,11 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                                       "bg-slate-100 text-slate-600"
                                     }`}
                                   >
-                                    {typeColors[n.type]?.label || "Notification"}
+                                    {typeColors[n.type]?.label ||
+                                      "Notification"}
                                   </span>
                                 </div>
-                                <p className="font-ui text-[13px] leading-[18px] text-slate-600 mt-0.5">
+                                <p className="font-ui text-[13px] leading-4.5 text-slate-600 mt-0.5">
                                   {n.message}
                                 </p>
                                 <p className="font-data text-[11px] leading-4 text-slate-400 mt-1.5">
@@ -306,7 +305,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                               </div>
 
                               {/* Actions */}
-                              <div className="flex gap-0.5 flex-shrink-0">
+                              <div className="flex gap-0.5 shrink-0">
                                 {!n.read && (
                                   <button
                                     onClick={() => handleMarkAsRead(n.id)}
@@ -360,7 +359,10 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                 <button className="p-1 hover:bg-slate-100 rounded-xl transition-colors">
                   <Avatar className="w-8 h-8 border border-slate-200">
                     {user.profileImage ? (
-                      <AvatarImage src={user.profileImage} alt={user.username} />
+                      <AvatarImage
+                        src={user.profileImage}
+                        alt={user.username}
+                      />
                     ) : null}
                     <AvatarFallback className="bg-slate-100 font-ui text-[13px] font-semibold text-slate-600">
                       {getUserInitials(user.username)}
@@ -395,18 +397,6 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-        </div>
-      </div>
-
-      {/* Mobile search bar */}
-      <div className="md:hidden border-t border-slate-200 px-4 py-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input
-            type="search"
-            placeholder="Search reports..."
-            className="w-full rounded-xl border-slate-200 bg-slate-50 pl-10 pr-4 text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#2563EB]/20"
-          />
         </div>
       </div>
     </header>
