@@ -32,6 +32,24 @@ export async function POST(request: Request) {
 
 async function processCampaigns() {
   try {
+    // Validate email configuration before attempting to process campaigns
+    const apiKey = (process.env.BREVO_API_KEY || "").trim();
+    const senderEmail = (process.env.BREVO_SENDER_EMAIL || "").trim();
+
+    if (!apiKey || !senderEmail || senderEmail === "noreply@example.com") {
+      const errorMsg =
+        "[PROCESS CAMPAIGNS] Email service not properly configured. BREVO_API_KEY and BREVO_SENDER_EMAIL must be set in environment variables.";
+      console.error(errorMsg);
+      return NextResponse.json(
+        {
+          message: "Email service configuration missing",
+          error:
+            "Cannot process email campaigns without proper email service configuration",
+        },
+        { status: 500 },
+      );
+    }
+
     const campaignsCollection = await getEmailCampaignsCollection();
     const now = new Date();
 
@@ -76,15 +94,15 @@ async function processCampaigns() {
 
         const usersCollection = await getUsersCollection();
         const userQuery: Record<string, unknown> = {
-          role: { $in: campaign.targetRoles as Array<"coordinator" | "facilitator"> },
+          role: {
+            $in: campaign.targetRoles as Array<"coordinator" | "facilitator">,
+          },
           status: "active",
         };
         if (campaign.projectName) {
           userQuery.project = campaign.projectName;
         }
-        const targetUsers = await usersCollection
-          .find(userQuery)
-          .toArray();
+        const targetUsers = await usersCollection.find(userQuery).toArray();
 
         const appUrl =
           process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -118,7 +136,8 @@ async function processCampaigns() {
           }
         }
 
-        const newStatus = failedCount > 0 && sentCount === 0 ? "failed" : "sent";
+        const newStatus =
+          failedCount > 0 && sentCount === 0 ? "failed" : "sent";
 
         await campaignsCollection.updateOne(
           { _id: campaign._id },
@@ -128,7 +147,9 @@ async function processCampaigns() {
               sentAt: new Date(),
               recipientCount: sentCount,
               ...(failedCount > 0
-                ? { errorMessage: `${failedCount} of ${targetUsers.length} emails failed.` }
+                ? {
+                    errorMessage: `${failedCount} of ${targetUsers.length} emails failed.`,
+                  }
                 : {}),
             },
           },
@@ -140,8 +161,7 @@ async function processCampaigns() {
           status: newStatus,
         });
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Unknown error";
+        const message = err instanceof Error ? err.message : "Unknown error";
 
         await campaignsCollection.updateOne(
           { _id: campaign._id },
@@ -166,8 +186,7 @@ async function processCampaigns() {
       results,
     });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error";
+    const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
       { message: `Campaign processing failed: ${message}` },
       { status: 500 },

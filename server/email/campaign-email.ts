@@ -13,25 +13,20 @@ export const sendCampaignEmail = async (
   const apiKey = (process.env.BREVO_API_KEY || "").trim();
 
   if (!apiKey) {
-    console.log(
-      `[CAMPAIGN EMAIL] Would send to ${options.to}:`,
-      {
-        subject: getSubject(options),
-        username: options.username,
-        cycleName: options.cycleName,
-        projectName: options.projectName,
-        formUrl: options.formUrl,
-      },
+    const errorMsg =
+      "[CAMPAIGN EMAIL] BREVO_API_KEY is not configured in environment variables. Email could not be sent.";
+    console.error(errorMsg);
+    console.error(
+      `[CAMPAIGN EMAIL] Failed to send to ${options.to}: Missing API key`,
     );
-    return;
+    throw new Error("BREVO_API_KEY not configured");
   }
 
   try {
     const { default: axios } = await import("axios");
 
     const senderEmail =
-      process.env.BREVO_SENDER_EMAIL?.trim() ||
-      "noreply@example.com";
+      process.env.BREVO_SENDER_EMAIL?.trim() || "noreply@example.com";
 
     const payload = {
       sender: {
@@ -43,23 +38,18 @@ export const sendCampaignEmail = async (
       htmlContent: getHtmlContent(options),
     };
 
-    await axios.post(
-      "https://api.brevo.com/v3/smtp/email",
-      payload,
-      {
-        headers: {
-          "api-key": apiKey,
-          "Content-Type": "application/json",
-        },
+    await axios.post("https://api.brevo.com/v3/smtp/email", payload, {
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     console.log(
       `[CAMPAIGN EMAIL] Sent to ${options.to} for campaign "${options.cycleName}"`,
     );
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Unknown error";
+    const message = err instanceof Error ? err.message : "Unknown error";
     console.error(
       `[CAMPAIGN EMAIL] Failed to send to ${options.to}: ${message}`,
     );

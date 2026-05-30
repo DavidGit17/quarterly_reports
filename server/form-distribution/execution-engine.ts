@@ -168,7 +168,8 @@ async function resolveRecipients(
       status: "active",
       project: {
         $in: rule.projects.map(
-          (p) => new RegExp(`^${p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+          (p) =>
+            new RegExp(`^${p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
         ),
       },
     })
@@ -375,7 +376,10 @@ async function processChunk(
     }
 
     const baseLink = buildFormLink(projectName, user.role);
-    const rid = generateRecipientToken(rule._id.toString(), user._id.toString());
+    const rid = generateRecipientToken(
+      rule._id.toString(),
+      user._id.toString(),
+    );
     const formLink = `${baseLink}?rid=${rid}`;
     const result = await sendToRecipient(rule, user, projectName, formLink);
     await logSend(rule, user, projectName, formLink, result);
@@ -395,9 +399,31 @@ async function processChunk(
   return { newCursor, sentCount, failedCount, skippedCount };
 }
 
-export async function processRule(rule: DistributionRuleRecord): Promise<ProcessResult> {
+export async function processRule(
+  rule: DistributionRuleRecord,
+): Promise<ProcessResult> {
   const instanceId = crypto.randomUUID();
   const collection = await getFormDistributionCollection();
+
+  // Validate email configuration before attempting to process
+  const apiKey = (process.env.BREVO_API_KEY || "").trim();
+  const senderEmail = (process.env.BREVO_SENDER_EMAIL || "").trim();
+
+  if (!apiKey || !senderEmail || senderEmail === "noreply@example.com") {
+    const errorMsg =
+      "[FORM DISTRIBUTION] Email service not properly configured. BREVO_API_KEY and BREVO_SENDER_EMAIL must be set in environment variables.";
+    console.error(errorMsg);
+    return {
+      ruleId: rule._id.toString(),
+      ruleName: rule.name,
+      sentCount: 0,
+      failedCount: 0,
+      skippedCount: 0,
+      status: "failed",
+      error:
+        "Email service configuration missing. Cannot send form distribution emails.",
+    };
+  }
 
   // 1. Acquire lock (will fail if another instance is actively processing)
   const locked = await acquireLock(rule._id, instanceId);

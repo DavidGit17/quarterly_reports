@@ -26,11 +26,17 @@ const getErrorMessage = (error: unknown) =>
  * Validate Brevo configuration
  */
 const getBrevoApiKey = () => (process.env.BREVO_API_KEY || "").trim();
-const getSenderEmail = () => process.env.BREVO_SENDER_EMAIL?.trim() || "noreply@example.com";
+const getSenderEmail = () =>
+  process.env.BREVO_SENDER_EMAIL?.trim() || "noreply@example.com";
 
 const validateConfig = (): void => {
-  if (!getBrevoApiKey()) {
-    throw new Error("BREVO_API_KEY environment variable is not set");
+  const apiKey = getBrevoApiKey();
+  const senderEmail = getSenderEmail();
+  if (!apiKey || !senderEmail || senderEmail === "noreply@example.com") {
+    const errorMsg =
+      "[BREVO] Email service not properly configured. BREVO_API_KEY and BREVO_SENDER_EMAIL must be set in environment variables.";
+    console.error(errorMsg);
+    throw new Error("Email service configuration missing");
   }
 };
 
@@ -74,7 +80,9 @@ const sendEmail = async (options: SendEmailOptions): Promise<BrevoResponse> => {
       email: options.to,
     };
   } catch (error: unknown) {
-    const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+    const status = axios.isAxiosError(error)
+      ? error.response?.status
+      : undefined;
     const responseData = axios.isAxiosError(error)
       ? error.response?.data
       : undefined;
@@ -86,7 +94,9 @@ const sendEmail = async (options: SendEmailOptions): Promise<BrevoResponse> => {
     );
 
     if (status === 401) {
-      const brevoMsg = axios.isAxiosError(error) ? JSON.stringify(error.response?.data) : "";
+      const brevoMsg = axios.isAxiosError(error)
+        ? JSON.stringify(error.response?.data)
+        : "";
       console.error(`[BREVO] 401 response data: ${brevoMsg}`);
       throw new Error("Invalid Brevo API key");
     }
