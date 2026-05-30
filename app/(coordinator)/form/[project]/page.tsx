@@ -172,7 +172,10 @@ export default function ProjectFormPage() {
         }
 
         if (isAdmin) {
-          setIsPreviewMode(true);
+          setIsAccessDenied(true);
+          setErrorMessage("This form is for coordinators and facilitators only. Admins cannot submit forms.");
+          setIsReady(true);
+          return;
         }
 
         if (data.user?.role === "coordinator") {
