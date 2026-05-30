@@ -83,7 +83,7 @@ export function parseRecipientToken(token: string): {
 }
 
 function buildFormLink(projectName: string, role: string): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = process.env.APP_BASE_URL || "http://localhost:3000";
   const rolePrefix = role === "facilitator" ? "/f/form" : "/form";
   return `${appUrl}${rolePrefix}/${toSlug(projectName)}`;
 }
