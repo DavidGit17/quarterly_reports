@@ -104,6 +104,7 @@ export const computeNextSendDate = (
 
   if (scheduleType === "custom" && scheduleConfig.date) {
     const d = new Date(scheduleConfig.date);
+    applyTime(d, scheduleConfig.time);
     return d > now ? d : null;
   }
 

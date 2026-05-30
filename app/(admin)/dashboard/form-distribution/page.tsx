@@ -870,6 +870,89 @@ export default function FormDistributionPage() {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Type
+                </label>
+                <div className="flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+                  {(["monthly", "quarterly", "custom"] as const).map((type) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          scheduleType: type,
+                        }))
+                      }
+                      className={cn(
+                        "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                        draft.scheduleType === type
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-500 hover:text-slate-700",
+                      )}
+                    >
+                      {type === "monthly"
+                        ? "Monthly"
+                        : type === "quarterly"
+                          ? "Quarterly"
+                          : "Custom Date"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {draft.scheduleType === "custom" ? (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                    Date
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal rounded-xl"
+                      >
+                        <CalendarDays className="mr-2 h-4 w-4 text-slate-500" />
+                        <span>
+                          {draft.scheduleConfig.date
+                            ? new Date(draft.scheduleConfig.date).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              })
+                            : "Pick a date"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-lg" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          draft.scheduleConfig.date
+                            ? new Date(draft.scheduleConfig.date)
+                            : undefined
+                        }
+                        onSelect={(date) => {
+                          if (date) {
+                            setDraft((prev) => ({
+                              ...prev,
+                              scheduleConfig: {
+                                ...prev.scheduleConfig,
+                                date: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`,
+                              },
+                            }));
+                          }
+                        }}
+                        defaultMonth={new Date()}
+                        initialFocus
+                        className="rounded-2xl border border-slate-200 bg-white p-3 [&_.rdp-day_selected]:bg-slate-500 [&_.rdp-day_selected]:text-white [&_.rdp-day_selected:hover]:bg-slate-600 [&_.rdp-day_today]:bg-slate-100 [&_.rdp-day_today]:text-slate-900 [&_.rdp-button:hover]:bg-slate-100 [&_.rdp-button]:rounded-xl [&_.rdp-day]:rounded-xl [&_.rdp-caption_label]:text-slate-800 [&_.rdp-nav_button]:rounded-xl [&_.rdp-nav_button]:border-slate-200"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              ) : (
+                <div>
+                <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
                   Months
                 </label>
                   <p className="text-xs text-slate-500 mb-2">
@@ -925,6 +1008,7 @@ export default function FormDistributionPage() {
                         </label>
                       );
                     })}
+                  </div>
                   </div>
 
                   <div className="mt-3">
@@ -1105,15 +1189,18 @@ export default function FormDistributionPage() {
                                 </Popover>
                               </div>
                             ),
-                          )
+                            )
                         )}
                       </div>
                     )}
+                    </div>
+                    </div>
+                  )}
 
-                    <div className="mt-3">
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                        Set time
-                      </label>
+                  <div className="mt-3">
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                      Set time
+                    </label>
                       <Popover open={timeOpen} onOpenChange={setTimeOpen}>
                         <PopoverTrigger asChild>
                           <Button
@@ -1258,8 +1345,6 @@ export default function FormDistributionPage() {
                         </PopoverContent>
                       </Popover>
                     </div>
-                </div>
-              </div>
             </div>
 
             {/* Email Settings */}
