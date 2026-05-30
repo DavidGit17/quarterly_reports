@@ -76,6 +76,16 @@ export async function createAllIndexes(db: Db): Promise<void> {
         name: "send_history_recipient_email_sent_at_idx",
       },
     ]),
+    db.collection("notifications").createIndexes([
+      {
+        key: { createdAt: -1 },
+        name: "notifications_created_at_desc_idx",
+      },
+      {
+        key: { read: 1, createdAt: -1 },
+        name: "notifications_read_created_at_idx",
+      },
+    ]),
     db.collection("email_campaigns").createIndexes([
       {
         key: { status: 1, scheduledAt: 1 },

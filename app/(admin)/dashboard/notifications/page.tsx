@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
 import {
@@ -16,6 +16,14 @@ import { Switch } from "@/components/ui/switch";
 import { Bell, Trash2, Check } from "lucide-react";
 import { formatIsoDateTime } from "@/lib/shared/date-format";
 
+function mapNotificationType(apiType: string): "report" | "approval" | "system" | "alert" {
+  if (apiType === "form_sent" || apiType === "form_failed") return "system";
+  if (apiType === "approval") return "approval";
+  if (apiType === "report") return "report";
+  if (apiType === "alert") return "alert";
+  return "system";
+}
+
 interface Notification {
   id: string;
   type: "report" | "approval" | "system" | "alert";
@@ -26,79 +34,74 @@ interface Notification {
   actionUrl?: string;
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "approval",
-    title: "Report Approval Required",
-    message: "Annual Sustainability Report (Spanish) is pending your approval",
-    timestamp: "2024-02-20T10:30:00",
-    read: false,
-    actionUrl: "/dashboard/reports",
-  },
-  {
-    id: "2",
-    type: "report",
-    title: "New Report Submitted",
-    message: "Financial Performance Analysis report submitted by Michael Chen",
-    timestamp: "2024-02-20T09:15:00",
-    read: false,
-  },
-  {
-    id: "3",
-    type: "approval",
-    title: "Approval Pending",
-    message: "Operational Excellence Initiative report awaiting your review",
-    timestamp: "2024-02-19T14:45:00",
-    read: true,
-  },
-  {
-    id: "4",
-    type: "system",
-    title: "System Maintenance",
-    message:
-      "Scheduled maintenance will occur on February 25, 2024 at 2:00 AM UTC",
-    timestamp: "2024-02-18T08:00:00",
-    read: true,
-  },
-  {
-    id: "5",
-    type: "alert",
-    title: "High Priority Alert",
-    message: "5 reports require immediate attention and approval",
-    timestamp: "2024-02-17T16:20:00",
-    read: true,
-  },
-];
-
 export default function NotificationsPage() {
   const router = useRouter();
-  const [notifications, setNotifications] =
-    useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [reportNotifications, setReportNotifications] = useState(true);
   const [approvalNotifications, setApprovalNotifications] = useState(true);
   const [saveMessage, setSaveMessage] = useState("");
 
+  useEffect(() => {
+    fetch("/api/admin/notifications")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.notifications) {
+          setNotifications(
+            data.notifications.map((n: { createdAt: string; id: string; type: string; title: string; message: string; read: boolean; actionUrl?: string }) => ({
+              id: n.id,
+              type: mapNotificationType(n.type),
+              title: n.title,
+              message: n.message,
+              timestamp: n.createdAt,
+              read: n.read,
+              actionUrl: n.actionUrl || undefined,
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const handleMarkAsRead = (id: string) => {
+  const handleMarkAsRead = async (id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
+    await fetch("/api/admin/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "markRead", id }),
+    }).catch(() => {});
   };
 
-  const handleMarkAllAsRead = () => {
+  const handleMarkAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    await fetch("/api/admin/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "markAllRead" }),
+    }).catch(() => {});
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    await fetch("/api/admin/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", id }),
+    }).catch(() => {});
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     setNotifications([]);
+    await fetch("/api/admin/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "clearAll" }),
+    }).catch(() => {});
   };
 
   const handleSavePreferences = () => {
@@ -387,10 +390,29 @@ export default function NotificationsPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => setNotifications(mockNotifications)}
+                    onClick={() => {
+                      fetch("/api/admin/notifications")
+                        .then((r) => r.json())
+                        .then((data) => {
+                          if (data.notifications) {
+                            setNotifications(
+                              data.notifications.map((n: { createdAt: string; id: string; type: string; title: string; message: string; read: boolean; actionUrl?: string }) => ({
+                                id: n.id,
+                                type: mapNotificationType(n.type),
+                                title: n.title,
+                                message: n.message,
+                                timestamp: n.createdAt,
+                                read: n.read,
+                                actionUrl: n.actionUrl || undefined,
+                              })),
+                            );
+                          }
+                        })
+                        .catch(() => {});
+                    }}
                     className="mt-2 w-full text-sm"
                   >
-                    Reset Demo Notifications
+                    Refresh Notifications
                   </Button>
                 </div>
               </CardContent>

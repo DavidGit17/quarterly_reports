@@ -42,6 +42,11 @@ export const sidebarItems: SidebarItem[] = [
     icon: <Send className="w-5 h-5" />,
   },
   {
+    label: "Send History",
+    href: "/dashboard/form-distribution/history",
+    icon: <Send className="w-5 h-5" />,
+  },
+  {
     label: "Projects",
     href: "/dashboard/projects",
     icon: <FolderKanban className="w-5 h-5" />,

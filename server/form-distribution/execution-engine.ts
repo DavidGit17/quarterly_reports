@@ -11,6 +11,10 @@ import {
   getSendHistoryCollection,
   type SendStatus,
 } from "@/server/form-distribution/send-history";
+import {
+  getNotificationsCollection,
+  type NotificationDocument,
+} from "@/server/notifications/notifications";
 
 // A rule locked longer than this is considered stale and will be recovered
 const LOCK_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
@@ -477,6 +481,27 @@ export async function processRule(rule: DistributionRuleRecord): Promise<Process
   }
 }
 
+async function createNotification(
+  type: NotificationDocument["type"],
+  title: string,
+  message: string,
+  actionUrl?: string,
+): Promise<void> {
+  try {
+    const collection = await getNotificationsCollection();
+    await collection.insertOne({
+      type,
+      title,
+      message,
+      read: false,
+      actionUrl: actionUrl || null,
+      createdAt: new Date(),
+    });
+  } catch {
+    // Best-effort — don't fail the send if notification logging fails
+  }
+}
+
 export async function processDueRules(): Promise<{
   processed: number;
   results: ProcessResult[];
@@ -505,6 +530,24 @@ export async function processDueRules(): Promise<{
   for (const rule of dueRules) {
     const result = await processRule(rule);
     results.push(result);
+
+    if (result.status === "sent" && result.sentCount > 0) {
+      await createNotification(
+        "form_sent",
+        "Forms Sent",
+        `${result.ruleName}: ${result.sentCount} form${result.sentCount === 1 ? "" : "s"} sent successfully.`,
+        "/dashboard/form-distribution",
+      );
+    }
+
+    if (result.status === "failed" || result.failedCount > 0) {
+      await createNotification(
+        "form_failed",
+        "Form Send Failure",
+        `${result.ruleName}: ${result.failedCount} email${result.failedCount === 1 ? "" : "s"} failed to send.${result.error ? ` ${result.error}` : ""}`,
+        "/dashboard/form-distribution",
+      );
+    }
   }
 
   return {

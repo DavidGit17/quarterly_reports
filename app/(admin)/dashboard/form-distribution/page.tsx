@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -196,6 +197,7 @@ function getRecipientDisplayValue(
 }
 
 export default function FormDistributionPage() {
+  const router = useRouter();
   const [rules, setRules] = useState<DistributionRule[]>([]);
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
@@ -557,12 +559,21 @@ export default function FormDistributionPage() {
         title="Form Automation"
         subtitle="Schedule automated form link emails to coordinators, facilitators, or specific users"
         action={
-          <Button
-            onClick={openCreate}
-          >
-            <Plus className="w-4 h-4" />
-            Create Automation
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/dashboard/form-distribution/history")}
+            >
+              <Send className="w-4 h-4" />
+              Send History
+            </Button>
+            <Button
+              onClick={openCreate}
+            >
+              <Plus className="w-4 h-4" />
+              Create Automation
+            </Button>
+          </div>
         }
       />
 
