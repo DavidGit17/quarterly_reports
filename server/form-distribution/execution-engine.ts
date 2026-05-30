@@ -386,8 +386,14 @@ async function processChunk(
 
     if (result.status === "sent") {
       sentCount++;
+      console.log(
+        `[FORM DISTRIBUTION] Successfully sent form to ${user.email} for rule "${rule.name}"`,
+      );
     } else {
       failedCount++;
+      console.error(
+        `[FORM DISTRIBUTION] Failed to send to ${user.email} for rule "${rule.name}": ${result.error || "Unknown error"}`,
+      );
     }
 
     if (i < end - 1) {

@@ -127,7 +127,12 @@ async function processCampaigns() {
               campaignType: campaign.campaignType,
             });
             sentCount++;
-          } catch {
+          } catch (err) {
+            const message =
+              err instanceof Error ? err.message : "Unknown error";
+            console.error(
+              `[PROCESS CAMPAIGNS] Failed to send to ${user.email}: ${message}`,
+            );
             failedCount++;
           }
 
