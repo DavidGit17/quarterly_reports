@@ -365,6 +365,7 @@ async function processChunk(
   rule: DistributionRuleRecord,
   users: UserRecord[],
   cursor: number,
+  skipDedupe = false,
 ): Promise<{
   newCursor: number | null;
   sentCount: number;
@@ -389,7 +390,8 @@ async function processChunk(
     }
 
     // Deduplicate: skip if already sent in a previous (timed-out) run
-    const alreadySent = await wasAlreadySent(rule._id, user._id);
+    // Unless skipDedupe is true (for manual Send Now)
+    const alreadySent = skipDedupe ? false : await wasAlreadySent(rule._id, user._id);
     if (alreadySent) {
       skippedCount++;
       continue;
@@ -427,6 +429,7 @@ async function processChunk(
 
 export async function processRule(
   rule: DistributionRuleRecord,
+  skipDedupe = false,
 ): Promise<ProcessResult> {
   const instanceId = crypto.randomUUID();
   const collection = await getFormDistributionCollection();
@@ -490,7 +493,7 @@ export async function processRule(
 
     // 4. Process one chunk
     const { newCursor, sentCount, failedCount, skippedCount } =
-      await processChunk(rule, users, cursor);
+      await processChunk(rule, users, cursor, skipDedupe);
 
     // 5. Release or update lock
     await releaseLock(rule._id, instanceId, newCursor, users.length);
@@ -640,8 +643,8 @@ export async function executeRuleNow(ruleId: string): Promise<ProcessResult> {
     };
   }
 
-  // Send Now bypasses the stale-check in the lock and always processes all
-  // recipients in one go. We set a larger effective chunk limit.
-  // We still use acquireLock to prevent concurrent Send Now calls.
-  return processRule(rule);
+  // Send Now bypasses:
+  // - stale-check in the lock (always processes)
+  // - deduplication (allows resending)
+  return processRule(rule, true /* skipDedupe */);
 }
