@@ -113,6 +113,8 @@ export function Sidebar({
             let isActive = false;
             if (item.href === "/dashboard") {
               isActive = pathname === "/dashboard";
+            } else if (item.href === "/dashboard/form-distribution") {
+              isActive = pathname === item.href;
             } else {
               isActive =
                 pathname === item.href || pathname.startsWith(item.href + "/");

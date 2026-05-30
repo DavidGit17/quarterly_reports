@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  CircleUserRound,
   FileText,
   ArrowRight,
   ChevronLeft,
@@ -13,6 +12,7 @@ import {
   LogOut,
   User,
 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toProjectSlug } from "@/lib/shared/form-storage";
 
 type MeResponse = {
@@ -20,6 +20,7 @@ type MeResponse = {
     role: string;
     project?: string;
     username?: string;
+    profileImage?: string;
   };
 };
 
@@ -42,6 +43,7 @@ type MyReportsResponse = {
 export default function CoordinatorDashboard() {
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const [profileImage, setProfileImage] = useState("");
   const [formHref, setFormHref] = useState("");
   const [isReady, setIsReady] = useState(false);
 
@@ -82,6 +84,7 @@ export default function CoordinatorDashboard() {
           return;
         }
         setUsername(data.user?.username || "Coordinator");
+        setProfileImage(data.user?.profileImage || "");
         if (data.user?.project) {
           setFormHref(`/form/${toProjectSlug(data.user.project)}`);
         }
@@ -162,11 +165,23 @@ export default function CoordinatorDashboard() {
               <button
                 type="button"
                 onClick={() => setProfileOpen((prev) => !prev)}
-                className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358] rounded-full focus:outline-none focus:ring-2 focus:ring-[#4b6358]"
+                className="rounded-full focus:outline-none focus:ring-2 focus:ring-[#4b6358]"
                 aria-label="Profile menu"
                 title="Profile"
               >
-                <CircleUserRound className="h-10 w-10" />
+                <Avatar className="h-10 w-10 border-2 border-slate-200">
+                  {profileImage ? (
+                    <AvatarImage src={profileImage} alt={username} />
+                  ) : null}
+                  <AvatarFallback className="bg-[#e8f5ee] text-sm font-semibold text-[#4b6358]">
+                    {(() => {
+                      const parts = username.trim().split(/\s+/);
+                      if (!parts[0]) return "U";
+                      if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+                      return `${parts[0].slice(0, 1)}${parts[1].slice(0, 1)}`.toUpperCase();
+                    })()}
+                  </AvatarFallback>
+                </Avatar>
               </button>
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg py-2 z-50">

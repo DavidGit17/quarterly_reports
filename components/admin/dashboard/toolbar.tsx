@@ -36,7 +36,7 @@ export function Toolbar({
         className,
       )}
     >
-      <div className="flex flex-1 items-center gap-2 min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-1.5">
+      <div className="flex flex-1 items-center gap-2 min-w-0 rounded-xl border border-slate-200 bg-white px-3 focus-within:ring-1 focus-within:ring-slate-400 transition-all">
         <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
         <Input
           type="text"
@@ -44,7 +44,7 @@ export function Toolbar({
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          className={cn("border-0 bg-transparent outline-none flex-1 min-w-0 p-0 h-auto", searchInputClassName)}
+          className={cn("border-0 bg-transparent outline-none focus-visible:ring-0 flex-1 min-w-0 py-1 text-sm", searchInputClassName)}
         />
       </div>
 
