@@ -544,6 +544,13 @@ export default function FormDistributionPage() {
       if (!response.ok) {
         throw new Error(data.message || "Failed to send.");
       }
+      const result = data.result;
+      if (result.sentCount === 0) {
+        const reason = result.error || "No matching recipients found. Check that users exist with the correct role and project name.";
+        setError(`${result.ruleName}: ${reason}`);
+      } else {
+        setError(`${result.ruleName}: ${result.sentCount} sent, ${result.failedCount} failed, ${result.skippedCount} skipped`);
+      }
       setSendingRule(null);
       await fetchRules();
     } catch (err) {
