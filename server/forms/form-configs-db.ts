@@ -1,4 +1,3 @@
-import { Collection } from "mongodb";
 import { getDb } from "@/server/db/mongodb";
 import type { FormFieldConfig, ProjectQuarterConfigs, ProjectFormConfigs } from "@/lib/shared/form-storage";
 
@@ -10,27 +9,12 @@ export type FormConfigDocument = {
 
 const COLLECTION = "form_configs";
 
-let ensureIndexesPromise: Promise<void> | null = null;
-
-const ensureIndexes = async (collection: Collection<FormConfigDocument>) => {
-  if (!ensureIndexesPromise) {
-    ensureIndexesPromise = collection
-      .createIndexes([
-        {
-          key: { key: 1 },
-          name: "form_configs_key_idx",
-          unique: true,
-        },
-      ])
-      .then(() => undefined);
-  }
-  await ensureIndexesPromise;
-};
+const ensureIndexes = async () => {};
 
 const getFormConfigsCollection = async () => {
   const db = await getDb();
   const collection = db.collection<FormConfigDocument>(COLLECTION);
-  await ensureIndexes(collection);
+  await ensureIndexes();
   return collection;
 };
 

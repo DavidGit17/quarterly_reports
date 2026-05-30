@@ -121,13 +121,13 @@ export default function FormsOverviewPage() {
       <div className="mb-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
+            <h1 className="text-2xl font-semibold text-slate-900">
               Modify and Preview the Forms
             </h1>
           </div>
           <Link
             href="/form-builder"
-            className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[#2563EB] text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
           >
             Create Forms
           </Link>
@@ -145,7 +145,7 @@ export default function FormsOverviewPage() {
             </p>
             <Link
               href="/form-builder"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2563EB] text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
               Go to Form Builder
             </Link>

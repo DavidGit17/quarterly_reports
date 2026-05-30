@@ -14,6 +14,8 @@ const ibmPlexSans = IBM_Plex_Sans({
 const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains",
+  display: "optional",
+  preload: false,
 });
 
 export const metadata: Metadata = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import type { Project } from "@/components/admin/dashboard/mock-data";
 
 const ProjectFormDialog = dynamic(
@@ -65,7 +65,8 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [searchValue, setSearchValue] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "inactive" | "pending"
   >("all");
@@ -73,6 +74,8 @@ export default function ProjectsPage() {
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [projectDraft, setProjectDraft] = useState<ProjectDraft>(emptyDraft);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -96,16 +99,35 @@ export default function ProjectsPage() {
     fetchProjects();
   }, [fetchProjects]);
 
-  const filteredProjects = projects.filter((project) => {
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchInput), 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const filteredProjects = useMemo(
+    () =>
+      projects.filter((project) => {
     const matchesSearch =
-      project.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchValue.toLowerCase());
+      project.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      project.description.toLowerCase().includes(debouncedSearch.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" || project.status === statusFilter;
 
     return matchesSearch && matchesStatus;
-  });
+  }),
+    [projects, debouncedSearch, statusFilter],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / ITEMS_PER_PAGE));
+  const paginatedProjects = useMemo(
+    () => filteredProjects.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
+    [filteredProjects, page],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, statusFilter]);
 
   const openCreateProject = () => {
     setEditingProject(null);
@@ -198,14 +220,13 @@ export default function ProjectsPage() {
   };
 
   return (
-    <main className="flex-1 p-4 md:p-6">
+    <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
       <PageHeader
         title="Projects"
         subtitle="Manage your reporting projects and assignments"
         action={
           <Button
             onClick={openCreateProject}
-            className="bg-[#2563EB] hover:bg-blue-700 text-white gap-2"
           >
             <Plus className="w-4 h-4" />
             Create Project
@@ -245,8 +266,8 @@ export default function ProjectsPage() {
       ) : (
         <>
       <Toolbar
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
         searchPlaceholder="Search by project name..."
         filters={
           <Select
@@ -269,13 +290,36 @@ export default function ProjectsPage() {
       />
 
       <ProjectsTable
-        projects={filteredProjects}
+        projects={paginatedProjects}
         onEdit={openEditProject}
         onDelete={setDeletingProject}
       />
 
-      <div className="mt-4 text-sm text-slate-600">
-        Showing {filteredProjects.length} of {projects.length} projects
+      <div className="flex items-center justify-between mt-4">
+        <div className="text-sm text-slate-600">
+          Showing {paginatedProjects.length} of {filteredProjects.length} projects
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <span className="text-sm text-slate-600 px-2">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
         </>
       )}

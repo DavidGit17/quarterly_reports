@@ -71,7 +71,7 @@ export function Sidebar({
     <aside
       className={cn(
         "fixed top-16 bottom-0 left-0 z-40 border-r border-slate-200 bg-white transition-all duration-300 hidden md:flex md:flex-col",
-        open ? "w-65" : "w-16",
+        open ? "w-64" : "w-16",
       )}
     >
       <nav
@@ -88,7 +88,7 @@ export function Sidebar({
         >
           <span
             className={cn(
-              "text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-400 overflow-hidden whitespace-nowrap transition-all duration-300",
+              "text-xs font-semibold uppercase tracking-[0.08em] text-slate-400 overflow-hidden whitespace-nowrap transition-all duration-300",
               open ? "opacity-100 max-w-40" : "opacity-0 max-w-0",
             )}
           >
@@ -100,7 +100,7 @@ export function Sidebar({
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
             aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
           >
-            <PanelLeft className={cn("h-4 w-4", open ? "" : "rotate-180")} />
+            <PanelLeft className={cn("h-4 w-4", open ? "" : "rotate-180")} aria-hidden="true" />
           </button>
         </div>
         <div className="space-y-1.5">
@@ -128,9 +128,10 @@ export function Sidebar({
                 {isActive && (
                   <span
                     className={cn(
-                      "absolute top-2 bottom-2 w-0.5 rounded-full bg-[#2563EB] transition-all duration-300",
+                      "absolute top-2 bottom-2 w-0.5 rounded-full bg-primary transition-all duration-300",
                       open ? "left-0" : "left-1",
                     )}
+                    aria-hidden="true"
                   />
                 )}
                 <span
@@ -140,6 +141,7 @@ export function Sidebar({
                       ? "text-slate-900"
                       : "text-slate-500 group-hover:text-slate-700",
                   )}
+                  aria-hidden="true"
                 >
                   {item.icon}
                 </span>

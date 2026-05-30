@@ -38,9 +38,7 @@ export function NotificationsTab({
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium text-slate-900">
-              Email Notifications
-            </p>
+            <p className="font-medium text-slate-900">Email Notifications</p>
             <p className="text-sm text-slate-600 mt-1">
               Receive notifications via email
             </p>
@@ -70,7 +68,7 @@ export function NotificationsTab({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-[#2563EB] hover:bg-blue-700 text-white"
+            className="bg-slate-900 hover:bg-slate-800 text-white"
           >
             Save Changes
           </Button>

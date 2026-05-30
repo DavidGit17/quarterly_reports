@@ -57,7 +57,7 @@ export default function SecurityPage() {
 
         <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-[200px_1fr]">
-            <aside className="border-r border-slate-200 bg-slate-50 p-4">
+            <aside className="border-b md:border-b-0 md:border-r border-slate-200 bg-slate-50 p-4">
               <h1 className="text-3xl font-semibold text-slate-900 mb-1">
                 Account
               </h1>
@@ -98,11 +98,11 @@ export default function SecurityPage() {
                       Current password
                     </label>
                     <PasswordInput
-                      id="new-password"
-                      autoComplete="new-password"
-                      value={newPassword}
+                      id="current-password"
+                      autoComplete="current-password"
+                      value={currentPassword}
                       onChange={(event) =>
-                        setNewPassword(event.target.value)
+                        setCurrentPassword(event.target.value)
                       }
                     />
                   </div>
@@ -116,6 +116,7 @@ export default function SecurityPage() {
                     </label>
                     <PasswordInput
                       id="new-password"
+                      autoComplete="new-password"
                       value={newPassword}
                       onChange={(event) => setNewPassword(event.target.value)}
                     />
@@ -149,8 +150,8 @@ export default function SecurityPage() {
                   <div className="flex justify-end">
                     <Button
                       type="submit"
-                      size="sm"
-                      className="bg-slate-900 hover:bg-slate-800"
+                      size="default"
+                      className="bg-slate-900 hover:bg-slate-800 w-full sm:w-auto"
                     >
                       Update password
                     </Button>

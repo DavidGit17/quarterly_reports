@@ -25,7 +25,7 @@ export default function SignupPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fieldClassName =
-    "w-full rounded border border-border bg-white px-4 py-2 text-foreground placeholder:text-muted-foreground/75 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-fixed-dim)_45%,transparent)]";
+    "w-full rounded border border-border bg-white px-4 py-3 text-foreground placeholder:text-muted-foreground/75 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-fixed-dim)_45%,transparent)]";
 
   // Load available projects from form configs
   useEffect(() => {

@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  FORM_FIELD_CLASS,
+  FORM_SURFACE_CLASS,
+  FORM_PRIMARY_BUTTON_CLASS,
+} from "@/lib/shared/form-constants";
 
 type MeResponse = {
   user?: {
@@ -88,7 +93,7 @@ export default function SelectPage() {
           </Link>
         </div>
 
-        <div className="rounded-2xl bg-white shadow-sm border border-slate-100 p-8">
+        <div className={FORM_SURFACE_CLASS + " p-8"}>
           <h1 className="text-2xl font-semibold text-slate-800 mb-8">
             Enter Project & Quarter
           </h1>
@@ -105,7 +110,7 @@ export default function SelectPage() {
                 type="text"
                 value={project}
                 onChange={(e) => setProject(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-[#004446] focus:outline-none focus:ring-2 focus:ring-[#004446]"
+                className={FORM_FIELD_CLASS}
                 placeholder="Type project name"
                 required
               />
@@ -122,7 +127,7 @@ export default function SelectPage() {
                 id="quarter"
                 value={quarter}
                 onChange={(e) => setQuarter(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 transition-all duration-200 hover:border-slate-300 focus:border-[#004446] focus:outline-none focus:ring-2 focus:ring-[#004446]"
+                className={FORM_FIELD_CLASS}
                 required
               >
                 <option value="">Select a quarter</option>
@@ -136,7 +141,7 @@ export default function SelectPage() {
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-blue-700 px-8 py-3 text-[16px] font-semibold text-white transition-all duration-200 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-[#004446]"
+              className="w-full rounded-xl bg-slate-900 px-8 py-3 text-[16px] font-semibold text-white transition-all duration-200 hover:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
             >
               Continue
             </button>

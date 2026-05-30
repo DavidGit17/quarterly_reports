@@ -28,31 +28,8 @@ export type EmailCampaignRecord = WithId<EmailCampaignDocument> & {
 };
 
 const COLLECTION = "email_campaigns";
-let ensureIndexesPromise: Promise<void> | null = null;
 
-const ensureIndexes = async (
-  collection: Collection<EmailCampaignDocument>,
-) => {
-  if (!ensureIndexesPromise) {
-    ensureIndexesPromise = collection
-      .createIndexes([
-        {
-          key: { status: 1, scheduledAt: 1 },
-          name: "campaigns_status_scheduled_at_idx",
-        },
-        {
-          key: { cycleId: 1 },
-          name: "campaigns_cycle_id_idx",
-        },
-        {
-          key: { createdAt: -1 },
-          name: "campaigns_created_at_desc_idx",
-        },
-      ])
-      .then(() => undefined);
-  }
-  await ensureIndexesPromise;
-};
+const ensureIndexes = async () => {};
 
 export const getEmailCampaignsCollection = async (): Promise<
   Collection<EmailCampaignDocument>
@@ -60,7 +37,7 @@ export const getEmailCampaignsCollection = async (): Promise<
   const db = await getDb();
   const collection =
     db.collection<EmailCampaignDocument>(COLLECTION);
-  await ensureIndexes(collection);
+  await ensureIndexes();
   return collection;
 };
 

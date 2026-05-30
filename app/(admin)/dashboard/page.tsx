@@ -3,18 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-type SessionUser = {
-  username: string;
-  role: string;
-};
+import { useAuth } from "@/components/admin/dashboard/auth-context";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [user, setUser] = useState<SessionUser | null>(null);
   const [totalProjects, setTotalProjects] = useState(0);
   const [totalReports, setTotalReports] = useState(0);
   const [coordinatorCount, setCoordinatorCount] = useState(0);
@@ -23,17 +19,12 @@ export default function DashboardPage() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const [authResponse, reportsResponse, usersResponse, projectsResponse] = await Promise.all([
-          fetch("/api/auth/me", { cache: "no-store" }),
+        const [reportsResponse, usersResponse, projectsResponse] = await Promise.all([
           fetch("/api/reports?page=1&limit=1", { cache: "no-store" }),
           fetch("/api/admin/users?limit=1", { cache: "no-store" }),
           fetch("/api/projects", { cache: "no-store" }),
         ]);
 
-        if (authResponse.ok) {
-          const authData = await authResponse.json() as { user?: SessionUser };
-          if (authData.user) setUser(authData.user);
-        }
         if (reportsResponse.status === 401) {
           router.push("/login");
           return;
@@ -94,7 +85,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <>
+    <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
       <div>
         {/* Header — always rendered for fast LCP */}
         <div className="mb-8">
@@ -160,6 +151,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-    </>
+    </main>
   );
 }

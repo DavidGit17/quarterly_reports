@@ -169,7 +169,7 @@ function VerifyOTPContent() {
                 value={otp}
                 onChange={handleOTPChange}
                 placeholder="000000"
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white text-center text-2xl tracking-widest font-mono"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white text-center text-2xl tracking-widest font-mono"
                 required
                 maxLength={6}
               />
@@ -187,7 +187,7 @@ function VerifyOTPContent() {
             <button
               type="submit"
               disabled={isSubmitting || otp.length !== 6}
-              className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-slate-900 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
+              className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-slate-900 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Verifying..." : "Verify Email"}
             </button>
@@ -200,7 +200,7 @@ function VerifyOTPContent() {
             <button
               onClick={handleResendOTP}
               disabled={resendLoading || resendCountdown > 0}
-              className="w-full text-secondary hover:underline font-medium disabled:text-slate-400 disabled:cursor-not-allowed"
+              className="w-full text-secondary hover:underline font-medium disabled:text-slate-400 disabled:cursor-not-allowed py-3"
             >
               {resendCountdown > 0
                 ? `Resend code in ${resendCountdown}s`

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,6 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  LogOut,
+  User,
 } from "lucide-react";
 import { toProjectSlug } from "@/lib/shared/form-storage";
 
@@ -53,6 +55,18 @@ export default function CoordinatorDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchValue, setSearchValue] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -130,7 +144,7 @@ export default function CoordinatorDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h1 className="text-3xl font-semibold tracking-[-0.02em] text-[#1a1c1e]">
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-[-0.02em] text-[#1a1c1e]">
               Welcome, {username}
             </h1>
             <p className="mt-1 text-[15px] text-[#5e6a6e]">
@@ -140,18 +154,48 @@ export default function CoordinatorDashboard() {
           <div className="flex items-center gap-4">
             <Link
               href="/my-reports"
-              className="text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+              className="rounded-xl px-4 py-2 text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 transition-colors inline-flex items-center gap-2"
             >
               View Reports
             </Link>
-            <Link
-              href="/profile"
-              className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-              aria-label="Go to profile"
-              title="Profile"
-            >
-              <CircleUserRound className="h-7 w-7" />
-            </Link>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setProfileOpen((prev) => !prev)}
+                className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358] rounded-full focus:outline-none focus:ring-2 focus:ring-[#4b6358]"
+                aria-label="Profile menu"
+                title="Profile"
+              >
+                <CircleUserRound className="h-10 w-10" />
+              </button>
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg py-2 z-50">
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <p className="text-sm font-medium text-[#1a1c1e]">{username}</p>
+                    <p className="text-xs text-[#5e6a6e]">Coordinator</p>
+                  </div>
+                  <Link
+                    href="/profile"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1c1e] hover:bg-slate-50 transition-colors"
+                  >
+                    <User className="h-4 w-4 text-[#5e6a6e]" />
+                    Profile
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await fetch("/api/auth/logout", { method: "POST" });
+                      router.push("/login");
+                    }}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full text-left transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -193,7 +237,7 @@ export default function CoordinatorDashboard() {
                   setSearchValue(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-[#1a1c1e] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446] transition-colors"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-[#1a1c1e] placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#004446] focus:border-[#004446] transition-colors"
               />
             </div>
           </div>
@@ -289,7 +333,7 @@ export default function CoordinatorDashboard() {
                       type="button"
                       disabled={currentPage <= 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="rounded-lg border border-slate-200 bg-white min-w-[44px] min-h-[44px] p-3 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
@@ -301,7 +345,7 @@ export default function CoordinatorDashboard() {
                           Math.min(pagination.totalPages, p + 1),
                         )
                       }
-                      className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="rounded-lg border border-slate-200 bg-white min-w-[44px] min-h-[44px] p-3 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>

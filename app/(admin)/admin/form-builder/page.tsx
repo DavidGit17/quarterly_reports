@@ -583,7 +583,7 @@ export default function AdminFormBuilderPage() {
                     updateFn(field.id, { choices: newChoices });
                   }}
                   disabled={choice === "Other"}
-                  className={`flex-1 border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446] ${
+                  className={`flex-1 border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#004446] ${
                     choice === "Other"
                       ? "bg-slate-100 text-slate-600 cursor-not-allowed"
                       : ""
@@ -606,7 +606,7 @@ export default function AdminFormBuilderPage() {
               </div>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => {
@@ -651,7 +651,7 @@ export default function AdminFormBuilderPage() {
                 onChange={(e) =>
                   updateFn(field.id, { ratingLevels: parseInt(e.target.value) })
                 }
-                className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446]"
+                className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#004446]"
               >
                 <option value={3}>3</option>
                 <option value={4}>4</option>
@@ -670,7 +670,7 @@ export default function AdminFormBuilderPage() {
                 onChange={(e) =>
                   updateFn(field.id, { ratingSymbol: e.target.value })
                 }
-                className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446]"
+                className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#004446]"
               >
                 <option value="Star">★ Star</option>
                 <option value="Heart">♥ Heart</option>
@@ -819,7 +819,7 @@ export default function AdminFormBuilderPage() {
               <select
                 value={selectedProject}
                 onChange={(e) => setSelectedProject(e.target.value)}
-                className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
+                className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
                 style={{
                   paddingRight: "2.5rem",
                   backgroundPosition: "right 1rem center",
@@ -844,13 +844,13 @@ export default function AdminFormBuilderPage() {
                   type="text"
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  className="flex-1 border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446]"
+                  className="flex-1 border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#004446] focus:border-[#004446]"
                   placeholder="Project name"
                 />
                 <button
                   type="button"
                   onClick={addProject}
-                  className="px-4 py-2.5 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
                 >
                   Add
                 </button>
@@ -883,7 +883,7 @@ export default function AdminFormBuilderPage() {
                       },
                     }))
                   }
-                  className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
+                  className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
                   style={{
                     paddingRight: "2.5rem",
                     backgroundPosition: "right 1rem center",
@@ -913,7 +913,7 @@ export default function AdminFormBuilderPage() {
                       },
                     }))
                   }
-                  className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
+                  className="w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#004446] focus:border-[#004446] appearance-none bg-no-repeat bg-white"
                   style={{
                     paddingRight: "2.5rem",
                     backgroundPosition: "right 1rem center",
@@ -944,6 +944,14 @@ export default function AdminFormBuilderPage() {
                     {defaultFields.length} fields shared across all projects.
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={addDefaultField}
+                  className="md:hidden inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Field
+                </button>
               </div>
 
               <div className="grid gap-4">
@@ -1035,7 +1043,7 @@ export default function AdminFormBuilderPage() {
                             }));
                             updateDefaultField(field.id, { label: nextValue });
                           }}
-                          className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446]"
+                          className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#004446] focus:border-[#004446]"
                           placeholder={field.label || "Enter label name..."}
                         />
                       </div>
@@ -1130,6 +1138,14 @@ export default function AdminFormBuilderPage() {
                     Add custom fields to extend the {selectedProject} form.
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={addNewField}
+                  className="md:hidden inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Field
+                </button>
               </div>
 
               <div className="grid gap-4">
@@ -1228,7 +1244,7 @@ export default function AdminFormBuilderPage() {
                               }));
                               updateField(field.id, { label: nextValue });
                             }}
-                            className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#004446] focus:border-[#004446]"
+                            className="w-full border border-slate-300 rounded-2xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-[#004446] focus:border-[#004446]"
                             placeholder={field.label || "Enter label name..."}
                           />
                         </div>
@@ -1335,7 +1351,7 @@ export default function AdminFormBuilderPage() {
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
           >
             Save Form Structure
           </button>
@@ -1344,7 +1360,7 @@ export default function AdminFormBuilderPage() {
         {/* Sticky Add Field Button */}
         {(activeFieldMode === "default" || activeFieldMode === "custom") && (
           <div className="fixed bottom-5 right-4 z-40 flex flex-col items-end gap-2 md:right-8">
-            <div className="flex flex-col gap-2">
+            <div className="hidden md:flex flex-col gap-2">
               {scrollPosition.canScrollUp && (
                 <button
                   type="button"
@@ -1373,7 +1389,7 @@ export default function AdminFormBuilderPage() {
               onClick={
                 activeFieldMode === "default" ? addDefaultField : addNewField
               }
-              className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:bg-slate-900"
+              className="hidden md:inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 active:bg-slate-900"
               title={`Add a new ${activeFieldLabel}. ${activeFieldCount} ${activeFieldCount === 1 ? "field" : "fields"} currently.`}
             >
               <Plus className="h-4 w-4" />

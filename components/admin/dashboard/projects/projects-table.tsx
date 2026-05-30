@@ -29,7 +29,7 @@ export function ProjectsTable({
 }: ProjectsTableProps) {
   if (isLoading) {
     return (
-      <div className="border border-slate-200 rounded-2xl overflow-hidden">
+    <div className="border border-slate-200 rounded-2xl overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">

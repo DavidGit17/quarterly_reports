@@ -552,14 +552,13 @@ export default function FormDistributionPage() {
   };
 
   return (
-    <main className="flex-1 p-4 md:p-6">
+    <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
       <PageHeader
         title="Form Automation"
         subtitle="Schedule automated form link emails to coordinators, facilitators, or specific users"
         action={
           <Button
             onClick={openCreate}
-            className="bg-[#2563EB] hover:bg-blue-700 text-white gap-2"
           >
             <Plus className="w-4 h-4" />
             Create Automation
@@ -1120,7 +1119,7 @@ export default function FormDistributionPage() {
                           className="w-auto rounded-xl"
                           align="start"
                         >
-                          <div className="flex flex-col gap-4 p-3 w-[270px]">
+                          <div className="flex flex-col gap-4 p-3 sm:w-[270px] w-full">
                             <div className="flex items-center justify-center gap-2">
                               <button
                                 type="button"
@@ -1339,7 +1338,7 @@ export default function FormDistributionPage() {
                 Recipients can reopen the form later and modify their submitted
                 response.
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Deadline */}
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-slate-700">
@@ -1385,7 +1384,7 @@ export default function FormDistributionPage() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto rounded-xl" align="start">
-                        <div className="flex flex-col gap-4 p-3 w-[270px]">
+                        <div className="flex flex-col gap-4 p-3 sm:w-[270px] w-full">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
@@ -1547,7 +1546,7 @@ export default function FormDistributionPage() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto rounded-xl" align="start">
-                        <div className="flex flex-col gap-4 p-3 w-[270px]">
+                        <div className="flex flex-col gap-4 p-3 sm:w-[270px] w-full">
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"

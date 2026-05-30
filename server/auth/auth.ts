@@ -34,39 +34,15 @@ export type UserDocument = {
 export type UserRecord = WithId<UserDocument> & { _id: ObjectId };
 
 const USERS_COLLECTION = "users";
-let ensureUsersIndexesPromise: Promise<void> | null = null;
 
-const ensureUsersIndexes = async (
-  usersCollection: Collection<UserDocument>,
-) => {
-  if (!ensureUsersIndexesPromise) {
-    ensureUsersIndexesPromise = usersCollection
-      .createIndexes([
-        {
-          key: { usernameLower: 1 },
-          name: "users_username_lower_idx",
-        },
-        {
-          key: { emailLower: 1 },
-          name: "users_email_lower_idx",
-        },
-        {
-          key: { role: 1, status: 1, project: 1 },
-          name: "users_role_status_project_idx",
-        },
-      ])
-      .then(() => undefined);
-  }
-
-  await ensureUsersIndexesPromise;
-};
+const ensureUsersIndexes = async () => {};
 
 export const getUsersCollection = async (): Promise<
   Collection<UserDocument>
 > => {
   const db = await getDb();
   const usersCollection = db.collection<UserDocument>(USERS_COLLECTION);
-  await ensureUsersIndexes(usersCollection);
+  await ensureUsersIndexes();
   return usersCollection;
 };
 

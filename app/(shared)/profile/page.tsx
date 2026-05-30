@@ -4,11 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Cropper, { type Area } from "react-easy-crop";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,7 +26,6 @@ type SessionUser = {
   project?: string;
   profileImage?: string;
 };
-
 
 const createImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
@@ -132,7 +127,7 @@ function ProfileContent() {
   const adminColors = {
     background: "#F6F9FC",
     avatar: "bg-slate-100 text-slate-700",
-    navIcon: "text-[#2563EB]",
+    navIcon: "text-slate-700",
     sidebarHeading: "text-slate-900",
     sidebarDesc: "text-slate-500",
     label: "text-slate-500",
@@ -141,7 +136,7 @@ function ProfileContent() {
     divider: "divide-slate-200",
     border: "border-slate-200",
     backBtn: "text-slate-500 hover:text-slate-700",
-    btnPrimary: "bg-[#2563EB] text-white hover:bg-blue-700",
+    btnPrimary: "bg-slate-900 text-white hover:bg-slate-800",
     btnOutline: "border-slate-200 text-slate-600 hover:bg-slate-50",
     logout: "border-red-200 text-red-600 hover:bg-red-50",
     sidebarBg: "bg-white",
@@ -319,10 +314,7 @@ function ProfileContent() {
   const dashboardHref = role === "facilitator" ? "/f" : "/";
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: c.background }}
-    >
+    <div className="min-h-screen" style={{ background: c.background }}>
       <div className="mx-auto max-w-5xl px-4 py-10">
         <button
           type="button"
@@ -333,10 +325,14 @@ function ProfileContent() {
           Back to Dashboard
         </button>
 
-        <div className={`rounded-2xl border shadow-sm overflow-hidden ${c.border} ${c.cardBg}`}>
+        <div
+          className={`rounded-2xl border shadow-sm overflow-hidden ${c.border} ${c.cardBg}`}
+        >
           <div className="grid grid-cols-1 md:grid-cols-[220px_1fr]">
-            <aside className={`border-r p-6 ${c.border} ${c.sidebarBg}`}>
-              <h1 className={`mb-1 font-heading text-[20px] font-semibold leading-7 ${c.sidebarHeading}`}>
+            <aside className={`border-b md:border-r p-6 ${c.border} ${c.sidebarBg}`}>
+              <h1
+                className={`mb-1 font-heading text-[20px] font-semibold leading-7 ${c.sidebarHeading}`}
+              >
                 Account
               </h1>
               <p className={`mb-6 text-sm ${c.sidebarDesc}`}>
@@ -357,7 +353,9 @@ function ProfileContent() {
             <main>
               <div className="mx-auto max-w-2xl px-6 py-8">
                 <div className="mb-6">
-                  <h2 className={`font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] ${c.sidebarHeading}`}>
+                  <h2
+                    className={`font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] ${c.sidebarHeading}`}
+                  >
                     Profile details
                   </h2>
                   <p className={`mt-1 text-sm ${c.muted}`}>
@@ -365,8 +363,12 @@ function ProfileContent() {
                   </p>
                 </div>
 
-                <div className={`rounded-2xl border shadow-sm ${c.border} ${c.cardBg}`}>
-                  <div className={`flex items-center justify-between gap-3 border-b p-4 ${c.border}`}>
+                <div
+                  className={`rounded-2xl border shadow-sm ${c.border} ${c.cardBg}`}
+                >
+                  <div
+                    className={`flex items-center justify-between gap-3 flex-wrap border-b p-4 ${c.border}`}
+                  >
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
@@ -381,7 +383,9 @@ function ProfileContent() {
                               alt="Profile image"
                             />
                           ) : null}
-                          <AvatarFallback className={`text-sm font-semibold ${c.avatar}`}>
+                          <AvatarFallback
+                            className={`text-sm font-semibold ${c.avatar}`}
+                          >
                             {getUserInitials(profileData.username)}
                           </AvatarFallback>
                         </Avatar>
@@ -391,7 +395,9 @@ function ProfileContent() {
                       </button>
 
                       <div>
-                        <p className={`text-sm font-semibold ${c.sidebarHeading}`}>
+                        <p
+                          className={`text-sm font-semibold ${c.sidebarHeading}`}
+                        >
                           {profileData.username}
                         </p>
                         <p className={`text-sm ${c.muted}`}>
@@ -405,23 +411,27 @@ function ProfileContent() {
                       variant="outline"
                       size="sm"
                       onClick={openUpdateModal}
-                      className={`h-8 rounded-xl px-3 text-xs font-medium ${c.btnOutline}`}
+                      className={`h-10 shrink-0 rounded-xl px-3 text-xs font-medium ${c.btnOutline}`}
                     >
                       Edit Profile
                     </Button>
                   </div>
 
                   <div className={`divide-y ${c.divider}`}>
-                    <div className="grid grid-cols-[110px_1fr] items-center px-4 py-3 text-sm">
-                      <span className={`text-xs font-medium uppercase tracking-wide ${c.label}`}>
+                    <div className="grid grid-cols-[minmax(80px,110px)_1fr] items-center px-4 py-3 text-sm">
+                      <span
+                        className={`text-xs font-medium uppercase tracking-wide ${c.label}`}
+                      >
                         Email
                       </span>
                       <span className={`text-right font-medium ${c.value}`}>
                         {profileData.email}
                       </span>
                     </div>
-                    <div className="grid grid-cols-[110px_1fr] items-center px-4 py-3 text-sm">
-                      <span className={`text-xs font-medium uppercase tracking-wide ${c.label}`}>
+                    <div className="grid grid-cols-[minmax(80px,110px)_1fr] items-center px-4 py-3 text-sm">
+                      <span
+                        className={`text-xs font-medium uppercase tracking-wide ${c.label}`}
+                      >
                         Role
                       </span>
                       <span className={`text-right font-medium ${c.value}`}>
@@ -429,8 +439,10 @@ function ProfileContent() {
                       </span>
                     </div>
                     {!isAdmin && (
-                      <div className="grid grid-cols-[110px_1fr] items-center px-4 py-3 text-sm">
-                        <span className={`text-xs font-medium uppercase tracking-wide ${c.label}`}>
+                      <div className="grid grid-cols-[minmax(80px,110px)_1fr] items-center px-4 py-3 text-sm">
+                        <span
+                          className={`text-xs font-medium uppercase tracking-wide ${c.label}`}
+                        >
                           Project
                         </span>
                         <span className={`text-right font-medium ${c.value}`}>
@@ -445,24 +457,26 @@ function ProfileContent() {
                   <p className="mt-3 text-sm text-red-600">{errorMessage}</p>
                 )}
 
-                <div className="mt-4 flex items-center gap-3 overflow-x-auto pb-1">
+                <div className="mt-4 flex items-center gap-3 flex-wrap">
                   <Link
                     href={profileData.destinationHref}
-                    className={`inline-flex h-9 items-center whitespace-nowrap rounded-xl px-4 text-xs font-medium transition-colors ${c.btnPrimary}`}
+                    className={`inline-flex h-10 items-center whitespace-nowrap rounded-xl px-5 text-xs font-medium transition-colors ${c.btnPrimary}`}
                   >
                     {profileData.destinationLabel}
                   </Link>
                   {role !== "admin" && (
                     <Link
-                      href={role === "facilitator" ? "/f/my-reports" : "/my-reports"}
-                      className={`inline-flex h-9 items-center whitespace-nowrap rounded-xl border px-4 text-xs font-medium transition-colors ${c.btnOutline} ${c.cardBg}`}
+                      href={
+                        role === "facilitator" ? "/f/my-reports" : "/my-reports"
+                      }
+                      className={`inline-flex h-10 items-center whitespace-nowrap rounded-xl border px-5 text-xs font-medium transition-colors ${c.btnOutline} ${c.cardBg}`}
                     >
                       View My Reports
                     </Link>
                   )}
                   <button
                     onClick={handleLogout}
-                    className={`inline-flex h-9 items-center whitespace-nowrap rounded-xl border px-4 text-xs font-medium transition-colors ${c.logout} ${c.cardBg}`}
+                    className={`inline-flex h-10 items-center whitespace-nowrap rounded-xl border px-5 text-xs font-medium transition-colors ${c.logout} ${c.cardBg}`}
                   >
                     Logout
                   </button>
@@ -479,12 +493,16 @@ function ProfileContent() {
           >
             <div className="p-8">
               <DialogHeader>
-                <DialogTitle className={`font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] ${c.sidebarHeading}`}>
+                <DialogTitle
+                  className={`font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] ${c.sidebarHeading}`}
+                >
                   Update profile
                 </DialogTitle>
               </DialogHeader>
 
-              <div className={`mt-6 rounded-2xl border p-5 space-y-4 ${c.border} ${c.inputBg}`}>
+              <div
+                className={`mt-6 rounded-2xl border p-5 space-y-4 ${c.border} ${c.inputBg}`}
+              >
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16 border border-slate-200">
                     {uploadImage || draftImage ? (
@@ -493,7 +511,9 @@ function ProfileContent() {
                         alt="Draft profile image"
                       />
                     ) : null}
-                    <AvatarFallback className={`text-base font-semibold ${c.avatar}`}>
+                    <AvatarFallback
+                      className={`text-base font-semibold ${c.avatar}`}
+                    >
                       {getUserInitials(profileData.username)}
                     </AvatarFallback>
                   </Avatar>
@@ -506,7 +526,9 @@ function ProfileContent() {
                         onChange={handleProfileImageChange}
                         className="hidden"
                       />
-                      <span className={`inline-flex cursor-pointer items-center rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${c.btnOutline} ${c.cardBg}`}>
+                      <span
+                        className={`inline-flex cursor-pointer items-center rounded-xl border px-4 py-2 text-sm font-medium transition-colors ${c.btnOutline} ${c.cardBg}`}
+                      >
                         Upload
                       </span>
                     </label>
@@ -514,7 +536,7 @@ function ProfileContent() {
                     {(uploadImage || draftImage) && (
                       <button
                         type="button"
-                          onClick={handleRemoveImage}
+                        onClick={handleRemoveImage}
                         className={`text-sm font-medium ${isAdmin ? "text-red-600 hover:text-red-700" : "text-[#ba1a1a] hover:text-[#ba1a1a]/80"}`}
                       >
                         Remove
@@ -529,7 +551,9 @@ function ProfileContent() {
 
                 {uploadImage && (
                   <div className="space-y-3">
-                    <div className={`relative h-56 w-full overflow-hidden rounded-xl border bg-black/5 ${c.border}`}>
+                    <div
+                      className={`relative h-56 w-full overflow-hidden rounded-xl border bg-black/5 ${c.border}`}
+                    >
                       <Cropper
                         image={uploadImage}
                         crop={crop}
@@ -544,7 +568,9 @@ function ProfileContent() {
                     </div>
 
                     <div>
-                      <label className={`mb-1 block text-xs font-medium ${c.muted}`}>
+                      <label
+                        className={`mb-1 block text-xs font-medium ${c.muted}`}
+                      >
                         Zoom
                       </label>
                       <input

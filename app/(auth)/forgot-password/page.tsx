@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
                 placeholder="Enter your username"
                 required
               />
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
                 placeholder="Enter your email"
                 required
               />
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
                 placeholder="Create a new password"
                 required
               />
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-slate-900 transition-colors"
+              className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-slate-900 transition-colors"
             >
               {isSubmitting ? "Resetting..." : "Reset Password"}
             </button>

@@ -93,7 +93,7 @@ export function ProjectFormDialog({
               onChange={(event) =>
                 onDraftChange({ ...draft, languages: event.target.value })
               }
-              placeholder="Genesis, Exodus, Matthew"
+              placeholder="English, Spanish, French, German"
             />
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

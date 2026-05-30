@@ -95,7 +95,8 @@ async function processCampaigns() {
         let sentCount = 0;
         let failedCount = 0;
 
-        for (const user of targetUsers) {
+        for (let i = 0; i < targetUsers.length; i++) {
+          const user = targetUsers[i];
           try {
             await sendCampaignEmail({
               to: user.email,
@@ -108,6 +109,10 @@ async function processCampaigns() {
             sentCount++;
           } catch {
             failedCount++;
+          }
+
+          if (i < targetUsers.length - 1) {
+            await new Promise((r) => setTimeout(r, 250));
           }
         }
 

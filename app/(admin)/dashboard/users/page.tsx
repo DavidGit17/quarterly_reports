@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -151,13 +151,25 @@ export default function UsersPage() {
     }
   }, [roleFilter, statusFilter, searchValue, currentPage]);
 
-  useEffect(() => {
-    void fetchUsers();
-  }, [fetchUsers]);
+  const filterRef = useRef({ roleFilter, statusFilter, searchValue });
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [roleFilter, statusFilter]);
+    const prev = filterRef.current;
+    const newFilters = { roleFilter, statusFilter, searchValue };
+    const filtersChanged =
+      prev.roleFilter !== newFilters.roleFilter ||
+      prev.statusFilter !== newFilters.statusFilter ||
+      prev.searchValue !== newFilters.searchValue;
+
+    if (filtersChanged) {
+      filterRef.current = newFilters;
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+        return;
+      }
+    }
+    void fetchUsers();
+  }, [roleFilter, statusFilter, searchValue, currentPage, fetchUsers]);
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -311,14 +323,13 @@ export default function UsersPage() {
   };
 
   return (
-    <main className="flex-1 p-4 md:p-6">
+    <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
       <PageHeader
         title="Users"
         subtitle="Manage all users (coordinators, facilitators, and admins)"
         action={
           <Button
             onClick={openCreate}
-            className="bg-[#2563EB] hover:bg-blue-700 text-white gap-2"
           >
             <Plus className="w-4 h-4" />
             Add User
@@ -350,7 +361,7 @@ export default function UsersPage() {
             <button
               key={key}
               type="button"
-              onClick={() => setRoleFilter(key === roleFilter ? "all" : key)}
+              onClick={() => setRoleFilter(key)}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
                 roleFilter === key
                   ? "bg-white text-slate-900 shadow-sm border border-slate-200"
@@ -385,7 +396,7 @@ export default function UsersPage() {
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent align="end">
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
@@ -395,7 +406,7 @@ export default function UsersPage() {
         }
       />
 
-      <div className="border border-slate-200 rounded-2xl overflow-hidden">
+      <div className="border border-slate-200 rounded-2xl overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50">
@@ -491,7 +502,7 @@ export default function UsersPage() {
       </div>
 
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-4">
           <div className="text-sm text-slate-600">
             Showing {(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
           </div>
@@ -530,7 +541,7 @@ export default function UsersPage() {
               Create a new coordinator, facilitator, or admin account.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               value={createDraft.username}
               onChange={(e) =>
@@ -581,6 +592,7 @@ export default function UsersPage() {
               </SelectContent>
             </Select>
             {createDraft.role !== "admin" && (
+              <div className="sm:col-span-full">
               <Select
                 value={createDraft.project}
                 onValueChange={(value) =>
@@ -598,6 +610,7 @@ export default function UsersPage() {
                   ))}
                 </SelectContent>
               </Select>
+              </div>
             )}
           </div>
           <DialogFooter>
@@ -727,7 +740,7 @@ export default function UsersPage() {
         open={Boolean(togglingUser)}
         onOpenChange={(open) => !open && setTogglingUser(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {togglingUser?.status === "active"

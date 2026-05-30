@@ -153,7 +153,7 @@ export default function NotificationsPage() {
   };
   return (
     <>
-      <main className="flex-1 p-4 md:p-6">
+      <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
         <PageHeader
           title="Notifications"
           subtitle="Manage your notification preferences and view your notification history"
@@ -163,14 +163,14 @@ export default function NotificationsPage() {
           {/* Notifications List */}
           <div className="lg:col-span-2 space-y-4">
             {/* Notification Controls */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-900">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">
                 Recent Notifications
                 {unreadCount > 0 && (
                   <Badge className="ml-2 bg-slate-700">{unreadCount}</Badge>
                 )}
               </h3>
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-2">
                 {unreadCount > 0 && (
                   <Button
                     variant="outline"
@@ -381,7 +381,7 @@ export default function NotificationsPage() {
                   )}
                   <Button
                     onClick={handleSavePreferences}
-                    className="w-full bg-[#2563EB] hover:bg-blue-700 text-white text-sm"
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white text-sm"
                   >
                     Save Preferences
                   </Button>

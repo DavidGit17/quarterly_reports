@@ -250,7 +250,7 @@ export default function FacilitatorMyReportsPage() {
                     type="button"
                     disabled={currentPage <= 1}
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="font-ui text-[14px] font-medium leading-5 text-secondary transition-colors hover:text-primary disabled:opacity-40"
+                    className="min-w-[44px] min-h-[44px] p-3 font-ui text-[14px] font-medium leading-5 text-secondary transition-colors hover:text-primary disabled:opacity-40"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -261,7 +261,7 @@ export default function FacilitatorMyReportsPage() {
                     type="button"
                     disabled={currentPage >= pagination.totalPages}
                     onClick={() => setCurrentPage((p) => p + 1)}
-                    className="font-ui text-[14px] font-medium leading-5 text-secondary transition-colors hover:text-primary disabled:opacity-40"
+                    className="min-w-[44px] min-h-[44px] p-3 font-ui text-[14px] font-medium leading-5 text-secondary transition-colors hover:text-primary disabled:opacity-40"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>

@@ -108,7 +108,7 @@ export function MultiSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-80 p-0"
+          className="sm:w-80 w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] p-0"
           align="start"
           sideOffset={4}
         >
@@ -127,7 +127,7 @@ export function MultiSelect({
                       className={cn(
                         "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
                         selectedSet.has(option.value)
-                          ? "border-[#2563EB] bg-[#2563EB] text-white"
+                          ? "border-slate-900 bg-slate-900 text-white"
                           : "border-slate-300",
                       )}
                     >

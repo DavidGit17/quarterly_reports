@@ -14,25 +14,7 @@ const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
   "forgot-password": { windowMs: 60 * 1000, maxRequests: 3 },
 };
 
-let ensureRateLimitIndexesPromise: Promise<void> | null = null;
-
-const ensureIndexes = async () => {
-  if (!ensureRateLimitIndexesPromise) {
-    ensureRateLimitIndexesPromise = (async () => {
-      const db = await getDb();
-      const collection = db.collection(COLLECTION);
-      await collection.createIndex(
-        { key: 1, expiresAt: 1 },
-        { name: "rate_limits_key_expires_at_idx" },
-      );
-      await collection.createIndex(
-        { expiresAt: 1 },
-        { name: "rate_limits_expires_at_ttl_idx", expireAfterSeconds: 0 },
-      );
-    })();
-  }
-  await ensureRateLimitIndexesPromise;
-};
+const ensureIndexes = async () => {};
 
 const getIp = (request: Request): string => {
   const forwarded = request.headers.get("x-forwarded-for");

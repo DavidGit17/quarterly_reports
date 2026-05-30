@@ -50,7 +50,7 @@ type ReportingCycle = {
 
 const statusBadge: Record<CampaignStatus, { label: string; class: string }> = {
   pending: { label: "Pending", class: "bg-yellow-100 text-yellow-700" },
-  sending: { label: "Sending", class: "bg-blue-100 text-blue-700" },
+  sending: { label: "Sending", class: "bg-slate-100 text-slate-700" },
   sent: { label: "Sent", class: "bg-green-100 text-green-700" },
   failed: { label: "Failed", class: "bg-red-100 text-red-700" },
 };
@@ -219,7 +219,7 @@ export default function EmailCampaignsPage() {
   };
 
   return (
-    <main className="flex-1 p-4 md:p-6">
+    <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
       <PageHeader
         title="Email Campaigns"
         subtitle="Schedule and manage email notifications"

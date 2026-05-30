@@ -13,7 +13,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  BIBLE_BOOKS,
   getHydratedFormState,
   getProjectNameFromSlug,
   toProjectSlug,
@@ -59,7 +58,7 @@ const FORM_CUSTOM_SELECT_TRIGGER_CLASS =
 const FORM_CUSTOM_SELECT_CONTENT_CLASS =
   "rounded-xl border border-slate-100 bg-white text-slate-800 shadow-lg";
 const FORM_CUSTOM_SELECT_ITEM_CLASS =
-  "cursor-pointer rounded-lg py-2 pl-8 pr-3 text-[14px] text-slate-700 transition-colors duration-150 focus:bg-blue-50 focus:text-blue-800 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white";
+  "cursor-pointer rounded-lg py-2 pl-8 pr-3 text-[14px] text-slate-700 transition-colors duration-150 focus:bg-slate-100 focus:text-slate-800 data-[state=checked]:bg-slate-900 data-[state=checked]:text-white";
 const FORM_SURFACE_CLASS = "rounded-2xl bg-white shadow-sm border border-slate-100";
 const FORM_LABEL_CLASS =
   "block text-[16px] font-medium text-slate-800";
@@ -69,7 +68,7 @@ const FORM_META_CLASS =
 const FORM_LINK_CLASS =
   "text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-700";
 const FORM_ICON_BUTTON_CLASS =
-  "absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 cursor-pointer";
+  "absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-200 hover:text-slate-600 cursor-pointer min-w-[44px] min-h-[44px]";
 const FORM_SECONDARY_ACTION_CLASS =
   "text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-700 cursor-pointer";
 const FORM_PRIMARY_BUTTON_CLASS =
@@ -116,8 +115,8 @@ export default function FacilitatorProjectFormPage() {
   const [uploadingFiles, setUploadingFiles] = useState<UploadingMap>({});
   const [uploadProgress, setUploadProgress] = useState<UploadProgressMap>({});
   const [pendingFiles, setPendingFiles] = useState<FileValueMap>({});
-  const [ratingPreviewValues, setRatingPreviewValues] =
-    useState<FieldValueMap>({});
+  const [hoveredRatingField, setHoveredRatingField] = useState<string | null>(null);
+  const [hoveredRatingValue, setHoveredRatingValue] = useState<number>(0);
   const [showSubmitPopup, setShowSubmitPopup] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReady, setIsReady] = useState(false);
@@ -143,18 +142,26 @@ export default function FacilitatorProjectFormPage() {
   >({});
 
   useEffect(() => {
-    const verifyAccess = async () => {
+    let cancelled = false;
+    async function load() {
       try {
         setIsAccessDenied(false);
         setIsPreviewMode(false);
-        const response = await fetch("/api/auth/me", { cache: "no-store" });
 
-        if (response.status === 401) {
+        const [authRes, formState, cyclesRes] = await Promise.all([
+          fetch("/api/auth/me", { cache: "no-store" }),
+          getHydratedFormState(),
+          fetch("/api/reporting-cycles?status=active"),
+        ]);
+
+        if (cancelled) return;
+
+        if (authRes.status === 401) {
           router.push("/login");
           return;
         }
 
-        const data = (await response.json()) as MeResponse;
+        const data = (await authRes.json()) as MeResponse;
         const isAdmin = data.user?.role === "admin";
 
         if (data.user?.role !== "facilitator" && !isAdmin) {
@@ -195,7 +202,7 @@ export default function FacilitatorProjectFormPage() {
         const {
           formConfigs: configs,
           quarterConfigs: projectQuarters,
-        } = await getHydratedFormState();
+        } = formState;
 
         const projectFromSlug = getProjectNameFromSlug(projectSlug, configs);
         const normalizedProject = projectFromSlug || projectSlug;
@@ -203,10 +210,7 @@ export default function FacilitatorProjectFormPage() {
         setProjectName(normalizedProject);
 
         try {
-          const cycleRes = await fetch(
-            `/api/reporting-cycles?status=active&project=${encodeURIComponent(normalizedProject)}`,
-          );
-          const cycleData = await cycleRes.json();
+          const cycleData = await cyclesRes.json();
           const activeCycle = (cycleData.cycles || [])[0];
           if (activeCycle) {
             setActiveCycleId(activeCycle.id);
@@ -245,9 +249,10 @@ export default function FacilitatorProjectFormPage() {
       } catch {
         setErrorMessage("Unable to verify your account.");
       }
-    };
+    }
 
-    void verifyAccess();
+    load();
+    return () => { cancelled = true; };
   }, [projectSlug, router]);
 
   useEffect(() => {
@@ -371,7 +376,7 @@ export default function FacilitatorProjectFormPage() {
         const nextValue = Math.min(current + 8 + Math.random() * 10, 90);
         return { ...prev, [fieldId]: nextValue };
       });
-    }, 200);
+    }, 500);
 
     uploadTimersRef.current[fieldId] = setTimeout(
       () => {
@@ -545,13 +550,13 @@ export default function FacilitatorProjectFormPage() {
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-10">
         {isPreviewMode && (
-          <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-6 py-4 flex items-center gap-3">
-            <Eye className="h-5 w-5 text-blue-600 shrink-0" />
+          <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 flex items-center gap-3">
+            <Eye className="h-5 w-5 text-slate-600 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-blue-800">
+              <p className="text-sm font-semibold text-slate-800">
                 Preview Mode
               </p>
-              <p className="text-xs font-medium text-blue-600">
+              <p className="text-xs font-medium text-slate-500">
                 You are viewing this form as an admin. This is a read-only
                 preview.
               </p>
@@ -815,41 +820,35 @@ export default function FacilitatorProjectFormPage() {
                   )}
 
                   {field.type === "rating" && (
-                    <div className="flex items-center gap-1 py-2">
+                    <div className="flex items-center gap-1 py-2 flex-wrap">
                       {Array.from(
                         { length: field.ratingLevels || 5 },
                         (_, i) => {
-                          const activeRating = parseInt(
-                            ratingPreviewValues[field.id] ||
-                              formValues[field.id] ||
-                              "0",
-                          );
-                          const isActive = activeRating >= i + 1;
+                          const isHovered = hoveredRatingField === field.id;
+                          const activeValue = isHovered
+                            ? hoveredRatingValue
+                            : parseInt(formValues[field.id] || "0");
+                          const isActive = activeValue >= i + 1;
 
                           return (
                             <button
                               key={i}
                               type="button"
-                              onMouseEnter={() =>
-                                setRatingPreviewValues((prev) => ({
-                                  ...prev,
-                                  [field.id]: String(i + 1),
-                                }))
-                              }
-                              onMouseLeave={() =>
-                                setRatingPreviewValues((prev) => {
-                                  const next = { ...prev };
-                                  delete next[field.id];
-                                  return next;
-                                })
-                              }
+                              onMouseEnter={() => {
+                                setHoveredRatingField(field.id);
+                                setHoveredRatingValue(i + 1);
+                              }}
+                              onMouseLeave={() => {
+                                setHoveredRatingField(null);
+                                setHoveredRatingValue(0);
+                              }}
                               onClick={() =>
                                 handleTextChange(field.id, String(i + 1))
                               }
-                              className={`rounded-sm p-1 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+                              className={`rounded-sm p-2 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#004446]/30 ${
                                 isActive
-                                  ? "text-blue-600"
-                                  : "text-slate-200 hover:text-blue-500"
+                                  ? "text-slate-700"
+                                  : "text-slate-200 hover:text-slate-500"
                               }`}
                               aria-label={`Rate ${i + 1} out of ${field.ratingLevels || 5}`}
                             >
@@ -870,7 +869,7 @@ export default function FacilitatorProjectFormPage() {
                     <div className="space-y-4">
                       <label
                         htmlFor={`file-${field.id}`}
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 cursor-pointer"
                       >
                         <Upload className="h-4 w-4" /> Upload file
                       </label>
@@ -917,7 +916,7 @@ export default function FacilitatorProjectFormPage() {
                           </div>
                           <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
                             <div
-                              className="h-full bg-blue-600 transition-all duration-200"
+                              className="h-full bg-slate-900 transition-all duration-200"
                               style={{
                                 width: `${Math.max(
                                   5,

@@ -47,9 +47,7 @@ export function AccountTab({
     <Card className="rounded-2xl">
       <CardHeader>
         <CardTitle>Account Information</CardTitle>
-        <CardDescription>
-          Update your personal account details
-        </CardDescription>
+        <CardDescription>Update your personal account details</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -111,7 +109,7 @@ export function AccountTab({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-[#2563EB] hover:bg-blue-700 text-white"
+            className="bg-slate-900 hover:bg-slate-800 text-white"
           >
             Save Changes
           </Button>

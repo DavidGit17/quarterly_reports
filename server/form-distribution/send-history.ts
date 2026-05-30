@@ -19,36 +19,13 @@ export type SendHistoryDocument = {
 export type SendHistoryRecord = WithId<SendHistoryDocument> & { _id: ObjectId };
 
 const COLLECTION = "form_distribution_send_history";
-let ensureIndexesPromise: Promise<void> | null = null;
 
-const ensureIndexes = async (
-  collection: Collection<SendHistoryDocument>,
-) => {
-  if (!ensureIndexesPromise) {
-    ensureIndexesPromise = collection
-      .createIndexes([
-        {
-          key: { ruleId: 1, sentAt: -1 },
-          name: "send_history_rule_id_sent_at_idx",
-        },
-        {
-          key: { sentAt: -1 },
-          name: "send_history_sent_at_desc_idx",
-        },
-        {
-          key: { recipientEmail: 1, sentAt: -1 },
-          name: "send_history_recipient_email_sent_at_idx",
-        },
-      ])
-      .then(() => undefined);
-  }
-  await ensureIndexesPromise;
-};
+const ensureIndexes = async () => {};
 
 export const getSendHistoryCollection = async () => {
   const db = await getDb();
   const collection = db.collection<SendHistoryDocument>(COLLECTION);
-  await ensureIndexes(collection);
+  await ensureIndexes();
   return collection;
 };
 

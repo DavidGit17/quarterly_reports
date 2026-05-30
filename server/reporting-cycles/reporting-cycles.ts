@@ -19,27 +19,8 @@ export type ReportingCycleRecord = WithId<ReportingCycleDocument> & {
 };
 
 const COLLECTION = "reporting_cycles";
-let ensureIndexesPromise: Promise<void> | null = null;
 
-const ensureIndexes = async (
-  collection: Collection<ReportingCycleDocument>,
-) => {
-  if (!ensureIndexesPromise) {
-    ensureIndexesPromise = collection
-      .createIndexes([
-        {
-          key: { status: 1, linkedProjects: 1 },
-          name: "cycles_status_linked_projects_idx",
-        },
-        {
-          key: { createdAt: -1 },
-          name: "cycles_created_at_desc_idx",
-        },
-      ])
-      .then(() => undefined);
-  }
-  await ensureIndexesPromise;
-};
+const ensureIndexes = async () => {};
 
 export const getReportingCyclesCollection = async (): Promise<
   Collection<ReportingCycleDocument>
@@ -47,7 +28,7 @@ export const getReportingCyclesCollection = async (): Promise<
   const db = await getDb();
   const collection =
     db.collection<ReportingCycleDocument>(COLLECTION);
-  await ensureIndexes(collection);
+  await ensureIndexes();
   return collection;
 };
 

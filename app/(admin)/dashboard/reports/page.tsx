@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
@@ -26,6 +26,14 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import {
+  FORM_FIELD_CLASS,
+  FORM_LABEL_CLASS,
+  FORM_REQUIRED_CLASS,
+  FORM_META_CLASS,
+  FORM_PRIMARY_BUTTON_CLASS,
+  FORM_SURFACE_CLASS,
+} from "@/lib/shared/form-constants";
 
 const ReportsSummary = dynamic(
   () =>
@@ -72,154 +80,6 @@ type ReportResponse = {
   message?: string;
 };
 
-const textEncoder = new TextEncoder();
-
-const escapeXml = (value: string) =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-
-const crcTable = Array.from({ length: 256 }, (_, index) => {
-  let crc = index;
-  for (let bit = 0; bit < 8; bit += 1) {
-    crc = crc & 1 ? 0xedb88320 ^ (crc >>> 1) : crc >>> 1;
-  }
-  return crc >>> 0;
-});
-
-const crc32 = (bytes: Uint8Array) => {
-  let crc = 0xffffffff;
-  for (const byte of bytes) {
-    crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-};
-
-const writeUint16 = (buffer: Uint8Array, offset: number, value: number) => {
-  buffer[offset] = value & 0xff;
-  buffer[offset + 1] = (value >>> 8) & 0xff;
-};
-
-const writeUint32 = (buffer: Uint8Array, offset: number, value: number) => {
-  buffer[offset] = value & 0xff;
-  buffer[offset + 1] = (value >>> 8) & 0xff;
-  buffer[offset + 2] = (value >>> 16) & 0xff;
-  buffer[offset + 3] = (value >>> 24) & 0xff;
-};
-
-const createZip = (files: Array<{ name: string; content: string }>) => {
-  const chunks: Uint8Array[] = [];
-  const centralDirectory: Uint8Array[] = [];
-  let offset = 0;
-
-  for (const file of files) {
-    const nameBytes = textEncoder.encode(file.name);
-    const contentBytes = textEncoder.encode(file.content);
-    const checksum = crc32(contentBytes);
-
-    const localHeader = new Uint8Array(30 + nameBytes.length);
-    writeUint32(localHeader, 0, 0x04034b50);
-    writeUint16(localHeader, 4, 20);
-    writeUint16(localHeader, 6, 0);
-    writeUint16(localHeader, 8, 0);
-    writeUint32(localHeader, 14, checksum);
-    writeUint32(localHeader, 18, contentBytes.length);
-    writeUint32(localHeader, 22, contentBytes.length);
-    writeUint16(localHeader, 26, nameBytes.length);
-    localHeader.set(nameBytes, 30);
-
-    chunks.push(localHeader, contentBytes);
-
-    const centralHeader = new Uint8Array(46 + nameBytes.length);
-    writeUint32(centralHeader, 0, 0x02014b50);
-    writeUint16(centralHeader, 4, 20);
-    writeUint16(centralHeader, 6, 20);
-    writeUint16(centralHeader, 8, 0);
-    writeUint16(centralHeader, 10, 0);
-    writeUint32(centralHeader, 16, checksum);
-    writeUint32(centralHeader, 20, contentBytes.length);
-    writeUint32(centralHeader, 24, contentBytes.length);
-    writeUint16(centralHeader, 28, nameBytes.length);
-    writeUint32(centralHeader, 42, offset);
-    centralHeader.set(nameBytes, 46);
-    centralDirectory.push(centralHeader);
-
-    offset += localHeader.length + contentBytes.length;
-  }
-
-  const centralDirectorySize = centralDirectory.reduce(
-    (size, chunk) => size + chunk.length,
-    0,
-  );
-  const endRecord = new Uint8Array(22);
-  writeUint32(endRecord, 0, 0x06054b50);
-  writeUint16(endRecord, 8, files.length);
-  writeUint16(endRecord, 10, files.length);
-  writeUint32(endRecord, 12, centralDirectorySize);
-  writeUint32(endRecord, 16, offset);
-
-  return new Blob([...chunks, ...centralDirectory, endRecord] as BlobPart[], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
-};
-
-const createWorkbookBlob = (
-  rows: Array<Record<string, string>>,
-  columns: string[],
-) => {
-  const sheetRows = [
-    columns,
-    ...rows.map((row) => columns.map((column) => row[column] || "")),
-  ]
-    .map(
-      (row) =>
-        `<row>${row
-          .map(
-            (cell) => `<c t="inlineStr"><is><t>${escapeXml(cell)}</t></is></c>`,
-          )
-          .join("")}</row>`,
-    )
-    .join("");
-
-  return createZip([
-    {
-      name: "[Content_Types].xml",
-      content:
-        '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
-    },
-    {
-      name: "_rels/.rels",
-      content:
-        '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
-    },
-    {
-      name: "xl/workbook.xml",
-      content:
-        '<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Reports" sheetId="1" r:id="rId1"/></sheets></workbook>',
-    },
-    {
-      name: "xl/_rels/workbook.xml.rels",
-      content:
-        '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
-    },
-    {
-      name: "xl/worksheets/sheet1.xml",
-      content: `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`,
-    },
-  ]);
-};
-
-const downloadBlob = (blob: Blob, fileName: string) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-};
-
 const toReportCodePart = (value: string) =>
   value
     .replace(/[^a-z0-9]+/gi, " ")
@@ -236,16 +96,6 @@ const getReportDisplayId = (report: ReportSubmission) => {
 
   return `${projectPart}-${submittedYear}-${quarterPart}`;
 };
-
-const FORM_FIELD_CLASS =
-  "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[16px] text-slate-800 placeholder:text-slate-400 transition-all duration-200 hover:border-slate-300 focus:border-[rgb(52,118,123)] focus:outline-none focus:ring-0 disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
-const FORM_SURFACE_CLASS =
-  "rounded-2xl bg-white shadow-sm border border-slate-100";
-const FORM_LABEL_CLASS = "block text-[16px] font-medium text-slate-800";
-const FORM_REQUIRED_CLASS = "text-red-400 font-semibold";
-const FORM_META_CLASS = "text-sm text-slate-500";
-const FORM_PRIMARY_BUTTON_CLASS =
-  "inline-flex items-center justify-center rounded-xl bg-[rgb(52,118,123)] px-6 py-2.5 text-[15px] font-semibold leading-6 text-white transition-all duration-200 hover:bg-[rgb(42,98,102)] focus:outline-none focus:ring-2 focus:ring-[rgb(52,118,123)] active:bg-[rgb(34,82,86)] cursor-pointer";
 
 const getReportGroupKey = (report: ReportSubmission) =>
   `${report.projectName.toLowerCase()}|${new Date(report.createdAt).getFullYear()}|${report.quarter.toLowerCase()}`;
@@ -396,13 +246,43 @@ export default function ReportsPage() {
     }
   }, [currentPage, searchValue, projectFilter, quarterFilter, dateFilter]);
 
-  useEffect(() => {
-    void loadReports();
-  }, [loadReports]);
+  const filterRef = useRef({
+    searchValue,
+    projectFilter,
+    quarterFilter,
+    dateFilter,
+  });
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchValue, projectFilter, quarterFilter, dateFilter]);
+    const prev = filterRef.current;
+    const newFilters = {
+      searchValue,
+      projectFilter,
+      quarterFilter,
+      dateFilter,
+    };
+    const filtersChanged =
+      prev.searchValue !== newFilters.searchValue ||
+      prev.projectFilter !== newFilters.projectFilter ||
+      prev.quarterFilter !== newFilters.quarterFilter ||
+      prev.dateFilter !== newFilters.dateFilter;
+
+    if (filtersChanged) {
+      filterRef.current = newFilters;
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+        return;
+      }
+    }
+    void loadReports();
+  }, [
+    searchValue,
+    projectFilter,
+    quarterFilter,
+    dateFilter,
+    currentPage,
+    loadReports,
+  ]);
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -421,25 +301,26 @@ export default function ReportsPage() {
     new Set(tableReports.map((report) => report.quarter)),
   ).sort();
 
-  const exportReports = async (reportsToExport: ReportsTableReport[]) => {
-    const reportIds = new Set(reportsToExport.map((report) => report.id));
-    const fullReports = reports.filter((report) => reportIds.has(report.id));
-    const rows = getReportRows(fullReports);
-    const columns = Array.from(
-      new Set(rows.flatMap((row) => Object.keys(row))),
-    );
-
-    if (rows.length === 0) {
-      return;
-    }
-
-    downloadBlob(
-      createWorkbookBlob(rows, columns),
-      reportsToExport.length === 1
-        ? `report-${reportsToExport[0].id}.xlsx`
-        : "reports-export.xlsx",
-    );
-  };
+  const exportReports = useCallback(
+    async (reportsToExport: ReportsTableReport[]) => {
+      const reportIds = new Set(reportsToExport.map((r) => r.id));
+      const fullReports = reports.filter((r) => reportIds.has(r.id));
+      const rows = getReportRows(fullReports);
+      const columns = Array.from(
+        new Set(rows.flatMap((row) => Object.keys(row))),
+      );
+      if (rows.length === 0) return;
+      const mod = await import("@/lib/export/reports-export");
+      mod.exportReports(
+        rows,
+        columns,
+        reportsToExport.length === 1
+          ? `report-${reportsToExport[0].id}.xlsx`
+          : "reports-export.xlsx",
+      );
+    },
+    [reports],
+  );
 
   const deleteReport = async () => {
     if (!deletingReport) {
@@ -521,13 +402,12 @@ export default function ReportsPage() {
     : null;
 
   return (
-    <main className="flex-1 p-4 md:p-6">
+    <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
       <PageHeader
         title="Reports"
         subtitle="View and manage submitted quarterly reports"
         action={
           <Button
-            className="bg-[#2563EB] hover:bg-blue-700 text-white gap-2"
             onClick={() => void exportReports(tableReports)}
             disabled={tableReports.length === 0}
           >
@@ -549,13 +429,13 @@ export default function ReportsPage() {
         searchValue={searchInput}
         onSearchChange={setSearchInput}
         onSearchSubmit={handleSearch}
-        searchPlaceholder="Search by project, quarter, or coordinator..."
+        searchPlaceholder="Search"
         searchInputClassName="caret-[rgb(52,118,123)] focus:ring-2 focus:ring-[rgb(52,118,123)] focus:border-[rgb(52,118,123)] text-[17px] leading-7"
         filters={
           <div className="flex gap-2 flex-wrap">
             {/* Projects dropdown — separate */}
             <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger className="w-[240px]">
+              <SelectTrigger className="w-full sm:w-[240px]">
                 <SelectValue placeholder="Search by Project" />
               </SelectTrigger>
 
@@ -571,14 +451,12 @@ export default function ReportsPage() {
 
             {/* Quarter / Date dropdown */}
             <Select value="filters" onValueChange={() => {}}>
-              <SelectTrigger className="w-[260px]">
-                <SelectValue>
-                  Quarter / Date
-                </SelectValue>
+              <SelectTrigger className="w-full sm:w-[260px]">
+                <SelectValue>Quarter / Date</SelectValue>
               </SelectTrigger>
 
               <SelectContent>
-                <div className="grid grid-cols-2 gap-5 p-3 min-w-[460px] max-w-[460px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-3 min-w-0 sm:min-w-[460px]">
                   <div>
                     <div className="mb-3 text-xs font-semibold text-slate-500">
                       Quarter
@@ -690,15 +568,15 @@ export default function ReportsPage() {
         open={Boolean(viewingReport)}
         onOpenChange={(open) => !open && setViewingReport(null)}
       >
-        <DialogContent className="!w-[82vw] !max-w-[82vw] max-h-[95vh] overflow-y-auto bg-[#f8f9fa] border-none p-0 shadow-none">
+        <DialogContent className="w-full sm:w-[82vw] max-w-4xl max-h-[95vh] overflow-y-auto bg-[#f8f9fa] border-none p-0 shadow-none">
           <DialogTitle className="sr-only">
             {viewingReport?.displayId || "Report Details"}
           </DialogTitle>
 
           {viewingReportData && (
             <div className="min-h-screen">
-              <div className="w-full max-w-none px-10 py-10">
-                <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
+              <div className="w-full max-w-none px-4 sm:px-10 pt-14 pb-6 sm:pt-16 sm:pb-10">
+                <div className={`${FORM_SURFACE_CLASS} p-4 sm:p-8 mb-6`}>
                   <div className="flex items-center justify-between mb-6">
                     <button
                       type="button"
@@ -741,14 +619,18 @@ export default function ReportsPage() {
                       </div>
 
                       <div>
-                        <p className={`${FORM_LABEL_CLASS} mb-2`}>Submitted By</p>
+                        <p className={`${FORM_LABEL_CLASS} mb-2`}>
+                          Submitted By
+                        </p>
                         <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
                           {viewingReportData.createdByUsername}
                         </p>
                       </div>
 
                       <div>
-                        <p className={`${FORM_LABEL_CLASS} mb-2`}>Submission Date</p>
+                        <p className={`${FORM_LABEL_CLASS} mb-2`}>
+                          Submission Date
+                        </p>
                         <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] font-medium text-slate-700">
                           {viewingReportData.createdAt.slice(0, 10)}
                         </p>
@@ -793,15 +675,15 @@ export default function ReportsPage() {
           !open && (setEditingReport(null), setEditFields([]))
         }
       >
-        <DialogContent className="!w-[82vw] !max-w-[82vw] max-h-[95vh] overflow-y-auto bg-[#f8f9fa] border-none p-0 shadow-none">
+        <DialogContent className="w-full sm:w-[82vw] max-w-4xl max-h-[95vh] overflow-y-auto bg-[#f8f9fa] border-none p-0 shadow-none">
           <DialogTitle className="sr-only">
             {editingReport
               ? `Edit ${editingReport.projectName} Report`
               : "Edit Report"}
           </DialogTitle>
           <div className="min-h-screen">
-            <div className="w-full max-w-none px-10 py-10">
-              <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
+            <div className="w-full max-w-none px-4 sm:px-10 pt-14 pb-6 sm:pt-16 sm:pb-10">
+              <div className={`${FORM_SURFACE_CLASS} p-4 sm:p-8 mb-6`}>
                 <div className="flex items-center justify-between mb-6">
                   <button
                     type="button"
@@ -850,9 +732,9 @@ export default function ReportsPage() {
                     editFields.map((field) => (
                       <div key={field.fieldId} className="pt-6">
                         <label className={`${FORM_LABEL_CLASS} mb-3`}>
-  {field.label.replace(/^(\d+)\./, "$1. ")}{" "}
-  <span className={FORM_REQUIRED_CLASS}>*</span>
-</label>
+                          {field.label.replace(/^(\d+)\./, "$1. ")}{" "}
+                          <span className={FORM_REQUIRED_CLASS}>*</span>
+                        </label>
                         <input
                           type="text"
                           value={field.value}
@@ -905,7 +787,7 @@ export default function ReportsPage() {
         open={Boolean(deletingReport)}
         onOpenChange={(open) => !open && setDeletingReport(null)}
       >
-        <DialogContent>
+        <DialogContent className="rounded-xl">
           <DialogHeader>
             <DialogTitle>Delete Report</DialogTitle>
             <DialogDescription>

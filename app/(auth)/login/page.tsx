@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fieldClassName =
-    "w-full rounded border border-border bg-white px-4 py-2 text-foreground placeholder:text-muted-foreground/75 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-fixed-dim)_45%,transparent)]";
+    "w-full rounded border border-border bg-white px-4 py-3 text-foreground placeholder:text-muted-foreground/75 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--primary-fixed-dim)_45%,transparent)]";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +67,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="rounded border border-border bg-white p-8">
-          <h1 className="mb-2 text-3xl font-semibold tracking-[-0.02em] text-primary">Login</h1>
+          <h1 className="mb-2 text-3xl font-semibold tracking-[-0.02em] text-primary">
+            Login
+          </h1>
           <p className="text-muted-foreground mb-8">
             Quarterly Reports Management System
           </p>
@@ -121,7 +123,9 @@ export default function LoginPage() {
             </button>
 
             {errorMessage && (
-              <p className="text-center text-sm text-destructive">{errorMessage}</p>
+              <p className="text-center text-sm text-destructive">
+                {errorMessage}
+              </p>
             )}
           </form>
 

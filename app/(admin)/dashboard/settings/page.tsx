@@ -130,7 +130,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="flex-1 p-4 md:p-6">
+    <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
       <PageHeader
         title="Settings"
         subtitle="Manage your account, system, and notification preferences"

@@ -626,7 +626,7 @@ export default function AdminFormBuilderPage() {
               </div>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => {
@@ -904,11 +904,11 @@ export default function AdminFormBuilderPage() {
                 <span className="text-slate-700">{selectedProject}</span>
               </h3>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 type="button"
                 onClick={handleCopyFormLink}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 text-slate-900 text-sm font-medium hover:bg-slate-200 transition-colors active:bg-slate-300"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-100 text-slate-900 text-sm font-medium hover:bg-slate-200 transition-colors active:bg-slate-300"
               >
                 <Copy className="h-4 w-4" />
                 Copy Form Link
@@ -918,7 +918,7 @@ export default function AdminFormBuilderPage() {
                 target="_blank"
                 rel="noreferrer"
                 aria-disabled={!whatsappShareLink}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors"
                 onClick={(event) => {
                   if (!whatsappShareLink) {
                     event.preventDefault();
@@ -1347,15 +1347,15 @@ export default function AdminFormBuilderPage() {
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-[#2563EB] text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
           >
             Save Form Structure
           </button>
         </div>
 
-        {/* Quick Scroll Controls */}
+        {/* Quick Scroll Controls — hidden on mobile to avoid overlapping content */}
         {(scrollPosition.canScrollUp || scrollPosition.canScrollDown) && (
-          <div className="fixed right-4 top-1/2 z-40 flex -translate-y-1/2 flex-col gap-2 md:right-8">
+          <div className="hidden md:flex fixed right-4 top-1/2 z-40 -translate-y-1/2 flex-col gap-2 md:right-8">
             {scrollPosition.canScrollUp && (
               <button
                 type="button"
@@ -1381,17 +1381,27 @@ export default function AdminFormBuilderPage() {
           </div>
         )}
 
-        {/* Sticky Add Field Button */}
-        <div className="fixed bottom-5 right-4 z-40 md:right-8">
+        {/* Add Field Button — inline on mobile, fixed on desktop */}
+        <div className="border-t border-slate-200 pt-6 md:border-t-0 md:pt-0">
           <button
             type="button"
             onClick={addNewField}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 active:bg-slate-900"
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 md:py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 active:bg-slate-700"
           >
             <Plus className="h-4 w-4" />
             Add Field
           </button>
         </div>
+
+        {/* Desktop floating Add Field FAB */}
+        <button
+          type="button"
+          onClick={addNewField}
+          className="hidden md:inline-flex items-center gap-2 fixed bottom-6 right-6 z-40 rounded-xl bg-slate-900 text-white px-4 py-3 shadow-lg hover:bg-slate-800 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Add Field
+        </button>
 
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>

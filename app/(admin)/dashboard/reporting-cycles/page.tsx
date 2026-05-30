@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
@@ -59,7 +59,7 @@ const emptyDraft: CycleDraft = {
 const statusBadge: Record<CycleStatus, { label: string; class: string }> = {
   upcoming: {
     label: "Upcoming",
-    class: "bg-blue-100 text-blue-700",
+    class: "bg-slate-100 text-slate-700",
   },
   active: {
     label: "Active",
@@ -86,7 +86,9 @@ export default function ReportingCyclesPage() {
   const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [searchValue, setSearchValue] = useState("");
+  const [projectsError, setProjectsError] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | CycleStatus>("all");
   const [editingCycle, setEditingCycle] = useState<ReportingCycle | null>(null);
   const [deletingCycle, setDeletingCycle] = useState<ReportingCycle | null>(
@@ -123,7 +125,7 @@ export default function ReportingCyclesPage() {
         setProjects(data.projects || []);
       }
     } catch {
-      // non-critical
+      setProjectsError("Failed to load projects for linking.");
     }
   }, []);
 
@@ -132,16 +134,25 @@ export default function ReportingCyclesPage() {
     fetchProjects();
   }, [fetchCycles, fetchProjects]);
 
-  const filteredCycles = cycles.filter((cycle) => {
-    const matchesSearch =
-      cycle.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-      cycle.linkedProjects.some((p) =>
-        p.toLowerCase().includes(searchValue.toLowerCase()),
-      );
-    const matchesStatus =
-      statusFilter === "all" || cycle.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchInput), 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const filteredCycles = useMemo(
+    () =>
+      cycles.filter((cycle) => {
+        const matchesSearch =
+          cycle.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          cycle.linkedProjects.some((p) =>
+            p.toLowerCase().includes(debouncedSearch.toLowerCase()),
+          );
+        const matchesStatus =
+          statusFilter === "all" || cycle.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      }),
+    [cycles, debouncedSearch, statusFilter],
+  );
 
   const openCreate = () => {
     setEditingCycle(null);
@@ -268,7 +279,7 @@ export default function ReportingCyclesPage() {
   };
 
   return (
-    <main className="flex-1 p-4 md:p-6">
+    <main className="flex-1 p-4 md:p-6 mx-auto max-w-7xl w-full">
       <PageHeader
         title="Reporting Cycles"
         subtitle="Define and manage reporting periods"
@@ -288,10 +299,15 @@ export default function ReportingCyclesPage() {
           {error}
         </div>
       )}
+      {projectsError && (
+        <div className="mb-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-700">
+          {projectsError}
+        </div>
+      )}
 
       <Toolbar
-        searchValue={searchValue}
-        onSearchChange={setSearchValue}
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
         searchPlaceholder="Search by cycle name or project..."
         filters={
           <Select
@@ -436,7 +452,7 @@ export default function ReportingCyclesPage() {
                 placeholder="e.g. Q1 2026, School Term 1"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
                   Start Date

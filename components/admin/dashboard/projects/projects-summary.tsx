@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Project } from "@/components/admin/dashboard/mock-data";
 import { Briefcase, CircleCheckBig, CirclePause, Timer } from "lucide-react";
@@ -7,39 +8,41 @@ interface ProjectsSummaryProps {
 }
 
 export function ProjectsSummary({ projects }: ProjectsSummaryProps) {
-  const totalProjects = projects.length;
-  const activeProjects = projects.filter((p) => p.status === "active").length;
-  const inactiveProjects = projects.filter(
-    (p) => p.status === "inactive",
-  ).length;
-  const pendingProjects = projects.filter((p) => p.status === "pending").length;
+  const stats = useMemo(() => {
+    const totalProjects = projects.length;
+    const activeProjects = projects.filter((p) => p.status === "active").length;
+    const inactiveProjects = projects.filter(
+      (p) => p.status === "inactive",
+    ).length;
+    const pendingProjects = projects.filter((p) => p.status === "pending").length;
 
-  const stats = [
-    {
-      label: "Total Projects",
-      value: totalProjects,
-      icon: Briefcase,
-      color: "text-slate-400",
-    },
-    {
-      label: "Active",
-      value: activeProjects,
-      icon: CircleCheckBig,
-      color: "text-green-500",
-    },
-    {
-      label: "Inactive",
-      value: inactiveProjects,
-      icon: CirclePause,
-      color: "text-slate-400",
-    },
-    {
-      label: "Pending",
-      value: pendingProjects,
-      icon: Timer,
-      color: "text-orange-500",
-    },
-  ];
+    return [
+      {
+        label: "Total Projects",
+        value: totalProjects,
+        icon: Briefcase,
+        color: "text-slate-400",
+      },
+      {
+        label: "Active",
+        value: activeProjects,
+        icon: CircleCheckBig,
+        color: "text-green-500",
+      },
+      {
+        label: "Inactive",
+        value: inactiveProjects,
+        icon: CirclePause,
+        color: "text-slate-400",
+      },
+      {
+        label: "Pending",
+        value: pendingProjects,
+        icon: Timer,
+        color: "text-orange-500",
+      },
+    ];
+  }, [projects]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

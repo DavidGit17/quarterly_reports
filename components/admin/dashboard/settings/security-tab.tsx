@@ -39,9 +39,7 @@ export function SecurityTab({
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <Label htmlFor="sessiontimeout">
-            Session Timeout (minutes)
-          </Label>
+          <Label htmlFor="sessiontimeout">Session Timeout (minutes)</Label>
           <Input
             id="sessiontimeout"
             type="number"
@@ -63,10 +61,7 @@ export function SecurityTab({
               Add an extra layer of security to your account
             </p>
           </div>
-          <Switch
-            checked={twoFAEnabled}
-            onCheckedChange={onTwoFAChange}
-          />
+          <Switch checked={twoFAEnabled} onCheckedChange={onTwoFAChange} />
         </div>
 
         <div className="pt-4 border-t border-slate-200 flex gap-2 justify-end">
@@ -75,7 +70,7 @@ export function SecurityTab({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-[#2563EB] hover:bg-blue-700 text-white"
+            className="bg-slate-900 hover:bg-slate-800 text-white"
           >
             Save Changes
           </Button>

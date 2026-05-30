@@ -42,37 +42,14 @@ export type DistributionRuleRecord = WithId<DistributionRuleDocument> & {
 };
 
 const COLLECTION = "form_distribution_rules";
-let ensureIndexesPromise: Promise<void> | null = null;
 
-const ensureIndexes = async (
-  collection: Collection<DistributionRuleDocument>,
-) => {
-  if (!ensureIndexesPromise) {
-    ensureIndexesPromise = collection
-      .createIndexes([
-        {
-          key: { status: 1, nextSendAt: 1 },
-          name: "rules_status_next_send_idx",
-        },
-        {
-          key: { createdAt: -1 },
-          name: "rules_created_at_desc_idx",
-        },
-        {
-          key: { processingStartedAt: 1 },
-          name: "rules_processing_started_at_idx",
-        },
-      ])
-      .then(() => undefined);
-  }
-  await ensureIndexesPromise;
-};
+const ensureIndexes = async () => {};
 
 export const getFormDistributionCollection = async () => {
   const db = await getDb();
   const collection =
     db.collection<DistributionRuleDocument>(COLLECTION);
-  await ensureIndexes(collection);
+  await ensureIndexes();
   return collection;
 };
 

@@ -1,4 +1,5 @@
 import { MongoClient, Db, MongoServerError, MongoNetworkError } from "mongodb";
+import { createAllIndexes } from "@/server/db/indexes";
 
 const MISSING_MONGODB_URI_MESSAGE = "Missing MONGODB_URI environment variable";
 const PLACEHOLDER_MONGODB_URI_MESSAGE =
@@ -6,9 +7,19 @@ const PLACEHOLDER_MONGODB_URI_MESSAGE =
 
 declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
+  var _dbIndexesPromise: Promise<void> | undefined;
 }
 
 const dbName = process.env.MONGODB_DB_NAME || "quarterly_reports";
+
+const CONNECTION_POOL_OPTIONS = {
+  minPoolSize: 0,
+  maxPoolSize: 5,
+  waitQueueTimeoutMS: 10_000,
+  serverSelectionTimeoutMS: 5_000,
+  connectTimeoutMS: 10_000,
+  socketTimeoutMS: 30_000,
+};
 
 const getClientPromise = () => {
   if (global._mongoClientPromise) {
@@ -25,7 +36,7 @@ const getClientPromise = () => {
     throw new Error(PLACEHOLDER_MONGODB_URI_MESSAGE);
   }
 
-  const client = new MongoClient(uri);
+  const client = new MongoClient(uri, CONNECTION_POOL_OPTIONS);
   const clientPromise = client.connect();
 
   if (process.env.NODE_ENV !== "production") {
@@ -37,7 +48,19 @@ const getClientPromise = () => {
 
 export const getDb = async (): Promise<Db> => {
   const connectedClient = await getClientPromise();
-  return connectedClient.db(dbName);
+  const db = connectedClient.db(dbName);
+
+  if (!global._dbIndexesPromise) {
+    global._dbIndexesPromise = createAllIndexes(db).catch((err) => {
+      console.error("[DB] Index creation failed (non-fatal):", err);
+    });
+  }
+
+  return db;
+};
+
+export const waitForIndexes = async (): Promise<void> => {
+  await global._dbIndexesPromise;
 };
 
 export const isMongoConfigurationError = (error: unknown) =>

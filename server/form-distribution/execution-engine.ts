@@ -18,6 +18,9 @@ const LOCK_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 // Max recipients to process per invocation (Netlify function timeout safety)
 const CHUNK_SIZE = 25;
 
+// Throttle delay between individual emails (ms) to stay within Brevo's ~300 req/min limit
+const SEND_DELAY_MS = 250;
+
 export type ProcessResult = {
   ruleId: string;
   ruleName: string;
@@ -320,6 +323,12 @@ async function logSend(
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// ---------------------------------------------------------------------------
 // Main processing
 // ---------------------------------------------------------------------------
 
@@ -371,6 +380,10 @@ async function processChunk(
       sentCount++;
     } else {
       failedCount++;
+    }
+
+    if (i < end - 1) {
+      await delay(SEND_DELAY_MS);
     }
   }
 

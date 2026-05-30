@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Menu, Bell, LogOut, Check, Trash2, Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatIsoDateTime } from "@/lib/shared/date-format";
+import { useAuth } from "./auth-context";
 
 interface HeaderProps {
   onMobileMenuClick?: () => void;
@@ -122,22 +123,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
   const [notifications, setNotifications] =
     useState<Notification[]>(mockNotifications);
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState<SessionUser | null>(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.ok) {
-          const data = (await res.json()) as { user?: SessionUser };
-          if (data.user) setUser(data.user);
-        }
-      } catch {
-        // silently fail
-      }
-    };
-    void loadUser();
-  }, []);
+  const { user } = useAuth();
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -169,9 +155,9 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
             className="md:hidden p-2 hover:bg-slate-100 rounded-xl transition-colors"
             aria-label="Toggle menu"
           >
-            <Menu className="w-5 h-5 text-slate-500" />
+            <Menu className="w-5 h-5 text-slate-500" aria-hidden="true" />
           </button>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2563EB] text-sm font-semibold text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-sm font-semibold text-white">
             QR
           </div>
           <div className="min-w-0">
@@ -180,15 +166,10 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                 Quarterly Reports
               </h1>
             </div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.05em] text-slate-500 leading-tight">
+            <p className="text-xs font-medium uppercase tracking-[0.05em] text-slate-500 leading-tight">
               Admin Dashboard
             </p>
           </div>
-        </div>
-
-        {/* Right: Title (mobile) and actions */}
-        <div className="md:hidden flex-1 text-center">
-          <h2 className="text-sm font-semibold text-slate-900">Reports</h2>
         </div>
 
         {/* Right: Actions */}
@@ -197,9 +178,9 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <button className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors">
-                <Bell className="w-5 h-5 text-slate-500" />
+                <Bell className="w-5 h-5 text-slate-500" aria-hidden="true" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold leading-none">
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 text-white text-xs font-semibold leading-none">
                     {unreadCount}
                   </span>
                 )}
@@ -207,37 +188,39 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
             </PopoverTrigger>
             <PopoverContent
               align="end"
+              side="bottom"
               sideOffset={8}
-              className="w-100 p-0 border-slate-200 rounded-2xl shadow-lg bg-white overflow-hidden"
+              avoidCollisions={false}
+              className="w-[320px] sm:w-[400px] max-w-[calc(100vw-1rem)] p-0 border-slate-200 rounded-2xl shadow-xl bg-white overflow-hidden !translate-x-[58px] sm:!translate-x-0"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-heading text-[16px] font-semibold leading-6 text-slate-900">
+              <div className="flex flex-col gap-2 px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                  <h3 className="font-heading text-lg font-semibold leading-6 text-slate-900">
                     Notifications
                   </h3>
                   {unreadCount > 0 && (
-                    <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#2563EB] text-white text-[11px] font-semibold leading-none font-ui">
+                    <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold leading-none font-ui">
                       {unreadCount}
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex w-full items-center justify-start gap-4 pl-1">
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllAsRead}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-[12px] font-medium text-slate-500 hover:text-[#2563EB] hover:bg-slate-100 transition-colors font-ui"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:text-primary hover:bg-slate-100 transition-colors font-ui whitespace-nowrap"
                     >
-                      <Check className="w-3 h-3" />
+                      <Check className="w-3 h-3" aria-hidden="true" />
                       Mark all read
                     </button>
                   )}
                   {notifications.length > 0 && (
                     <button
                       onClick={handleClearAll}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-[12px] font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors font-ui"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors font-ui whitespace-nowrap"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3 h-3" aria-hidden="true" />
                       Clear all
                     </button>
                   )}
@@ -245,13 +228,13 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
               </div>
 
               {/* List */}
-              <div className="max-h-105 overflow-y-auto">
+              <div className="max-h-[52vh] overflow-y-auto">
                 {notifications.length > 0 ? (
                   <div className="divide-y divide-slate-100">
                     {notifications.map((n) => (
                       <div
                         key={n.id}
-                        className={`px-5 py-4 transition-colors ${
+                        className={`sm:px-5 px-4 sm:py-4 py-3 transition-colors ${
                           n.read ? "bg-white" : "bg-slate-50"
                         }`}
                       >
@@ -270,11 +253,11 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-0.5">
-                                  <p className="font-ui text-[14px] font-semibold leading-5 text-slate-900">
+                                  <p className="font-ui text-sm font-semibold leading-5 text-slate-900">
                                     {n.title}
                                   </p>
                                   <span
-                                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium leading-none font-ui ${
+                                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium leading-none font-ui ${
                                       typeColors[n.type]?.bg ||
                                       "bg-slate-100 text-slate-600"
                                     }`}
@@ -283,10 +266,10 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                                       "Notification"}
                                   </span>
                                 </div>
-                                <p className="font-ui text-[13px] leading-4.5 text-slate-600 mt-0.5">
+                                <p className="font-ui text-sm leading-4.5 text-slate-600 mt-0.5">
                                   {n.message}
                                 </p>
-                                <p className="font-data text-[11px] leading-4 text-slate-400 mt-1.5">
+                                <p className="font-data text-xs leading-4 text-slate-400 mt-1.5">
                                   {formatIsoDateTime(n.timestamp)}
                                 </p>
                                 {n.actionUrl && (
@@ -296,9 +279,12 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                                       router.push(n.actionUrl!);
                                       setOpen(false);
                                     }}
-                                    className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-slate-200 bg-white text-[12px] font-medium text-slate-500 hover:bg-slate-50 hover:text-[#2563EB] transition-colors font-ui"
+                                    className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-500 hover:bg-slate-50 hover:text-primary transition-colors font-ui"
                                   >
-                                    <Eye className="w-3 h-3" />
+                                    <Eye
+                                      className="w-3 h-3"
+                                      aria-hidden="true"
+                                    />
                                     Open
                                   </button>
                                 )}
@@ -309,18 +295,24 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                                 {!n.read && (
                                   <button
                                     onClick={() => handleMarkAsRead(n.id)}
-                                    className="p-1 rounded-xl text-slate-400 hover:text-[#2563EB] hover:bg-blue-50 transition-colors"
-                                    title="Mark as read"
+                                    className="p-1 rounded-xl text-slate-400 hover:text-primary hover:bg-slate-50 transition-colors"
+                                    aria-label="Mark as read"
                                   >
-                                    <Check className="w-3.5 h-3.5" />
+                                    <Check
+                                      className="w-3.5 h-3.5"
+                                      aria-hidden="true"
+                                    />
                                   </button>
                                 )}
                                 <button
                                   onClick={() => handleDelete(n.id)}
                                   className="p-1 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                  title="Delete"
+                                  aria-label="Delete notification"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <Trash2
+                                    className="w-3.5 h-3.5"
+                                    aria-hidden="true"
+                                  />
                                 </button>
                               </div>
                             </div>
@@ -330,9 +322,12 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="px-5 py-12 text-center">
-                    <Bell className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-                    <p className="font-ui text-[14px] leading-5 text-slate-400">
+                  <div className="sm:px-5 px-4 py-12 text-center">
+                    <Bell
+                      className="w-8 h-8 text-slate-300 mx-auto mb-3"
+                      aria-hidden="true"
+                    />
+                    <p className="font-ui text-sm leading-5 text-slate-400">
                       No notifications yet.
                     </p>
                   </div>
@@ -340,11 +335,11 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
               </div>
 
               {/* Footer */}
-              <div className="border-t border-slate-200 px-5 py-3">
+              <div className="border-t border-slate-200 sm:px-5 px-4 py-3">
                 <Link
                   href="/dashboard/notifications"
                   onClick={() => setOpen(false)}
-                  className="block w-full text-center font-ui text-[13px] font-medium leading-5 text-[#2563EB] hover:text-[#1D4ED8] transition-colors"
+                  className="block w-full text-center font-ui text-sm font-medium leading-5 text-primary hover:text-primary/80 transition-colors"
                 >
                   View all notifications
                 </Link>
@@ -364,28 +359,31 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                         alt={user.username}
                       />
                     ) : null}
-                    <AvatarFallback className="bg-slate-100 font-ui text-[13px] font-semibold text-slate-600">
+                    <AvatarFallback className="bg-slate-100 font-ui text-sm font-semibold text-slate-600">
                       {getUserInitials(user.username)}
                     </AvatarFallback>
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="font-ui text-[14px] font-medium text-slate-900">
+              <DropdownMenuContent align="end" className="w-56 rounded-2xl">
+                <div className="px-3 py-3 bg-slate-50 rounded-t-2xl">
+                  <p className="font-ui text-sm font-semibold text-slate-900">
                     {user.username}
                   </p>
-                  <p className="font-ui text-[12px] text-slate-400">
+                  <p className="font-ui text-xs text-slate-500 mt-0.5">
                     {user.email}
                   </p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem
+                  asChild
+                  className="px-3 py-2.5 cursor-pointer font-ui text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100"
+                >
                   <Link href="/profile">My Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-red-600"
+                  className="px-3 py-2.5 cursor-pointer text-red-600 font-ui text-sm hover:text-red-700 hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50"
                   onClick={async () => {
                     await fetch("/api/auth/logout", { method: "POST" });
                     router.push("/login");

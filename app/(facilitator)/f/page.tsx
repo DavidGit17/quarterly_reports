@@ -109,7 +109,7 @@ export default function FacilitatorDashboard() {
           <div className="flex items-center gap-4">
             <Link
               href="/f/my-reports"
-              className="text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+              className="py-2 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
             >
               View Reports
             </Link>
@@ -119,7 +119,7 @@ export default function FacilitatorDashboard() {
               aria-label="Go to profile"
               title="Profile"
             >
-              <CircleUserRound className="h-7 w-7" />
+              <CircleUserRound className="h-10 w-10" />
             </Link>
           </div>
         </div>
@@ -224,7 +224,7 @@ export default function FacilitatorDashboard() {
                       type="button"
                       disabled={currentPage <= 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="rounded-lg border border-slate-200 bg-white min-w-[44px] min-h-[44px] p-3 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
@@ -232,7 +232,7 @@ export default function FacilitatorDashboard() {
                       type="button"
                       disabled={currentPage >= pagination.totalPages}
                       onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
-                      className="rounded-lg border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="rounded-lg border border-slate-200 bg-white min-w-[44px] min-h-[44px] p-3 text-slate-500 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
