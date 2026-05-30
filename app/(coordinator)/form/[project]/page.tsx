@@ -556,8 +556,7 @@ export default function ProjectFormPage() {
                 Preview Mode
               </p>
               <p className="text-xs font-medium text-slate-500">
-                You are viewing this form as an admin. This is a read-only
-                preview.
+                This form is for coordinators and facilitators only. Admins cannot submit forms.
               </p>
             </div>
           </div>
