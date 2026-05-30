@@ -9,7 +9,9 @@ export const maxDuration = 120;
 function validateCronRequest(request: Request): boolean {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) return true; // allow if not configured (dev)
-  const headerValue = request.headers.get("x-cron-secret");
+  const headerValue =
+    request.headers.get("x-cron-secret") ||
+    request.headers.get("x_cron_secret");
   return headerValue === cronSecret;
 }
 
