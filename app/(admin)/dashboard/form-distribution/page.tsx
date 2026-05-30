@@ -203,19 +203,18 @@ export default function FormDistributionPage() {
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sendResult, setSendResult] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [editingRule, setEditingRule] = useState<DistributionRule | null>(null);
-  const [deletingRule, setDeletingRule] = useState<DistributionRule | null>(
-    null,
-  );
+  const [deletingRule, setDeletingRule] = useState<DistributionRule | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [sameDayMode, setSameDayMode] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [confirmingToggle, setConfirmingToggle] =
-    useState<DistributionRule | null>(null);
+  const [confirmingToggle, setConfirmingToggle] = useState<DistributionRule | null>(null);
   const [sendingRule, setSendingRule] = useState<DistributionRule | null>(null);
   const [forms, setForms] = useState<string[]>([]);
+
   const [validationError, setValidationError] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [monthCalendarOpen, setMonthCalendarOpen] = useState<number | null>(null);
@@ -545,14 +544,14 @@ export default function FormDistributionPage() {
         throw new Error(data.message || "Failed to send.");
       }
       const result = data.result;
-      if (result.sentCount === 0) {
-        const reason = result.error || "No matching recipients found. Check that users exist with the correct role and project name.";
-        setError(`${result.ruleName}: ${reason}`);
-      } else {
-        setError(`${result.ruleName}: ${result.sentCount} sent, ${result.failedCount} failed, ${result.skippedCount} skipped`);
-      }
       setSendingRule(null);
       await fetchRules();
+      if (result.sentCount === 0) {
+        const reason = result.error || "No matching recipients found. Check that users exist with the correct role and project name.";
+        setSendResult(`${result.ruleName}: ${reason}`);
+      } else {
+        setSendResult(`${result.ruleName}: ${result.sentCount} sent, ${result.failedCount} failed, ${result.skippedCount} skipped`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send.");
     } finally {
@@ -587,6 +586,11 @@ export default function FormDistributionPage() {
       {error && (
         <div className="mb-4 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">
           {error}
+        </div>
+      )}
+      {sendResult && (
+        <div className="mb-4 rounded-xl border border-slate-300 bg-slate-50 p-3 text-sm text-slate-800">
+          {sendResult}
         </div>
       )}
 
