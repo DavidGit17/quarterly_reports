@@ -19,7 +19,7 @@ import {
 // A rule locked longer than this is considered stale and will be recovered
 const LOCK_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
-// Max recipients to process per invocation (Netlify function timeout safety)
+// Max recipients to process per invocation (Netlify function timeout safety) 
 const CHUNK_SIZE = 25;
 
 // Throttle delay between individual emails (ms) to stay within Brevo's ~300 req/min limit
