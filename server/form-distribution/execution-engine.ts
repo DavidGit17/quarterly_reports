@@ -136,6 +136,16 @@ function buildEmailHtml(opts: {
 async function resolveRecipients(
   rule: DistributionRuleRecord,
 ): Promise<UserRecord[]> {
+  console.log(
+    `[EXECUTION ENGINE] resolveRecipients called for rule: "${rule.name}"`,
+  );
+  console.log(`[EXECUTION ENGINE]   - recipients type: ${rule.recipients}`);
+  console.log(
+    `[EXECUTION ENGINE]   - projects: ${JSON.stringify(rule.projects)}`,
+  );
+  console.log(
+    `[EXECUTION ENGINE]   - specificUsers: ${JSON.stringify(rule.specificUsers)}`,
+  );
   const usersCollection = await getUsersCollection();
 
   if (rule.recipients === "specific") {
@@ -148,11 +158,15 @@ async function resolveRecipients(
         status: "active",
       })
       .toArray();
-    return users.filter((u) =>
+    const filteredUsers = users.filter((u) =>
       rule.projects.some(
         (p) => p.toLowerCase() === (u.project || "").toLowerCase(),
       ),
     );
+    console.log(
+      `[EXECUTION ENGINE] resolveRecipients returning ${filteredUsers.length} users for rule "${rule.name}"`,
+    );
+    return filteredUsers;
   }
 
   const roles: Array<"coordinator" | "facilitator"> =
@@ -174,8 +188,14 @@ async function resolveRecipients(
       },
     })
     .toArray();
-
-  return users;
+  console.log(
+    `[EXECUTION ENGINE] resolveRecipients found ${users.length} users before project filter`,
+  );
+  const filteredUsers = users;
+  console.log(
+    `[EXECUTION ENGINE] resolveRecipients returning ${filteredUsers.length} users for rule "${rule.name}"`,
+  );
+  return filteredUsers;
 }
 
 function toRecipientKey(ruleId: string, userId: string): string {
@@ -526,7 +546,7 @@ async function createNotification(
       title,
       message,
       read: false,
-      actionUrl: actionUrl || null,
+      actionUrl: actionUrl || undefined,
       createdAt: new Date(),
     });
   } catch {
@@ -582,6 +602,9 @@ export async function processDueRules(): Promise<{
     }
   }
 
+  console.log(
+    `[EXECUTION ENGINE] processDueRules completed. Processed: ${results.length}`,
+  );
   return {
     processed: results.length,
     results,
