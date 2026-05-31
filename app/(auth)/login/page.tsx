@@ -55,7 +55,7 @@ export default function LoginPage() {
         return;
       }
 
-      const projectSlug = data.project.toLowerCase().replace(/\s+/g, "-"); router.push(`/form/${projectSlug}`);
+      const projectSlug = data.project.toLowerCase().replace(/\s+/g, "-"); const formUrl = data.role === "facilitator" ? `/f/form/${projectSlug}` : `/form/${projectSlug}`; router.push(formUrl);
     } catch {
       setErrorMessage("User is not registered.");
     } finally {
