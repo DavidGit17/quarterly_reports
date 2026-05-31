@@ -166,13 +166,16 @@ export default function FacilitatorProjectFormPage() {
 
         if (data.user?.role !== "facilitator" && !isAdmin) {
           setIsAccessDenied(true);
-          setErrorMessage("Access Denied");
+          setErrorMessage("This form is for facilitators only. You are " + data.user?.role + ".");
           setIsReady(true);
           return;
         }
 
         if (isAdmin) {
-          setIsPreviewMode(true);
+          setIsAccessDenied(true);
+          setErrorMessage("This form is for facilitators only. You are " + data.user?.role + ".");
+          setIsReady(true);
+          return;
         }
 
         if (data.user?.role === "facilitator") {
@@ -186,14 +189,14 @@ export default function FacilitatorProjectFormPage() {
 
           if (!assignedProject) {
             setIsAccessDenied(true);
-            setErrorMessage("Access Denied");
+            setErrorMessage("This form is for facilitators only.");
             setIsReady(true);
             return;
           }
 
           if (toProjectSlug(assignedProject) !== projectSlug) {
             setIsAccessDenied(true);
-            setErrorMessage("Access Denied");
+            setErrorMessage("This form is for facilitators only.");
             setIsReady(true);
             return;
           }

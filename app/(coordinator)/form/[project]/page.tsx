@@ -166,14 +166,14 @@ export default function ProjectFormPage() {
 
         if (data.user?.role !== "coordinator" && !isAdmin) {
           setIsAccessDenied(true);
-          setErrorMessage("Access Denied");
+          setErrorMessage("This form is for coordinators only. You are " + data.user?.role + ".");
           setIsReady(true);
           return;
         }
 
         if (isAdmin) {
           setIsAccessDenied(true);
-          setErrorMessage("This form is for coordinators and facilitators only. Admins cannot submit forms.");
+          setErrorMessage("This form is for coordinators only. You are " + data.user?.role + ".");
           setIsReady(true);
           return;
         }
@@ -559,7 +559,7 @@ export default function ProjectFormPage() {
                 Preview Mode
               </p>
               <p className="text-xs font-medium text-slate-500">
-                This form is for coordinators and facilitators only. Admins cannot submit forms.
+                You are logged in as a different role. This is a read-only preview.
               </p>
             </div>
           </div>
