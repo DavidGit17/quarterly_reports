@@ -188,15 +188,13 @@ export default function FacilitatorProjectFormPage() {
           const assignedProject = data.user.project || "";
 
           if (!assignedProject) {
-            setIsAccessDenied(true);
-            setErrorMessage("This form is for facilitators only.");
-            setIsReady(true);
+            router.push("/f");
             return;
           }
 
           if (toProjectSlug(assignedProject) !== projectSlug) {
             setIsAccessDenied(true);
-            setErrorMessage("This form is for facilitators only.");
+            setErrorMessage("You are assigned to a different project.");
             setIsReady(true);
             return;
           }

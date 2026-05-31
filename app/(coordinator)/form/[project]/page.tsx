@@ -188,15 +188,13 @@ export default function ProjectFormPage() {
           const assignedProject = data.user.project || "";
 
           if (!assignedProject) {
-            setIsAccessDenied(true);
-            setErrorMessage("Access Denied");
-            setIsReady(true);
+            router.push("/");
             return;
           }
 
           if (toProjectSlug(assignedProject) !== projectSlug) {
             setIsAccessDenied(true);
-            setErrorMessage("Access Denied");
+            setErrorMessage("You are assigned to a different project.");
             setIsReady(true);
             return;
           }
