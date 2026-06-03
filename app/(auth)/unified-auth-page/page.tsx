@@ -1,0 +1,774 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  COORDINATOR_PROJECT_OPTIONS,
+  getFormConfigs,
+} from "@/lib/shared/form-storage";
+import { useToast } from "@/hooks/shared/use-toast";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
+import { Info, ArrowRight, User, Folder } from "lucide-react";
+
+type AuthMode = "login" | "signup";
+
+type LoginResponse = {
+  role?: "admin" | "coordinator" | "facilitator";
+  project?: string;
+  message?: string;
+};
+
+type FormErrors = {
+  username?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+  project?: string;
+};
+
+export default function UnifiedAuthPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const [authMode, setAuthMode] = useState<AuthMode>("login");
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<
+    "coordinator" | "facilitator" | "admin" | ""
+  >("");
+  const [projectOptions, setProjectOptions] = useState<string[]>([]);
+  const [project, setProject] = useState<string>("");
+
+  const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (authMode === "signup") {
+      try {
+        const configs = getFormConfigs();
+        const projects = Object.keys(configs).sort();
+        setProjectOptions(projects);
+      } catch {
+        setProjectOptions(Array.from(COORDINATOR_PROJECT_OPTIONS));
+      }
+    }
+  }, [authMode]);
+
+  const toggleAuthMode = (mode: AuthMode) => {
+    if (authMode === mode) return;
+    setAuthMode(mode);
+    setFieldErrors({});
+    setErrorMessage("");
+  };
+
+  const getFieldClassName = (hasError: boolean) => {
+    const baseClasses =
+      "w-full h-12 rounded-xl border bg-background px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0";
+    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-border focus:border-primary"}`;
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setFieldErrors({});
+
+    let hasError = false;
+    const newErrors: FormErrors = {};
+
+    if (!username.trim()) {
+      newErrors.username = "Username is required.";
+      hasError = true;
+    }
+    if (!password) {
+      newErrors.password = "Password is required.";
+      hasError = true;
+    }
+    if (hasError) {
+      setFieldErrors(newErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = (await response.json()) as LoginResponse;
+
+      if (!response.ok || !data.role) {
+        const apiMsg = data.message || "Login failed.";
+        const lowerMsg = apiMsg.toLowerCase();
+        if (
+          lowerMsg.includes("password") ||
+          lowerMsg.includes("incorrect") ||
+          lowerMsg.includes("match")
+        )
+          setFieldErrors({ password: apiMsg });
+        else if (
+          lowerMsg.includes("user") ||
+          lowerMsg.includes("exist") ||
+          lowerMsg.includes("found")
+        )
+          setFieldErrors({ username: apiMsg });
+        else if (lowerMsg.includes("credential"))
+          setFieldErrors({ password: apiMsg });
+        else setErrorMessage(apiMsg);
+        return;
+      }
+
+      if (data.role === "admin") {
+        router.push("/dashboard");
+        return;
+      }
+      if (!data.project) {
+        setErrorMessage("Project is not assigned to your account.");
+        return;
+      }
+
+      const projectSlug = data.project.toLowerCase().replace(/\s+/g, "-");
+      const formUrl =
+        data.role === "facilitator"
+          ? `/f/form/${projectSlug}`
+          : `/form/${projectSlug}`;
+      router.push(formUrl);
+    } catch {
+      setFieldErrors({ username: "Unable to connect. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setFieldErrors({});
+
+    let hasError = false;
+    const newErrors: FormErrors = {};
+
+    if (!username.trim()) {
+      newErrors.username = "Username is required.";
+      hasError = true;
+    }
+    if (!email.trim()) {
+      newErrors.email = "Email is required.";
+      hasError = true;
+    }
+    if (!password) {
+      newErrors.password = "Password is required.";
+      hasError = true;
+    }
+    if (!role) {
+      newErrors.role = "Please select a role.";
+      hasError = true;
+    }
+    if ((role === "coordinator" || role === "facilitator") && !project) {
+      newErrors.project = "Please select a project.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setFieldErrors(newErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const sendOtpResponse = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, username }),
+      });
+
+      const sendOtpData = await sendOtpResponse.json();
+
+      if (!sendOtpResponse.ok) {
+        const apiMsg =
+          sendOtpData.message || "Failed to send verification code.";
+        const lowerMsg = apiMsg.toLowerCase();
+        if (lowerMsg.includes("email")) setFieldErrors({ email: apiMsg });
+        else if (lowerMsg.includes("user") || lowerMsg.includes("name"))
+          setFieldErrors({ username: apiMsg });
+        else if (lowerMsg.includes("password"))
+          setFieldErrors({ password: apiMsg });
+        else setErrorMessage(apiMsg);
+        return;
+      }
+
+      toast({
+        title: "Verification Code Sent",
+        description: `We've sent a code to ${email}. Check your inbox.`,
+      });
+
+      sessionStorage.setItem("signup_password", password);
+      const params = new URLSearchParams({
+        email,
+        username,
+        role,
+        ...(role !== "admin" && { project }),
+      });
+
+      router.push(`/verify-otp?${params.toString()}`);
+    } catch {
+      setErrorMessage("Unable to sign up right now. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-full flex flex-col lg:flex-row">
+      {/* THE UNIFIED FLOATING CARD */}
+      <div className="w-full flex flex-col lg:flex-row">
+        {/* LEFT PANE: 4 of 12 columns (approx 33%) */}
+        <div className="hidden lg:flex flex-col justify-center w-full lg:w-4/12 p-12 xl:p-16 relative z-0">
+          <h1 className="text-2xl xl:text-3xl font-bold tracking-tight text-primary mb-5 leading-tight">
+            Quarterly Reports <br /> Management System
+          </h1>
+
+          <p className="text-base text-muted-foreground mb-14 max-w-sm">
+            Securely access your workspace, manage projects, and file your
+            quarterly reports efficiently.
+          </p>
+
+          <div className="w-full max-w-[320px] mx-auto opacity-85">
+            <svg
+              viewBox="0 0 400 350"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-full h-full drop-shadow-lg"
+            >
+              <path
+                d="M260 140 H 340 L 360 120 H 380"
+                stroke="#a1a1aa"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+              <circle cx="380" cy="120" r="4" fill="#a1a1aa" />
+              <path
+                d="M260 170 H 300 L 320 190 H 370"
+                stroke="#a1a1aa"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+              <circle cx="370" cy="190" r="4" fill="#a1a1aa" />
+              <path
+                d="M140 100 V 50 L 120 30 H 100"
+                stroke="#a1a1aa"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+              <circle cx="100" cy="30" r="4" fill="#a1a1aa" />
+              <path d="M150 210 L 140 250 H 200 L 190 210 Z" fill="#e4e4e7" />
+              <rect
+                x="120"
+                y="250"
+                width="100"
+                height="8"
+                rx="4"
+                fill="#a1a1aa"
+              />
+              <rect
+                x="20"
+                y="40"
+                width="280"
+                height="180"
+                rx="16"
+                fill="#27272a"
+              />
+              <rect
+                x="23"
+                y="43"
+                width="274"
+                height="174"
+                rx="13"
+                fill="#ffffff"
+              />
+              <rect x="26" y="46" width="60" height="168" fill="#f4f4f5" />
+              <rect x="36" y="60" width="40" height="8" rx="4" fill="#e4e4e7" />
+              <rect x="36" y="80" width="40" height="6" rx="3" fill="#e4e4e7" />
+              <rect x="36" y="95" width="40" height="6" rx="3" fill="#e4e4e7" />
+              <rect
+                x="100"
+                y="60"
+                width="100"
+                height="12"
+                rx="6"
+                fill="#e4e4e7"
+              />
+              <rect
+                x="100"
+                y="90"
+                width="170"
+                height="40"
+                rx="6"
+                fill="#e0f2fe"
+                opacity="0.6"
+              />
+              <rect
+                x="100"
+                y="140"
+                width="80"
+                height="50"
+                rx="6"
+                fill="#d1fae5"
+                opacity="0.6"
+              />
+              <rect
+                x="190"
+                y="140"
+                width="80"
+                height="50"
+                rx="6"
+                fill="#f4f4f5"
+              />
+              <g transform="translate(70, 20)">
+                <rect
+                  x="120"
+                  y="80"
+                  width="150"
+                  height="250"
+                  rx="20"
+                  fill="#27272a"
+                />
+                <rect
+                  x="123"
+                  y="83"
+                  width="144"
+                  height="244"
+                  rx="17"
+                  fill="#ffffff"
+                />
+                <path
+                  d="M165 83 H 225 V 95 C 225 100.5 220.5 105 215 105 H 175 C 169.5 105 165 100.5 165 95 V 83 Z"
+                  fill="#27272a"
+                />
+                <circle
+                  cx="195"
+                  cy="160"
+                  r="28"
+                  stroke="#e4e4e7"
+                  strokeWidth="2"
+                  fill="#fafafa"
+                />
+                <circle cx="195" cy="154" r="10" fill="#27272a" />
+                <path
+                  d="M177 178 C 177 168 183 162 195 162 C 207 162 213 168 213 178 V 188 H 177 V 178 Z"
+                  fill="#27272a"
+                />
+                <g transform="translate(10, 110)">
+                  <rect
+                    width="110"
+                    height="40"
+                    rx="8"
+                    fill="#ffffff"
+                    stroke="#e4e4e7"
+                    strokeWidth="2"
+                    filter="url(#shadow)"
+                  />
+                  <rect
+                    x="10"
+                    y="10"
+                    width="16"
+                    height="20"
+                    rx="3"
+                    fill="#27272a"
+                  />
+                  <circle cx="45" cy="20" r="3" fill="#a1a1aa" />
+                  <circle cx="58" cy="20" r="3" fill="#a1a1aa" />
+                  <circle cx="71" cy="20" r="3" fill="#a1a1aa" />
+                  <circle cx="84" cy="20" r="3" fill="#a1a1aa" />
+                </g>
+                <g transform="translate(120, 200)">
+                  <rect
+                    width="70"
+                    height="70"
+                    rx="16"
+                    fill="#ffffff"
+                    stroke="#e4e4e7"
+                    strokeWidth="2"
+                    filter="url(#shadow)"
+                  />
+                  <circle
+                    cx="35"
+                    cy="35"
+                    r="20"
+                    stroke="#e0f2fe"
+                    strokeWidth="3"
+                    fill="none"
+                  />
+                  <circle
+                    cx="35"
+                    cy="35"
+                    r="12"
+                    stroke="#d1fae5"
+                    strokeWidth="3"
+                    fill="none"
+                  />
+                  <circle
+                    cx="35"
+                    cy="35"
+                    r="6"
+                    stroke="#a1a1aa"
+                    strokeWidth="3"
+                    fill="none"
+                  />
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        {/* RIGHT PANE: 8 of 12 columns (approx 67%), form-priority layout */}
+        <div className="w-full lg:w-8/12 bg-luxury-glass p-8 sm:p-12 lg:p-16 xl:p-20 flex flex-col justify-center relative z-10 border">
+          <div className="w-full max-w-xl mx-auto bg-white rounded-3xl shadow-md p-10">
+            {/* Segmented Control Toggle */}
+            <div className="flex p-1.5 mb-8 rounded-xl bg-zinc-100/80 border border-zinc-200/60 relative z-20">
+              <button
+                type="button"
+                onClick={() => toggleAuthMode("login")}
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                  authMode === "login"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleAuthMode("signup")}
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                  authMode === "signup"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Register
+              </button>
+            </div>
+
+            <div className="mb-8 relative z-20">
+              <h2 className="text-2xl font-bold tracking-tight text-primary">
+                {authMode === "login" ? "Welcome back" : "Create an account"}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {authMode === "login"
+                  ? "Please enter your details to sign in."
+                  : "Register your details to access the system."}
+              </p>
+            </div>
+
+            {/* BUTTER SMOOTH DYNAMIC HEIGHT CONTAINER */}
+            <div className="relative w-full">
+              {/* === LOGIN FORM === */}
+              <div
+                className={`w-full transform-gpu ${
+                  authMode === "login"
+                    ? "relative opacity-100 translate-x-0 z-10 pointer-events-auto transition-all duration-500 delay-200 ease-out"
+                    : "absolute top-0 left-0 opacity-0 -translate-x-4 z-0 pointer-events-none transition-all duration-200 ease-in"
+                }`}
+              >
+                <form noValidate onSubmit={handleLogin} className="space-y-4 max-w-md mx-auto">
+                  <div>
+                    <Label
+                      htmlFor="login-username"
+                      className="text-sm font-semibold text-foreground mb-1.5 block"
+                    >
+                      Username
+                    </Label>
+                    <input
+                      id="login-username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        if (fieldErrors.username)
+                          setFieldErrors({
+                            ...fieldErrors,
+                            username: undefined,
+                          });
+                      }}
+                      className={getFieldClassName(!!fieldErrors.username)}
+                      placeholder="Enter your username"
+                    />
+                    {fieldErrors.username && (
+                      <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">
+                        {fieldErrors.username}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <Label
+                        htmlFor="login-password"
+                        className="text-sm font-semibold text-foreground"
+                      >
+                        Password
+                      </Label>
+                      <Link
+                        href="/forgot-password"
+                        className="text-sm font-medium text-primary hover:underline transition-colors"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <PasswordInput
+                      id="login-password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password)
+                          setFieldErrors({
+                            ...fieldErrors,
+                            password: undefined,
+                          });
+                      }}
+                      className={getFieldClassName(!!fieldErrors.password)}
+                      placeholder="Enter your password"
+                    />
+                    {fieldErrors.password && (
+                      <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">
+                        {fieldErrors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-12 rounded-xl mt-4 font-semibold text-base hover:bg-primary/90 transition-all"
+                  >
+                    {isSubmitting ? "Logging in..." : "Login"}
+                  </Button>
+
+                  {errorMessage && (
+                    <p className="text-sm text-destructive text-center font-medium animate-in fade-in pt-2">
+                      {errorMessage}
+                    </p>
+                  )}
+                </form>
+              </div>
+
+              {/* === SIGNUP FORM === */}
+              <div
+                className={`w-full transform-gpu ${
+                  authMode === "signup"
+                    ? "relative opacity-100 translate-x-0 z-10 pointer-events-auto transition-all duration-500 delay-200 ease-out"
+                    : "absolute top-0 left-0 opacity-0 translate-x-4 z-0 pointer-events-none transition-all duration-200 ease-in"
+                }`}
+              >
+                <form noValidate onSubmit={handleSignup} className="space-y-4">
+                  <div>
+                    <Label
+                      htmlFor="signup-username"
+                      className="text-sm font-semibold text-foreground mb-1.5 block"
+                    >
+                      Username
+                    </Label>
+                    <input
+                      id="signup-username"
+                      type="text"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        if (fieldErrors.username)
+                          setFieldErrors({
+                            ...fieldErrors,
+                            username: undefined,
+                          });
+                      }}
+                      className={getFieldClassName(!!fieldErrors.username)}
+                      placeholder="Choose a username"
+                    />
+                    {fieldErrors.username ? (
+                      <p className="text-sm font-medium text-destructive mt-1.5">
+                        {fieldErrors.username}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1.5">
+                        <Info className="size-4 mt-0.5 shrink-0" />
+                        <span>Use Teams ID for Coordinator/Facilitator</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor="signup-email"
+                      className="text-sm font-semibold text-foreground mb-1.5 block"
+                    >
+                      Email
+                    </Label>
+                    <input
+                      id="signup-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (fieldErrors.email)
+                          setFieldErrors({ ...fieldErrors, email: undefined });
+                      }}
+                      className={getFieldClassName(!!fieldErrors.email)}
+                      placeholder="Enter your email"
+                    />
+                    {fieldErrors.email && (
+                      <p className="text-sm font-medium text-destructive mt-1.5">
+                        {fieldErrors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor="signup-password"
+                      className="text-sm font-semibold text-foreground mb-1.5 block"
+                    >
+                      Password
+                    </Label>
+                    <PasswordInput
+                      id="signup-password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password)
+                          setFieldErrors({
+                            ...fieldErrors,
+                            password: undefined,
+                          });
+                      }}
+                      className={getFieldClassName(!!fieldErrors.password)}
+                      placeholder="Create a password"
+                    />
+                    {fieldErrors.password && (
+                      <p className="text-sm font-medium text-destructive mt-1.5">
+                        {fieldErrors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor="signup-role"
+                      className="text-sm font-semibold text-foreground mb-1.5 block"
+                    >
+                      Role <span className="text-destructive">*</span>
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-[18px] text-muted-foreground pointer-events-none" />
+                      <select
+                        id="signup-role"
+                        value={role}
+                        onChange={(e) => {
+                          setRole(
+                            e.target.value as
+                              | "coordinator"
+                              | "facilitator"
+                              | "admin"
+                              | "",
+                          );
+                          if (fieldErrors.role)
+                            setFieldErrors({ ...fieldErrors, role: undefined });
+                        }}
+                        className={`${getFieldClassName(!!fieldErrors.role)} pl-10 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat`}
+                      >
+                        <option value="" disabled hidden>
+                          -- Select a role --
+                        </option>
+                        <option value="coordinator">Coordinator</option>
+                        <option value="facilitator">Facilitator</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                    {fieldErrors.role && (
+                      <p className="text-sm font-medium text-destructive mt-1.5">
+                        {fieldErrors.role}
+                      </p>
+                    )}
+                  </div>
+
+                  {(role === "coordinator" || role === "facilitator") && (
+                    <div className="animate-in fade-in duration-150">
+                      <Label
+                        htmlFor="signup-project"
+                        className="text-sm font-semibold text-foreground mb-1.5 block"
+                      >
+                        Project <span className="text-destructive">*</span>
+                      </Label>
+                      {projectOptions.length === 0 ? (
+                        <p className="text-sm text-destructive font-medium pt-1">
+                          No projects available. Contact admin.
+                        </p>
+                      ) : (
+                        <div className="relative">
+                          <Folder className="absolute left-3.5 top-1/2 -translate-y-1/2 size-[18px] text-muted-foreground pointer-events-none" />
+                          <select
+                            id="signup-project"
+                            value={project}
+                            onChange={(e) => {
+                              setProject(e.target.value);
+                              if (fieldErrors.project)
+                                setFieldErrors({
+                                  ...fieldErrors,
+                                  project: undefined,
+                                });
+                            }}
+                            className={`${getFieldClassName(!!fieldErrors.project)} pl-10 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat`}
+                          >
+                            <option value="" disabled hidden>
+                              -- Select a project --
+                            </option>
+                            {projectOptions.map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      {fieldErrors.project && (
+                        <p className="text-sm font-medium text-destructive mt-1.5">
+                          {fieldErrors.project}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-12 rounded-xl mt-4 font-semibold text-base flex items-center justify-center gap-2 group hover:bg-primary/90 transition-all"
+                  >
+                    {isSubmitting ? "Registering..." : "Register"}
+                    {!isSubmitting && (
+                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                    )}
+                  </Button>
+
+                  {errorMessage && (
+                    <p className="text-sm text-destructive text-center font-medium animate-in fade-in pt-2">
+                      {errorMessage}
+                    </p>
+                  )}
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
