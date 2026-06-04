@@ -228,12 +228,23 @@ export default function UnifiedAuthPage() {
     }
   };
 
-
+  // Softened, high-end transparent background opacity array variables
+  const softenedGradientStyle = {
+    backgroundColor: "hsla(220, 30%, 14%, 1)",
+    backgroundImage: `
+      radial-gradient(circle at 0% 5%, hsla(225, 56%, 60%, 0.08) 3.12%, transparent 50%),
+      radial-gradient(circle at 23% 3%, hsla(210, 96%, 48%, 0.10) 3.12%, transparent 76%),
+      radial-gradient(circle at 100% 93%, hsla(186, 95%, 47%, 0.06) 3.12%, transparent 45%),
+      radial-gradient(circle at 96% 103%, hsla(0, 0%, 100%, 0.04) 3.12%, transparent 50%),
+      radial-gradient(circle at 80% 0%, hsla(0, 0%, 0%, 0.12) 3.12%, transparent 25%)
+    `,
+    backgroundBlendMode: "normal, normal, normal, normal, normal",
+  };
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:grid lg:grid-cols-12 lg:items-center bg-background select-none overflow-x-hidden">
-      {/* LEFT PANE: Vertically locked and fully isolated desktop configuration */}
-      <div className="hidden lg:flex lg:col-span-5 bg-slate-100 flex-col justify-center p-8 sm:p-12 xl:p-16 relative z-0 min-h-screen border-r border-border">
+      {/* LEFT PANE: Hidden on mobile views by default, locks to 5/12 grid span on desktop screens */}
+      <div className="hidden lg:flex lg:col-span-5 bg-slate-50 flex-col justify-center p-8 sm:p-12 xl:p-16 relative z-0 min-h-screen border-r border-border">
         <div className="max-w-md mx-auto w-full">
           <h1 className="text-2xl xl:text-3xl font-bold tracking-tight text-primary mb-5 leading-tight">
             Quarterly Reports <br /> Management System
@@ -377,7 +388,7 @@ export default function UnifiedAuthPage() {
                 fill="#f4f4f5"
               />
 
-              {/* ADDED ELEMENT: Bottom Technical Ground Vector Underneath Devices */}
+              {/* Bottom Technical Ground Vector Underneath Devices */}
               <path
                 d="M60 280 H 340"
                 stroke="#e4e4e7"
@@ -416,7 +427,7 @@ export default function UnifiedAuthPage() {
                   fill="#27272a"
                 />
 
-                {/* ADDED ELEMENT: Verify Code Transmission Animating Signal Array */}
+                {/* Verify Code Transmission Animating Signal Array */}
                 <circle
                   cx="265"
                   cy="230"
@@ -468,7 +479,7 @@ export default function UnifiedAuthPage() {
                     rx="3"
                     fill="#27272a"
                   />
-                  {/* ADDED ELEMENT: Active Flowing Verification Input Indicators */}
+                  {/* Active Flowing Verification Input Indicators */}
                   <line
                     x1="40"
                     y1="20"
@@ -522,10 +533,60 @@ export default function UnifiedAuthPage() {
       </div>
 
       {/* RIGHT PANE: Takes full screen bounds on mobile devices, wraps the toned-down opacity variables smoothly */}
-      <div
-        className="w-full lg:col-span-7 p-4 sm:p-12 lg:p-16 xl:p-24 flex flex-col justify-center bg-luxury-glass relative z-10 min-h-screen overflow-y-visible lg:overflow-y-hidden"
-      >
-        <div className="w-full max-w-lg mx-auto bg-white rounded-[32px] shadow-xl p-6 sm:p-10 border border-white/40 backdrop-blur-md flex flex-col justify-center min-h-0 animate-in fade-in zoom-in-95 duration-500">
+      <div className="w-full lg:col-span-7 p-4 sm:p-12 lg:p-16 xl:p-24 flex flex-col bg-luxury-glass justify-center relative z-10 min-h-screen overflow-y-visible lg:overflow-y-hidden">
+        {/* AMBIENT BACKGROUND ANIMATION FOR MOBILE/TABLET SCREENS */}
+        <div className="absolute inset-0 z-0 pointer-events-none lg:hidden overflow-hidden opacity-40">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              {/* Core keyframes explicitly declared here so they run globally on mobile viewports */}
+              <style>
+                {`
+                  @keyframes mobilePulse {
+                    0% { r: 10px; opacity: 0.7; stroke-width: 1.5px; }
+                    50% { opacity: 0.4; }
+                    100% { r: 160px; opacity: 0; stroke-width: 0.5px; }
+                  }
+                  .mobile-signal-1 { animation: mobilePulse 3s infinite cubic-bezier(0.1, 0.8, 0.3, 1); transform-origin: center; }
+                  .mobile-signal-2 { animation: mobilePulse 3s infinite cubic-bezier(0.1, 0.8, 0.3, 1); animation-delay: 1.5s; transform-origin: center; }
+                `}
+              </style>
+            </defs>
+            {/* Perfectly centered radar verification waves floating beautifully behind the card */}
+            <circle
+              cx="50%"
+              cy="50%"
+              r="10"
+              fill="none"
+              stroke="#10b981"
+              className="mobile-signal-1"
+            />
+            <circle
+              cx="50%"
+              cy="50%"
+              r="10"
+              fill="none"
+              stroke="#10b981"
+              className="mobile-signal-2"
+            />
+
+            <path
+              d="M-100,50% Q50%,20% 110%,50%"
+              fill="none"
+              stroke="rgba(255,255,255,0.12)"
+              strokeWidth="1.5"
+              strokeDasharray="6,6"
+            />
+            <path
+              d="M-100,50% Q50%,80% 110%,50%"
+              fill="none"
+              stroke="rgba(255,255,255,0.12)"
+              strokeWidth="1.5"
+              strokeDasharray="6,6"
+            />
+          </svg>
+        </div>
+
+        <div className="w-full max-w-lg mx-auto bg-white rounded-[32px] shadow-xl p-6 sm:p-10 border border-white/40 backdrop-blur-md flex flex-col justify-center min-h-0 animate-in fade-in zoom-in-95 duration-500 relative z-10">
           <div>
             {/* Segmented Control Toggle Buttons */}
             <div className="flex p-1.5 mb-8 rounded-xl bg-zinc-900/5 border border-zinc-200/50 relative z-20">

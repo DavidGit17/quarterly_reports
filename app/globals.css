@@ -369,12 +369,12 @@
       ),
       radial-gradient(
         circle at 96% 103%,
-        hsla(0, 0%, 100%, 0.121) 3.1210986267166043%,
+        hsl(169, 15%, 85%)86267166043%,
         transparent 50.0047517726123%
       ),
       radial-gradient(
         circle at 80% 0%,
-        hsla(0, 0%, 0%, 0.441) 3.1210986267166043%,
+        hsla(210, 100%, 77%, 0) 3.1210986267166043%,
         transparent 24.819747276612727%
       );
     background-blend-mode: normal, normal, normal, normal, normal;
