@@ -11,6 +11,7 @@ import {
   type ScheduleConfig,
   type RuleStatus,
 } from "@/server/form-distribution/form-distribution";
+import { scheduleRuleEmails } from "@/server/form-distribution/execution-engine";
 
 export async function GET() {
   try {
@@ -135,6 +136,13 @@ export async function POST(request: Request) {
     const result = await collection.insertOne(doc);
     const created = await collection.findOne({ _id: result.insertedId });
 
+    if (created && doc.status === "active" && doc.nextSendAt) {
+      const scheduleResult = await scheduleRuleEmails(created);
+      console.log(
+        `[FORM DISTRIBUTION] Pre-scheduled ${scheduleResult.scheduled} emails for rule "${created.name}" via Brevo.`,
+      );
+    }
+
     return NextResponse.json(
       {
         rule: created ? toRuleResponse(created) : null,
@@ -243,6 +251,11 @@ export async function PATCH(request: Request) {
         { message: "Distribution rule not found." },
         { status: 404 },
       );
+    }
+
+    const updatedStatus = fields.status ?? result.status;
+    if (updatedStatus === "active") {
+      await scheduleRuleEmails(result);
     }
 
     return NextResponse.json({

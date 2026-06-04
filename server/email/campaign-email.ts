@@ -5,6 +5,7 @@ interface SendCampaignEmailOptions {
   projectName: string;
   formUrl: string;
   campaignType: "cycle-start" | "reminder" | "manual";
+  scheduledAt?: string;
 }
 
 export const sendCampaignEmail = async (
@@ -28,7 +29,7 @@ export const sendCampaignEmail = async (
     const senderEmail =
       process.env.BREVO_SENDER_EMAIL?.trim() || "noreply@example.com";
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       sender: {
         email: senderEmail,
         name: "Quarterly Reports",
@@ -37,6 +38,9 @@ export const sendCampaignEmail = async (
       subject: getSubject(options),
       htmlContent: getHtmlContent(options),
     };
+    if (options.scheduledAt) {
+      payload.scheduledAt = options.scheduledAt;
+    }
 
     await axios.post("https://api.brevo.com/v3/smtp/email", payload, {
       headers: {

@@ -8,7 +8,6 @@ import {
   getFormConfigs,
 } from "@/lib/shared/form-storage";
 import { useToast } from "@/hooks/shared/use-toast";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Info, ArrowRight, User, Folder } from "lucide-react";
@@ -34,20 +33,21 @@ export default function UnifiedAuthPage() {
   const { toast } = useToast();
 
   const [authMode, setAuthMode] = useState<AuthMode>("login");
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<
     "coordinator" | "facilitator" | "admin" | ""
   >("");
   const [projectOptions, setProjectOptions] = useState<string[]>([]);
   const [project, setProject] = useState<string>("");
-
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [loginProgress, setLoginProgress] = useState(0);
+  const [loginRedirectTo, setLoginRedirectTo] = useState<string | null>(null);
+  const [loginMessage, setLoginMessage] = useState("");
 
   useEffect(() => {
     if (authMode === "signup") {
@@ -61,6 +61,23 @@ export default function UnifiedAuthPage() {
     }
   }, [authMode]);
 
+  useEffect(() => {
+    if (!loginSuccess || !loginRedirectTo) return;
+    const duration = 1500;
+    const interval = 50;
+    const steps = duration / interval;
+    let currentStep = 0;
+    const timer = setInterval(() => {
+      currentStep++;
+      setLoginProgress(Math.min((currentStep / steps) * 100, 100));
+      if (currentStep >= steps) {
+        clearInterval(timer);
+        router.push(loginRedirectTo);
+      }
+    }, interval);
+    return () => clearInterval(timer);
+  }, [loginSuccess, loginRedirectTo, router]);
+
   const toggleAuthMode = (mode: AuthMode) => {
     if (authMode === mode) return;
     setAuthMode(mode);
@@ -70,15 +87,14 @@ export default function UnifiedAuthPage() {
 
   const getFieldClassName = (hasError: boolean) => {
     const baseClasses =
-      "w-full h-12 rounded-xl border bg-background px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-border focus:border-primary"}`;
+      "w-full h-12 rounded-xl border bg-white/80 px-4 text-base text-zinc-900 placeholder:text-zinc-400 transition-all focus:outline-none";
+    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-zinc-200 focus:border-[#5B51D8] focus:ring-2 focus:ring-[#5B51D8]/20"}`;
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
     setFieldErrors({});
-
     let hasError = false;
     const newErrors: FormErrors = {};
 
@@ -103,7 +119,6 @@ export default function UnifiedAuthPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-
       const data = (await response.json()) as LoginResponse;
 
       if (!response.ok || !data.role) {
@@ -127,20 +142,27 @@ export default function UnifiedAuthPage() {
         return;
       }
 
+      let msg = "";
+      let path = "";
       if (data.role === "admin") {
-        router.push("/dashboard");
-        return;
-      }
-      if (data.role === "coordinator") {
-        router.push("/");
-        return;
-      }
-      if (!data.project) {
+        msg = "Welcome Back! Preparing your dashboard...";
+        path = "/dashboard";
+      } else if (data.role === "coordinator") {
+        msg = "Welcome Back! Loading your workspace...";
+        path = "/";
+      } else if (data.role === "facilitator") {
+        msg = "Welcome Back! Loading your workspace...";
+        path = "/f";
+      } else if (!data.project) {
         setErrorMessage("Project is not assigned to your account.");
         return;
+      } else {
+        msg = "Welcome Back! Loading your workspace...";
+        path = "/";
       }
-
-      router.push(`/f/form/${data.project.toLowerCase().replace(/\s+/g, "-")}`);
+      setLoginMessage(msg);
+      setLoginRedirectTo(path);
+      setLoginSuccess(true);
     } catch {
       setFieldErrors({ username: "Unable to connect. Please try again." });
     } finally {
@@ -152,7 +174,6 @@ export default function UnifiedAuthPage() {
     e.preventDefault();
     setErrorMessage("");
     setFieldErrors({});
-
     let hasError = false;
     const newErrors: FormErrors = {};
 
@@ -181,7 +202,6 @@ export default function UnifiedAuthPage() {
       setFieldErrors(newErrors);
       return;
     }
-
     setIsSubmitting(true);
 
     try {
@@ -190,7 +210,6 @@ export default function UnifiedAuthPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, username }),
       });
-
       const sendOtpData = await sendOtpResponse.json();
 
       if (!sendOtpResponse.ok) {
@@ -208,9 +227,8 @@ export default function UnifiedAuthPage() {
 
       toast({
         title: "Verification Code Sent",
-        description: `We've sent a code to ${email}. Check your inbox.`,
+        description: `We have sent a code to ${email}. Check your inbox.`,
       });
-
       sessionStorage.setItem("signup_password", password);
       const params = new URLSearchParams({
         email,
@@ -218,7 +236,6 @@ export default function UnifiedAuthPage() {
         role,
         ...(role !== "admin" && { project }),
       });
-
       router.push(`/verify-otp?${params.toString()}`);
     } catch {
       setErrorMessage("Unable to sign up right now. Please try again.");
@@ -227,704 +244,278 @@ export default function UnifiedAuthPage() {
     }
   };
 
-  // Softened, high-end transparent background opacity array variables
-  const softenedGradientStyle = {
-    backgroundColor: "hsla(220, 30%, 14%, 1)",
-    backgroundImage: `
-      radial-gradient(circle at 0% 5%, hsla(225, 56%, 60%, 0.08) 3.12%, transparent 50%),
-      radial-gradient(circle at 23% 3%, hsla(210, 96%, 48%, 0.10) 3.12%, transparent 76%),
-      radial-gradient(circle at 100% 93%, hsla(186, 95%, 47%, 0.06) 3.12%, transparent 45%),
-      radial-gradient(circle at 96% 103%, hsla(0, 0%, 100%, 0.04) 3.12%, transparent 50%),
-      radial-gradient(circle at 80% 0%, hsla(0, 0%, 0%, 0.12) 3.12%, transparent 25%)
-    `,
-    backgroundBlendMode: "normal, normal, normal, normal, normal",
-  };
-
-  return (
-    <div className="min-h-screen w-full flex flex-col lg:grid lg:grid-cols-12 lg:items-center bg-background select-none overflow-x-hidden">
-      {/* LEFT PANE: Hidden on mobile views by default, locks to 5/12 grid span on desktop screens */}
-      <div className="hidden lg:flex lg:col-span-5 bg-slate-50 flex-col justify-center p-8 sm:p-12 xl:p-16 relative z-0 min-h-screen border-r border-border">
-        <div className="max-w-md mx-auto w-full">
-          <h1 className="text-2xl xl:text-3xl font-bold tracking-tight text-primary mb-5 leading-tight">
-            Quarterly Reports <br /> Management System
-          </h1>
-
-          <p className="text-sm xl:text-base text-gray-600 mb-10 xl:mb-14">
-            Securely access your workspace, manage projects, and file your
-            quarterly reports efficiently.
-          </p>
-
-          <div className="w-full max-w-[320px] sm:max-w-[360px] mx-auto opacity-95">
-            <svg
-              viewBox="0 0 400 380"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-full h-full drop-shadow-md"
-            >
-              {/* Dynamic SVG Definitions for Pulse/Verify Animations */}
-              <defs>
-                <filter
-                  id="shadow"
-                  x="-10"
-                  y="-10"
-                  width="150"
-                  height="150"
-                  filterUnits="userSpaceOnUse"
-                >
-                  <feDropShadow
-                    dx="0"
-                    dy="8"
-                    stdDeviation="12"
-                    floodColor="#000000"
-                    floodOpacity="0.1"
-                  />
-                </filter>
-                <style>
-                  {`
-                    @keyframes pulseBeam {
-                      0% { r: 15; opacity: 0.6; }
-                      100% { r: 45; opacity: 0; }
-                    }
-                    @keyframes flowDash {
-                      to { stroke-dashoffset: -20; }
-                    }
-                    .pulsing-signal { animation: pulseBeam 2s infinite cubic-bezier(0.24, 0, 0.38, 1); transform-origin: 265px 230px; }
-                    .pulsing-signal-delay { animation: pulseBeam 2s infinite cubic-bezier(0.24, 0, 0.38, 1); animation-delay: 1s; transform-origin: 265px 230px; }
-                    .flowing-dots { stroke-dasharray: 4, 4; animation: flowDash 1.2s linear infinite; }
-                  `}
-                </style>
-              </defs>
-
-              {/* Background Circuit Lines */}
-              <path
-                d="M260 140 H 340 L 360 120 H 380"
-                stroke="#a1a1aa"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-              <circle cx="380" cy="120" r="4" fill="#a1a1aa" />
-              <path
-                d="M260 170 H 300 L 320 190 H 370"
-                stroke="#a1a1aa"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-              <circle cx="370" cy="190" r="4" fill="#a1a1aa" />
-              <path
-                d="M140 100 V 50 L 120 30 H 100"
-                stroke="#a1a1aa"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-              <circle cx="100" cy="30" r="4" fill="#a1a1aa" />
-
-              {/* Desktop Monitor Base Structure */}
-              <path d="M150 210 L 140 250 H 200 L 190 210 Z" fill="#e4e4e7" />
-              <rect
-                x="120"
-                y="250"
-                width="100"
-                height="8"
-                rx="4"
-                fill="#a1a1aa"
-              />
-
-              {/* Desktop Screen Body */}
-              <rect
-                x="20"
-                y="40"
-                width="280"
-                height="180"
-                rx="16"
-                fill="#27272a"
-              />
-              <rect
-                x="23"
-                y="43"
-                width="274"
-                height="174"
-                rx="13"
-                fill="#ffffff"
-              />
-
-              {/* Desktop Screen UI Blueprint */}
-              <rect x="26" y="46" width="60" height="168" fill="#f4f4f5" />
-              <rect x="36" y="60" width="40" height="8" rx="4" fill="#e4e4e7" />
-              <rect x="36" y="80" width="40" height="6" rx="3" fill="#e4e4e7" />
-              <rect x="36" y="95" width="40" height="6" rx="3" fill="#e4e4e7" />
-              <rect
-                x="100"
-                y="60"
-                width="100"
-                height="12"
-                rx="6"
-                fill="#e4e4e7"
-              />
-              <rect
-                x="100"
-                y="90"
-                width="170"
-                height="40"
-                rx="6"
-                fill="#e0f2fe"
-                opacity="0.6"
-              />
-              <rect
-                x="100"
-                y="140"
-                width="80"
-                height="50"
-                rx="6"
-                fill="#d1fae5"
-                opacity="0.6"
-              />
-              <rect
-                x="190"
-                y="140"
-                width="80"
-                height="50"
-                rx="6"
-                fill="#f4f4f5"
-              />
-
-              {/* Bottom Technical Ground Vector Underneath Devices */}
-              <path
-                d="M60 280 H 340"
-                stroke="#e4e4e7"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <path
-                d="M90 280 L 110 300 H 290 L 310 280"
-                stroke="#e4e4e7"
-                strokeWidth="1.5"
-                strokeDasharray="3,3"
-                fill="none"
-              />
-              <circle cx="200" cy="300" r="3" fill="#a1a1aa" />
-
-              {/* OVERLAPPING MOBILE PHONE */}
-              <g transform="translate(70, 20)">
-                <rect
-                  x="120"
-                  y="80"
-                  width="150"
-                  height="250"
-                  rx="20"
-                  fill="#27272a"
-                />
-                <rect
-                  x="123"
-                  y="83"
-                  width="144"
-                  height="244"
-                  rx="17"
-                  fill="#ffffff"
-                />
-                <path
-                  d="M165 83 H 225 V 95 C 225 100.5 220.5 105 215 105 H 175 C 169.5 105 165 100.5 165 95 V 83 Z"
-                  fill="#27272a"
-                />
-
-                {/* Verify Code Transmission Animating Signal Array */}
-                <circle
-                  cx="265"
-                  cy="230"
-                  r="25"
-                  fill="none"
-                  stroke="#10b981"
-                  strokeWidth="1.5"
-                  className="pulsing-signal"
-                />
-                <circle
-                  cx="265"
-                  cy="230"
-                  r="25"
-                  fill="none"
-                  stroke="#10b981"
-                  strokeWidth="1.5"
-                  className="pulsing-signal-delay"
-                />
-
-                <circle
-                  cx="195"
-                  cy="160"
-                  r="28"
-                  stroke="#e4e4e7"
-                  strokeWidth="2"
-                  fill="#fafafa"
-                />
-                <circle cx="195" cy="154" r="10" fill="#27272a" />
-                <path
-                  d="M177 178 C 177 168 183 162 195 162 C 207 162 213 168 213 178 V 188 H 177 V 178 Z"
-                  fill="#27272a"
-                />
-
-                <g transform="translate(10, 110)">
-                  <rect
-                    width="110"
-                    height="40"
-                    rx="8"
-                    fill="#ffffff"
-                    stroke="#e4e4e7"
-                    strokeWidth="2"
-                    filter="url(#shadow)"
-                  />
-                  <rect
-                    x="10"
-                    y="10"
-                    width="16"
-                    height="20"
-                    rx="3"
-                    fill="#27272a"
-                  />
-                  {/* Active Flowing Verification Input Indicators */}
-                  <line
-                    x1="40"
-                    y1="20"
-                    x2="90"
-                    y2="20"
-                    stroke="#10b981"
-                    strokeWidth="2"
-                    className="flowing-dots"
-                  />
-                </g>
-
-                <g transform="translate(120, 200)">
-                  <rect
-                    width="70"
-                    height="70"
-                    rx="16"
-                    fill="#ffffff"
-                    stroke="#e4e4e7"
-                    strokeWidth="2"
-                    filter="url(#shadow)"
-                  />
-                  <circle
-                    cx="35"
-                    cy="35"
-                    r="20"
-                    stroke="#e0f2fe"
-                    strokeWidth="3"
-                    fill="none"
-                  />
-                  <circle
-                    cx="35"
-                    cy="35"
-                    r="12"
-                    stroke="#d1fae5"
-                    strokeWidth="3"
-                    fill="none"
-                  />
-                  <circle
-                    cx="35"
-                    cy="35"
-                    r="6"
-                    stroke="#a1a1aa"
-                    strokeWidth="3"
-                    fill="none"
-                  />
-                </g>
-              </g>
-            </svg>
+  if (loginSuccess) {
+    return (
+      <div className="min-h-screen w-full flex flex-col bg-[#eff4fa] animate-in fade-in duration-700">
+        <div className="flex items-center gap-2.5 px-6 sm:px-8 lg:px-10 pt-3 sm:pt-4 lg:pt-5">
+          <svg viewBox="0 0 40 40" width="30" height="30" className="shrink-0">
+            <rect x="4" y="8" width="32" height="28" rx="6" fill="#5B51D8" opacity="0.12" />
+            <rect x="8" y="12" width="24" height="20" rx="3" fill="white" stroke="#5B51D8" strokeWidth="1.5" />
+            <rect x="12" y="17" width="7" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
+            <rect x="12" y="22" width="12" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
+            <rect x="12" y="27" width="9" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
+            <path d="M25 15 L 27 18 L 30 16" stroke="#5B51D8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          </svg>
+          <div>
+            <p className="text-sm font-bold text-zinc-900 tracking-tight leading-tight">Quarterly Reports</p>
+            <p className="text-[11px] text-zinc-400 leading-tight">Management System</p>
           </div>
         </div>
-      </div>
-
-      {/* RIGHT PANE: Takes full screen bounds on mobile devices, wraps the toned-down opacity variables smoothly */}
-      <div className="w-full lg:col-span-7 p-4 sm:p-12 lg:p-16 xl:p-24 flex flex-col bg-luxury-glass justify-center relative z-10 min-h-screen overflow-y-visible lg:overflow-y-hidden">
-        {/* AMBIENT BACKGROUND ANIMATION FOR MOBILE/TABLET SCREENS */}
-        <div className="absolute inset-0 z-0 pointer-events-none lg:hidden overflow-hidden opacity-40">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <div className="flex-1 flex flex-col items-center justify-center px-8 py-3 sm:py-4 lg:py-5">
+          <div className="w-full max-w-[400px] mx-auto">
+          <svg
+            viewBox="0 0 400 380"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-full"
+          >
             <defs>
-              {/* Core keyframes explicitly declared here so they run globally on mobile viewports */}
-              <style>
-                {`
-                  @keyframes mobilePulse {
-                    0% { r: 10px; opacity: 0.7; stroke-width: 1.5px; }
-                    50% { opacity: 0.4; }
-                    100% { r: 160px; opacity: 0; stroke-width: 0.5px; }
-                  }
-                  .mobile-signal-1 { animation: mobilePulse 3s infinite cubic-bezier(0.1, 0.8, 0.3, 1); transform-origin: center; }
-                  .mobile-signal-2 { animation: mobilePulse 3s infinite cubic-bezier(0.1, 0.8, 0.3, 1); animation-delay: 1.5s; transform-origin: center; }
-                `}
-              </style>
+              <style>{`@keyframes ringPulse { 0% { r: 75; opacity: 0.4; } 100% { r: 110; opacity: 0; } } @keyframes ringPulse2 { 0% { r: 85; opacity: 0.3; } 100% { r: 130; opacity: 0; } } .pulse-ring1 { animation: ringPulse 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); transform-origin: 200px 180px; } .pulse-ring2 { animation: ringPulse2 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); animation-delay: 0.8s; transform-origin: 200px 180px; } @keyframes checkDraw { to { stroke-dashoffset: 0; } } .check-path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: checkDraw 0.5s ease-out 0.3s forwards; }`}</style>
             </defs>
-            {/* Perfectly centered radar verification waves floating beautifully behind the card */}
-            <circle
-              cx="50%"
-              cy="50%"
-              r="10"
-              fill="none"
-              stroke="#10b981"
-              className="mobile-signal-1"
-            />
-            <circle
-              cx="50%"
-              cy="50%"
-              r="10"
-              fill="none"
-              stroke="#10b981"
-              className="mobile-signal-2"
-            />
-
-            <path
-              d="M-100,50% Q50%,20% 110%,50%"
-              fill="none"
-              stroke="rgba(255,255,255,0.12)"
-              strokeWidth="1.5"
-              strokeDasharray="6,6"
-            />
-            <path
-              d="M-100,50% Q50%,80% 110%,50%"
-              fill="none"
-              stroke="rgba(255,255,255,0.12)"
-              strokeWidth="1.5"
-              strokeDasharray="6,6"
-            />
+            <circle cx="100" cy="80" r="5" fill="#a1a1aa" opacity="0.3" />
+            <circle cx="310" cy="70" r="3" fill="#a1a1aa" opacity="0.25" />
+            <circle cx="340" cy="290" r="6" fill="#a1a1aa" opacity="0.2" />
+            <circle cx="60" cy="300" r="4" fill="#a1a1aa" opacity="0.25" />
+            <circle cx="200" cy="45" r="3" fill="#a1a1aa" opacity="0.3" />
+            <circle cx="200" cy="180" r="75" fill="none" stroke="#a1a1aa" strokeWidth="1.5" opacity="0.25" className="pulse-ring1" />
+            <circle cx="200" cy="180" r="85" fill="none" stroke="#a1a1aa" strokeWidth="1" opacity="0.15" className="pulse-ring2" />
+            <path d="M200 85 L 260 115 V 185 C 260 235 235 265 200 280 C 165 265 140 235 140 185 V 115 Z" stroke="#a1a1aa" strokeWidth="2" fill="#fafafa" />
+            <path d="M200 105 L 242 125 V 180 C 242 218 225 240 200 250 C 175 240 158 218 158 180 V 125 Z" fill="#f4f4f5" />
+            <path d="M172 185 L 192 205 L 228 170" stroke="#a1a1aa" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="check-path" />
           </svg>
         </div>
+        <div className="w-full max-w-[320px] mt-10">
+          <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
+            <div className="h-full bg-[#5B51D8] rounded-full transition-all duration-100 ease-out" style={{ width: `${loginProgress}%` }} />
+          </div>
+          <p className="text-sm text-zinc-500 mt-3 text-center">{loginMessage}</p>
+        </div>
+        </div>
+      </div>
+    );
+  }
 
-        <div className="w-full max-w-lg mx-auto bg-white rounded-[32px] shadow-xl p-6 sm:p-10 border border-white/40 backdrop-blur-md flex flex-col justify-center min-h-0 animate-in fade-in zoom-in-95 duration-500 relative z-10">
-          <div>
-            {/* Segmented Control Toggle Buttons */}
-            <div className="flex p-1.5 mb-8 rounded-xl bg-zinc-900/5 border border-zinc-200/50 relative z-20">
-              <button
-                type="button"
-                onClick={() => toggleAuthMode("login")}
-                className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
-                  authMode === "login"
-                    ? "bg-zinc-800 text-white shadow-sm"
-                    : "text-zinc-700 hover:text-zinc-900"
-                }`}
-              >
-                Login
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleAuthMode("signup")}
-                className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
-                  authMode === "signup"
-                    ? "bg-zinc-800 text-white shadow-sm"
-                    : "text-zinc-700 hover:text-zinc-900"
-                }`}
-              >
-                Register
-              </button>
-            </div>
+  return (
+    <div className="min-h-screen w-full flex flex-col select-none overflow-x-hidden bg-[#eff4fa]">
+      <div className="flex items-center gap-2.5 px-6 sm:px-8 lg:px-10 pt-3 sm:pt-4 lg:pt-5">
+        <svg viewBox="0 0 40 40" width="30" height="30" className="shrink-0">
+          <rect x="4" y="8" width="32" height="28" rx="6" fill="#5B51D8" opacity="0.12" />
+          <rect x="8" y="12" width="24" height="20" rx="3" fill="white" stroke="#5B51D8" strokeWidth="1.5" />
+          <rect x="12" y="17" width="7" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
+          <rect x="12" y="22" width="12" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
+          <rect x="12" y="27" width="9" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
+          <path d="M25 15 L 27 18 L 30 16" stroke="#5B51D8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        </svg>
+        <div>
+          <p className="text-sm font-bold text-zinc-900 tracking-tight leading-tight">Quarterly Reports</p>
+          <p className="text-[11px] text-zinc-400 leading-tight">Management System</p>
+        </div>
+      </div>
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5">
+        <div className="w-full max-w-[420px] bg-[#ffffff] backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-10 relative">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl lg:text-[28px] font-bold tracking-tight text-zinc-900">
+              {authMode === "login" ? "Welcome Back" : "Create Account"}
+            </h2>
+            <p className="text-sm text-zinc-500 mt-1">
+              {authMode === "login"
+                ? "Sign in to continue to your dashboard"
+                : "Sign up to get started with your account"}
+            </p>
+          </div>
 
-            <div className="mb-6 relative z-20">
-              <h2 className="text-2xl font-bold tracking-tight text-primary">
-                {authMode === "login" ? "Welcome back" : "Create an account"}
-              </h2>
-              <p className="text-sm text-zinc-700 mt-1">
-                {authMode === "login"
-                  ? "Please enter your details to sign in."
-                  : "Register your details to access the system."}
-              </p>
-            </div>
-
-            {/* BUTTER SMOOTH DYNAMIC VIEWS CONTAINER */}
-            <div className="relative w-full min-h-0">
-              {/* === LOGIN FORM === */}
-              <div
-                className={`w-full transform-gpu ${
-                  authMode === "login"
-                    ? "relative opacity-100 translate-x-0 z-10 pointer-events-auto transition-all duration-500 delay-200 ease-out"
-                    : "absolute top-0 left-0 opacity-0 -translate-x-4 z-0 pointer-events-none transition-all duration-200 ease-in"
-                }`}
-              >
-                <form
-                  noValidate
-                  onSubmit={handleLogin}
-                  className="space-y-5 py-1"
+          {authMode === "login" ? (
+            <div key="login" className="w-full animate-in fade-in duration-300 ease-out">
+              <form noValidate onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
+                <div>
+                  <input
+                    id="login-username" type="text" value={username}
+                    onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined }); }}
+                    className={getFieldClassName(!!fieldErrors.username)}
+                    placeholder="Username"
+                  />
+                  {fieldErrors.username && <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">{fieldErrors.username}</p>}
+                </div>
+                <div>
+                  <PasswordInput
+                    id="login-password" value={password}
+                    onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined }); }}
+                    className={getFieldClassName(!!fieldErrors.password)}
+                    placeholder="Password"
+                  />
+                  {fieldErrors.password && <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">{fieldErrors.password}</p>}
+                </div>
+                <div className="flex justify-end -mt-1">
+                  <Link href="/forgot-password" className="text-sm font-medium text-[#5B51D8] hover:underline transition-colors">Forgot password?</Link>
+                </div>
+                <Button type="submit" disabled={isSubmitting}
+                  className="w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#5B51D8] hover:bg-[#4a42b8] text-white transition-all shadow-md mt-2"
                 >
-                  <div>
-                    <Label
-                      htmlFor="login-username"
-                      className="text-sm font-semibold text-foreground mb-1.5 block"
-                    >
-                      Username
-                    </Label>
-                    <input
-                      id="login-username"
-                      type="text"
-                      value={username}
-                      onChange={(e) => {
-                        setUsername(e.target.value);
-                        if (fieldErrors.username)
-                          setFieldErrors({
-                            ...fieldErrors,
-                            username: undefined,
-                          });
-                      }}
-                      className={getFieldClassName(!!fieldErrors.username)}
-                      placeholder="Enter your username"
-                    />
-                    {fieldErrors.username && (
-                      <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">
-                        {fieldErrors.username}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <Label
-                        htmlFor="login-password"
-                        className="text-sm font-semibold text-foreground"
-                      >
-                        Password
-                      </Label>
-                      <Link
-                        href="/forgot-password"
-                        className="text-sm font-medium text-primary hover:underline transition-colors"
-                      >
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <PasswordInput
-                      id="login-password"
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        if (fieldErrors.password)
-                          setFieldErrors({
-                            ...fieldErrors,
-                            password: undefined,
-                          });
-                      }}
-                      className={getFieldClassName(!!fieldErrors.password)}
-                      placeholder="Enter your password"
-                    />
-                    {fieldErrors.password && (
-                      <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">
-                        {fieldErrors.password}
-                      </p>
-                    )}
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl mt-4 font-semibold text-base hover:bg-primary/90 transition-all shadow-sm"
+                  {isSubmitting ? "Signing In..." : "Sign In"}
+                </Button>
+              </form>
+              {errorMessage && (
+                <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
+                  <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
+                </div>
+              )}
+              <div className="space-y-3 mt-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-zinc-200" />
+                  <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">or continue with</span>
+                  <div className="flex-1 h-px bg-zinc-200" />
+                </div>
+                <div className="flex gap-3">
+                  <button type="button"
+                    onClick={() => toast({ title: "Coming Soon", description: "Google OAuth is not yet configured." })}
+                    className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors text-sm font-medium text-zinc-600"
                   >
-                    {isSubmitting ? "Logging in..." : "Login"}
-                  </Button>
-                </form>
+                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
+                    Google
+                  </button>
+                  <button type="button"
+                    onClick={() => toast({ title: "Coming Soon", description: "Microsoft OAuth is not yet configured." })}
+                    className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors text-sm font-medium text-zinc-600"
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="2" width="9.6" height="9.6" fill="#F25022" rx="1.5" /><rect x="12.4" y="2" width="9.6" height="9.6" fill="#7FBA00" rx="1.5" /><rect x="2" y="12.4" width="9.6" height="9.6" fill="#00A4EF" rx="1.5" /><rect x="12.4" y="12.4" width="9.6" height="9.6" fill="#FFB900" rx="1.5" /></svg>
+                    Outlook
+                  </button>
+                </div>
               </div>
-
-              {/* === SIGNUP FORM === */}
-              <div
-                className={`w-full transform-gpu ${
-                  authMode === "signup"
-                    ? "relative opacity-100 translate-x-0 z-10 pointer-events-auto transition-all duration-500 delay-200 ease-out"
-                    : "absolute top-0 left-0 opacity-0 translate-x-4 z-0 pointer-events-none transition-all duration-200 ease-in"
-                }`}
-              >
-                <form
-                  noValidate
-                  onSubmit={handleSignup}
-                  className="space-y-4 py-1"
-                >
-                  <div>
-                    <Label
-                      htmlFor="signup-username"
-                      className="text-sm font-semibold text-foreground mb-1.5 block"
+            </div>
+          ) : (
+            <div key="signup" className="w-full animate-in fade-in duration-300 ease-out">
+              <form noValidate onSubmit={handleSignup} className="space-y-4 sm:space-y-5">
+                <div>
+                  <input
+                    id="signup-username" type="text" value={username}
+                    onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined }); }}
+                    className={getFieldClassName(!!fieldErrors.username)}
+                    placeholder="Full Name (or Teams ID)"
+                  />
+                  {fieldErrors.username ? (
+                    <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.username}</p>
+                  ) : (
+                    <p className="text-xs text-zinc-500 mt-1.5 flex items-center gap-1.5"><Info className="size-3.5 shrink-0" /><span>Use Teams ID for Coordinator/Facilitator</span></p>
+                  )}
+                </div>
+                <div>
+                  <input
+                    id="signup-email" type="email" value={email}
+                    onChange={(e) => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: undefined }); }}
+                    className={getFieldClassName(!!fieldErrors.email)}
+                    placeholder="Email Address"
+                  />
+                  {fieldErrors.email && <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.email}</p>}
+                </div>
+                <div>
+                  <PasswordInput
+                    id="signup-password" value={password}
+                    onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined }); }}
+                    className={getFieldClassName(!!fieldErrors.password)}
+                    placeholder="Password"
+                  />
+                  {fieldErrors.password && <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.password}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="relative">
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"><User className="size-4 text-zinc-400" /></div>
+                    <select
+                      id="signup-role" value={role}
+                      onChange={(e) => { setRole(e.target.value as "coordinator" | "facilitator" | "admin" | ""); if (fieldErrors.role) setFieldErrors({ ...fieldErrors, role: undefined }); }}
+                      className={`${getFieldClassName(!!fieldErrors.role)} pl-10 pr-8 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a1a1aa%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.2rem] bg-[right_0.5rem_center] bg-no-repeat`}
                     >
-                      Username
-                    </Label>
-                    <input
-                      id="signup-username"
-                      type="text"
-                      value={username}
-                      onChange={(e) => {
-                        setUsername(e.target.value);
-                        if (fieldErrors.username)
-                          setFieldErrors({
-                            ...fieldErrors,
-                            username: undefined,
-                          });
-                      }}
-                      className={getFieldClassName(!!fieldErrors.username)}
-                      placeholder="Choose a username"
-                    />
-                    {fieldErrors.username ? (
-                      <p className="text-sm font-medium text-destructive mt-1.5">
-                        {fieldErrors.username}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-zinc-600 mt-1.5 flex items-start gap-1.5">
-                        <Info className="size-4 mt-0.5 shrink-0" />
-                        <span>Use Teams ID for Coordinator/Facilitator</span>
-                      </p>
-                    )}
+                      <option value="" disabled hidden>Role</option>
+                      <option value="coordinator">Coordinator</option>
+                      <option value="facilitator">Facilitator</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    {fieldErrors.role && <p className="text-xs font-medium text-destructive mt-1.5">{fieldErrors.role}</p>}
                   </div>
-
-                  <div>
-                    <Label
-                      htmlFor="signup-email"
-                      className="text-sm font-semibold text-foreground mb-1.5 block"
-                    >
-                      Email
-                    </Label>
-                    <input
-                      id="signup-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        if (fieldErrors.email)
-                          setFieldErrors({ ...fieldErrors, email: undefined });
-                      }}
-                      className={getFieldClassName(!!fieldErrors.email)}
-                      placeholder="Enter your email"
-                    />
-                    {fieldErrors.email && (
-                      <p className="text-sm font-medium text-destructive mt-1.5">
-                        {fieldErrors.email}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label
-                      htmlFor="signup-password"
-                      className="text-sm font-semibold text-foreground mb-1.5 block"
-                    >
-                      Password
-                    </Label>
-                    <PasswordInput
-                      id="signup-password"
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        if (fieldErrors.password)
-                          setFieldErrors({
-                            ...fieldErrors,
-                            password: undefined,
-                          });
-                      }}
-                      className={getFieldClassName(!!fieldErrors.password)}
-                      placeholder="Create a password"
-                    />
-                    {fieldErrors.password && (
-                      <p className="text-sm font-medium text-destructive mt-1.5">
-                        {fieldErrors.password}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label
-                      htmlFor="signup-role"
-                      className="text-sm font-semibold text-foreground mb-1.5 block"
-                    >
-                      Role <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-[18px] text-muted-foreground pointer-events-none" />
-                      <select
-                        id="signup-role"
-                        value={role}
-                        onChange={(e) => {
-                          setRole(
-                            e.target.value as
-                              | "coordinator"
-                              | "facilitator"
-                              | "admin"
-                              | "",
-                          );
-                          if (fieldErrors.role)
-                            setFieldErrors({ ...fieldErrors, role: undefined });
-                        }}
-                        className={`${getFieldClassName(!!fieldErrors.role)} pl-10 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat`}
-                      >
-                        <option value="" disabled hidden>
-                          -- Select a role --
-                        </option>
-                        <option value="coordinator">Coordinator</option>
-                        <option value="facilitator">Facilitator</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
-                    {fieldErrors.role && (
-                      <p className="text-sm font-medium text-destructive mt-1.5">
-                        {fieldErrors.role}
-                      </p>
-                    )}
-                  </div>
-
                   {(role === "coordinator" || role === "facilitator") && (
-                    <div className="animate-in fade-in duration-150">
-                      <Label
-                        htmlFor="signup-project"
-                        className="text-sm font-semibold text-foreground mb-1.5 block"
-                      >
-                        Project <span className="text-destructive">*</span>
-                      </Label>
+                    <div className="relative animate-in fade-in duration-300">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"><Folder className="size-4 text-zinc-400" /></div>
                       {projectOptions.length === 0 ? (
-                        <p className="text-sm text-destructive font-medium pt-1">
-                          No projects available. Contact admin.
-                        </p>
+                        <p className="text-xs text-destructive font-medium pt-3">No projects found.</p>
                       ) : (
-                        <div className="relative">
-                          <Folder className="absolute left-3.5 top-1/2 -translate-y-1/2 size-[18px] text-muted-foreground pointer-events-none" />
+                        <>
                           <select
-                            id="signup-project"
-                            value={project}
-                            onChange={(e) => {
-                              setProject(e.target.value);
-                              if (fieldErrors.project)
-                                setFieldErrors({
-                                  ...fieldErrors,
-                                  project: undefined,
-                                });
-                            }}
-                            className={`${getFieldClassName(!!fieldErrors.project)} pl-10 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_1rem_center] bg-no-repeat`}
+                            id="signup-project" value={project}
+                            onChange={(e) => { setProject(e.target.value); if (fieldErrors.project) setFieldErrors({ ...fieldErrors, project: undefined }); }}
+                            className={`${getFieldClassName(!!fieldErrors.project)} pl-10 pr-8 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a1a1aa%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.2rem] bg-[right_0.5rem_center] bg-no-repeat`}
                           >
-                            <option value="" disabled hidden>
-                              -- Select a project --
-                            </option>
-                            {projectOptions.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
+                            <option value="" disabled hidden>Project</option>
+                            {projectOptions.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
                           </select>
-                        </div>
-                      )}
-                      {fieldErrors.project && (
-                        <p className="text-sm font-medium text-destructive mt-1.5">
-                          {fieldErrors.project}
-                        </p>
+                          {fieldErrors.project && <p className="text-xs font-medium text-destructive mt-1.5">{fieldErrors.project}</p>}
+                        </>
                       )}
                     </div>
                   )}
-
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl mt-4 font-semibold text-base flex items-center justify-center gap-2 group hover:bg-primary/90 transition-all shadow-sm"
+                </div>
+                <Button type="submit" disabled={isSubmitting}
+                  className="group w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#5B51D8] hover:bg-[#4a42b8] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? "Creating Account..." : "Sign Up"}
+                  {!isSubmitting && <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />}
+                </Button>
+              </form>
+              {errorMessage && (
+                <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
+                  <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
+                </div>
+              )}
+              <div className="space-y-3 mt-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-zinc-200" />
+                  <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">or continue with</span>
+                  <div className="flex-1 h-px bg-zinc-200" />
+                </div>
+                <div className="flex gap-3">
+                  <button type="button"
+                    onClick={() => toast({ title: "Coming Soon", description: "Google OAuth is not yet configured." })}
+                    className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors text-sm font-medium text-zinc-600"
                   >
-                    {isSubmitting ? "Registering..." : "Register"}
-                    {!isSubmitting && (
-                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                    )}
-                  </Button>
-                </form>
+                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
+                    Google
+                  </button>
+                  <button type="button"
+                    onClick={() => toast({ title: "Coming Soon", description: "Microsoft OAuth is not yet configured." })}
+                    className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors text-sm font-medium text-zinc-600"
+                  >
+                    <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="2" width="9.6" height="9.6" fill="#F25022" rx="1.5" /><rect x="12.4" y="2" width="9.6" height="9.6" fill="#7FBA00" rx="1.5" /><rect x="2" y="12.4" width="9.6" height="9.6" fill="#00A4EF" rx="1.5" /><rect x="12.4" y="12.4" width="9.6" height="9.6" fill="#FFB900" rx="1.5" /></svg>
+                    Outlook
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Form Bottom Error Toast Bar */}
-          {errorMessage && (
-            <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
-              <p className="text-sm text-destructive text-center font-medium">
-                {errorMessage}
-              </p>
-            </div>
           )}
+
+          <div className="mt-6 sm:mt-8 text-center">
+            {authMode === "signup" ? (
+              <p className="text-sm text-zinc-500">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => toggleAuthMode("login")}
+                  className="font-medium text-[#5B51D8] hover:underline"
+                >
+                  Sign in
+                </button>
+              </p>
+            ) : (
+              <p className="text-sm text-zinc-500">
+                Do not have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => toggleAuthMode("signup")}
+                  className="font-medium text-[#5B51D8] hover:underline"
+                >
+                  Sign up
+                </button>
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

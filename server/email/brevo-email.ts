@@ -17,6 +17,7 @@ interface SendEmailOptions {
   to: string;
   subject: string;
   htmlContent: string;
+  scheduledAt?: string;
 }
 
 const getErrorMessage = (error: unknown) =>
@@ -55,7 +56,7 @@ const sendEmail = async (options: SendEmailOptions): Promise<BrevoResponse> => {
   validateConfig();
 
   try {
-    const payload = {
+    const payload: Record<string, unknown> = {
       sender: {
         email: getSenderEmail(),
         name: "Quarterly Reports",
@@ -64,6 +65,9 @@ const sendEmail = async (options: SendEmailOptions): Promise<BrevoResponse> => {
       subject: options.subject,
       htmlContent: options.htmlContent,
     };
+    if (options.scheduledAt) {
+      payload.scheduledAt = options.scheduledAt;
+    }
 
     console.log(`[BREVO] Sending email to: ${options.to}`);
     console.log(`[BREVO] Subject: ${options.subject}`);

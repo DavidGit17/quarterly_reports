@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getFieldClassName = (hasError: boolean) => {
-    const baseClasses = "w-full h-12 rounded-xl border bg-white px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+    const baseClasses = "w-full h-12 rounded-lg border bg-white px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
     return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-zinc-200 focus:border-primary"}`;
   };
 
@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-luxury-glass flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         
-        <div className="border rounded-3xl bg-white p-6 sm:p-8 shadow-sm">
+        <div className="border rounded-2xl bg-white p-6 sm:p-8 shadow-sm">
           
           <div className="flex flex-col gap-1 mb-6">
             <h1 className="text-2xl font-bold tracking-tight text-primary">
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 rounded-xl font-medium text-base transition-all mt-4 flex items-center justify-center gap-2 group"
+              className="w-full h-12 rounded-lg font-medium text-base transition-all mt-4 flex items-center justify-center gap-2 group"
             >
               {isSubmitting ? "Sending..." : "Send Reset Link"}
               
@@ -194,7 +194,7 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-white/80 mt-6">
+        <p className="text-center text-xs text-white mt-6">
           Verification is required to ensure account security.
         </p>
       </div>

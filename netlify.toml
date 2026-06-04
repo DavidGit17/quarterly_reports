@@ -17,14 +17,3 @@
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-
-# Netlify does NOT support vercel.json crons.
-# Set up scheduled execution via external cron service:
-#
-#   1. Go to https://cron-job.org (free)
-#   2. Create job: POST https://your-site.netlify.app/api/form-distribution/process
-#   3. Headers: { "x-cron-secret": "<your-CRON_SECRET>" }
-#   4. Schedule: Every 5 minutes
-#
-#   Repeat for: POST https://your-site.netlify.app/api/cron/process-campaigns
-#   Schedule: Every 15 minutes

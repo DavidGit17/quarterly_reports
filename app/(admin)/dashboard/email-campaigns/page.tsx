@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Send, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Send, ChevronLeft, ChevronRight } from "lucide-react";
 
 type CampaignStatus = "pending" | "sending" | "sent" | "failed";
 type CampaignType = "cycle-start" | "reminder" | "manual";
@@ -184,22 +184,6 @@ export default function EmailCampaignsPage() {
     }
   };
 
-  const sendNow = async () => {
-    try {
-      setError("");
-      const response = await fetch("/api/cron/process-campaigns", {
-        method: "POST",
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to process campaigns.");
-      }
-      await fetchCampaigns();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send.");
-    }
-  };
-
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleString("en-US", {
       year: "numeric",
@@ -225,14 +209,6 @@ export default function EmailCampaignsPage() {
         subtitle="Schedule and manage email notifications"
         action={
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => void sendNow()}
-              className="gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Process Now
-            </Button>
             <Button
               onClick={openCreate}
               className="bg-slate-700 hover:bg-slate-800 text-white gap-2"

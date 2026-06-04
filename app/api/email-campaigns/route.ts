@@ -9,6 +9,9 @@ import {
   type CampaignType,
   type CampaignStatus,
 } from "@/server/email-campaigns/email-campaigns";
+import { getReportingCyclesCollection } from "@/server/reporting-cycles/reporting-cycles";
+import { getUsersCollection } from "@/server/auth/auth";
+import { sendCampaignEmail } from "@/server/email/campaign-email";
 
 export async function GET(request: Request) {
   try {
@@ -136,6 +139,75 @@ export async function POST(request: Request) {
 
     const result = await collection.insertOne(doc);
     const created = await collection.findOne({ _id: result.insertedId });
+
+    // Schedule campaign emails via Brevo (uses scheduledAt for future sends)
+    if (created) {
+      try {
+        const cyclesCollection = await getReportingCyclesCollection();
+        const cycle = await cyclesCollection.findOne({ _id: created.cycleId });
+        const cycleName = cycle?.name || "Reporting Cycle";
+
+        const usersCollection = await getUsersCollection();
+        const userQuery: Record<string, unknown> = {
+          role: { $in: created.targetRoles as Array<"coordinator" | "facilitator"> },
+          status: "active",
+        };
+        if (created.projectName) {
+          userQuery.project = created.projectName;
+        }
+        const targetUsers = await usersCollection.find(userQuery).toArray();
+
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+        const formSlug = (created.projectName || "")
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, "");
+        const formUrl = `${appUrl}/form/${formSlug}`;
+
+        const scheduledAtStr = created.scheduledAt > new Date()
+          ? created.scheduledAt.toISOString()
+          : undefined;
+
+        let sentCount = 0;
+        let failedCount = 0;
+
+        for (const user of targetUsers) {
+          try {
+            await sendCampaignEmail({
+              to: user.email,
+              username: user.username,
+              cycleName,
+              projectName: created.projectName,
+              formUrl,
+              campaignType: created.campaignType,
+              scheduledAt: scheduledAtStr,
+            });
+            sentCount++;
+          } catch {
+            failedCount++;
+          }
+        }
+
+        const finalStatus = sentCount > 0 ? "sent" : "failed";
+        await collection.updateOne(
+          { _id: created._id },
+          {
+            $set: {
+              status: finalStatus,
+              sentAt: new Date(),
+              recipientCount: sentCount,
+              ...(failedCount > 0 ? { errorMessage: `${failedCount} of ${targetUsers.length} emails failed.` } : {}),
+            },
+          },
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        await collection.updateOne(
+          { _id: created._id },
+          { $set: { status: "failed", errorMessage: message } },
+        );
+      }
+    }
 
     return NextResponse.json(
       {

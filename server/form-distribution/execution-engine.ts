@@ -614,6 +614,62 @@ export async function processDueRules(): Promise<{
   };
 }
 
+export async function scheduleRuleEmails(
+  rule: DistributionRuleRecord,
+  immediate = false,
+): Promise<{ scheduled: number; failed: number }> {
+  const users = await resolveRecipients(rule);
+  let scheduled = 0;
+  let failed = 0;
+
+  for (const user of users) {
+    const projectName = rule.projects.find(
+      (p) => (user.project || "").toLowerCase() === p.toLowerCase(),
+    );
+    if (!projectName) continue;
+
+    const baseLink = buildFormLink(projectName, user.role);
+    const rid = generateRecipientToken(rule._id.toString(), user._id.toString());
+    const formLink = `${baseLink}?rid=${rid}`;
+
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: rule.emailSubject || `Form: ${projectName}`,
+        htmlContent: buildEmailHtml({
+          username: user.username,
+          projectName,
+          formLink,
+          customMessage: rule.customMessage,
+          invitationMessage: rule.invitationMessage,
+          deadline: rule.deadline,
+        }),
+        scheduledAt: immediate ? undefined : (rule.nextSendAt?.toISOString() ?? undefined),
+      });
+      await logSend(rule, user, projectName, formLink, { status: "sent" });
+      scheduled++;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      await logSend(rule, user, projectName, formLink, { status: "failed", error: message });
+      failed++;
+    }
+  }
+
+  if (rule.status === "active" && rule.nextSendAt) {
+    const collection = await getFormDistributionCollection();
+    const nextSendAt = computeNextSendDate(rule.scheduleType, rule.scheduleConfig);
+    await collection.updateOne(
+      { _id: rule._id },
+      {
+        $set: { lastSentAt: new Date(), nextSendAt },
+        $unset: { processingStartedAt: "", processingInstanceId: "", processingCursor: "" },
+      },
+    );
+  }
+
+  return { scheduled, failed };
+}
+
 export async function executeRuleNow(ruleId: string): Promise<ProcessResult> {
   const collection = await getFormDistributionCollection();
 
