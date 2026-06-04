@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getFieldClassName = (hasError: boolean) => {
-    const baseClasses = "w-full h-12 rounded-xl border bg-white px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0";
+    const baseClasses = "w-full h-12 rounded-xl border bg-white px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
     return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-zinc-200 focus:border-primary"}`;
   };
 
@@ -101,7 +101,7 @@ export default function ForgotPasswordPage() {
             <h1 className="text-2xl font-bold tracking-tight text-primary">
               Forgot Password
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-zinc-700">
               Enter your details to receive a reset link
             </p>
           </div>
@@ -183,7 +183,7 @@ export default function ForgotPasswordPage() {
             )}
           </form>
 
-          <div className="mt-6 pt-4 border-t border-zinc-100 text-center text-sm text-muted-foreground">
+          <div className="mt-6 pt-4 border-t border-zinc-100 text-center text-sm text-zinc-700">
             Remember your password?{" "}
             <Link
               href="/auth"
@@ -194,7 +194,7 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-6">
+        <p className="text-center text-xs text-white/80 mt-6">
           Verification is required to ensure account security.
         </p>
       </div>

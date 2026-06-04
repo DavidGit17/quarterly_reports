@@ -70,7 +70,7 @@ export default function UnifiedAuthPage() {
 
   const getFieldClassName = (hasError: boolean) => {
     const baseClasses =
-      "w-full h-12 rounded-xl border bg-background px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0";
+      "w-full h-12 rounded-xl border bg-background px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
     return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-border focus:border-primary"}`;
   };
 
@@ -595,7 +595,7 @@ export default function UnifiedAuthPage() {
                 className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
                   authMode === "login"
                     ? "bg-zinc-800 text-white shadow-sm"
-                    : "text-zinc-600 hover:text-zinc-900"
+                    : "text-zinc-700 hover:text-zinc-900"
                 }`}
               >
                 Login
@@ -606,7 +606,7 @@ export default function UnifiedAuthPage() {
                 className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
                   authMode === "signup"
                     ? "bg-zinc-800 text-white shadow-sm"
-                    : "text-zinc-600 hover:text-zinc-900"
+                    : "text-zinc-700 hover:text-zinc-900"
                 }`}
               >
                 Register
@@ -617,7 +617,7 @@ export default function UnifiedAuthPage() {
               <h2 className="text-2xl font-bold tracking-tight text-primary">
                 {authMode === "login" ? "Welcome back" : "Create an account"}
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-zinc-700 mt-1">
                 {authMode === "login"
                   ? "Please enter your details to sign in."
                   : "Register your details to access the system."}
@@ -754,7 +754,7 @@ export default function UnifiedAuthPage() {
                         {fieldErrors.username}
                       </p>
                     ) : (
-                      <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1.5">
+                      <p className="text-xs text-zinc-600 mt-1.5 flex items-start gap-1.5">
                         <Info className="size-4 mt-0.5 shrink-0" />
                         <span>Use Teams ID for Coordinator/Facilitator</span>
                       </p>
