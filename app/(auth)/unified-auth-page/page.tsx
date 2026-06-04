@@ -131,17 +131,16 @@ export default function UnifiedAuthPage() {
         router.push("/dashboard");
         return;
       }
+      if (data.role === "coordinator") {
+        router.push("/");
+        return;
+      }
       if (!data.project) {
         setErrorMessage("Project is not assigned to your account.");
         return;
       }
 
-      const projectSlug = data.project.toLowerCase().replace(/\s+/g, "-");
-      const formUrl =
-        data.role === "facilitator"
-          ? `/f/form/${projectSlug}`
-          : `/form/${projectSlug}`;
-      router.push(formUrl);
+      router.push(`/f/form/${data.project.toLowerCase().replace(/\s+/g, "-")}`);
     } catch {
       setFieldErrors({ username: "Unable to connect. Please try again." });
     } finally {
