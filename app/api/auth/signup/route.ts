@@ -118,8 +118,7 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "Username or email already exists." },
-        { status: 409 },
+        { message: "Account creation processed." },
       );
     }
 

@@ -391,7 +391,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                   className="px-3 py-2.5 cursor-pointer text-red-600 font-ui text-sm hover:text-red-700 hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50"
                   onClick={async () => {
                     await fetch("/api/auth/logout", { method: "POST" });
-                    router.push("/login");
+                    router.push("/auth");
                   }}
                 >
                   <LogOut className="w-4 h-4 mr-2" />

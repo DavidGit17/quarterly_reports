@@ -26,7 +26,7 @@ export default function DashboardPage() {
         ]);
 
         if (reportsResponse.status === 401) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
 
@@ -73,7 +73,7 @@ export default function DashboardPage() {
               login with an admin account.
             </p>
             <Link
-              href="/login"
+              href="/auth"
               className="text-slate-700 hover:text-slate-800 font-medium"
             >
               Return to Login

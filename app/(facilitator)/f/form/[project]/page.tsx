@@ -157,7 +157,7 @@ export default function FacilitatorProjectFormPage() {
         if (cancelled) return;
 
         if (authRes.status === 401) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
 
@@ -537,7 +537,7 @@ export default function FacilitatorProjectFormPage() {
             You can only access the form for your assigned project.
           </p>
           <Link
-            href="/login"
+            href="/auth"
             className={FORM_LINK_CLASS}
           >
             Return to Login

@@ -39,14 +39,14 @@ export default function MyReportsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [formHref, setFormHref] = useState("/login");
+  const [formHref, setFormHref] = useState("/auth");
 
   const loadReports = useCallback(async () => {
     try {
       const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
 
       if (!meResponse.ok) {
-        router.push("/login");
+        router.push("/auth");
         return;
       }
 
@@ -69,7 +69,7 @@ export default function MyReportsPage() {
       const response = await fetch(`/api/my-reports?${params.toString()}`, { cache: "no-store" });
 
       if (response.status === 401) {
-        router.push("/login");
+        router.push("/auth");
         return;
       }
 

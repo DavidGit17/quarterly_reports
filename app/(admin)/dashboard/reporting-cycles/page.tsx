@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input-shadcn";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
 import { Toolbar } from "@/components/admin/dashboard/toolbar";
 import {

@@ -1,21 +1,14 @@
 import { NextResponse } from "next/server";
 import { getFormDistributionCollection } from "@/server/form-distribution/form-distribution";
 import { getUsersCollection } from "@/server/auth/auth";
+import { requireAdmin } from "@/server/auth/auth";
 
 export const dynamic = "force-dynamic";
 
-function validateCronRequest(request: Request): { valid: boolean; reason?: string } {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) return { valid: true };
-  const headerValue = request.headers.get("x-cron-secret") || request.headers.get("x_cron_secret");
-  if (headerValue === cronSecret) return { valid: true };
-  return { valid: false, reason: "Invalid cron secret" };
-}
-
-export async function GET(request: Request) {
-  const validation = validateCronRequest(request);
-  if (!validation.valid) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+export async function GET() {
+  const { error } = await requireAdmin();
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: error.status });
   }
 
   try {

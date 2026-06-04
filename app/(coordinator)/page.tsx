@@ -75,7 +75,7 @@ export default function CoordinatorDashboard() {
       try {
         const res = await fetch("/api/auth/me", { cache: "no-store" });
         if (res.status === 401) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
         const data = (await res.json()) as MeResponse;
@@ -90,7 +90,7 @@ export default function CoordinatorDashboard() {
         }
         setIsReady(true);
       } catch {
-        router.push("/login");
+        router.push("/auth");
       }
     };
     void load();
@@ -201,7 +201,7 @@ export default function CoordinatorDashboard() {
                     type="button"
                     onClick={async () => {
                       await fetch("/api/auth/logout", { method: "POST" });
-                      router.push("/login");
+                      router.push("/auth");
                     }}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full text-left transition-colors"
                   >

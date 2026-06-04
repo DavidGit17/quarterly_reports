@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input-shadcn";
 import { cn } from "@/lib/shared/utils";
 
 interface ToolbarProps {

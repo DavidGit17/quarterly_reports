@@ -6,7 +6,7 @@ import Link from "next/link";
 import Cropper, { type Area } from "react-easy-crop";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input-shadcn";
 import {
   Dialog,
   DialogContent,
@@ -98,14 +98,14 @@ function ProfileContent() {
         const response = await fetch("/api/auth/me", { cache: "no-store" });
 
         if (!response.ok) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
 
         const data = (await response.json()) as { user?: SessionUser };
 
         if (!data.user) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
 
@@ -308,7 +308,7 @@ function ProfileContent() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
+    router.push("/auth");
   };
 
   const dashboardHref = role === "facilitator" ? "/f" : "/";

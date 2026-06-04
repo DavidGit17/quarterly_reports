@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input-shadcn";
 import { ChevronLeft, ChevronRight, Search, ExternalLink } from "lucide-react";
 import { formatIsoDateTime } from "@/lib/shared/date-format";
 

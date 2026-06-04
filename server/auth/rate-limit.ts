@@ -14,7 +14,28 @@ const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
   "forgot-password": { windowMs: 60 * 1000, maxRequests: 3 },
 };
 
-const ensureIndexes = async () => {};
+let indexesEnsured = false;
+
+const ensureIndexes = async () => {
+  if (indexesEnsured) return;
+  indexesEnsured = true;
+  try {
+    const db = await getDb();
+    const collection = db.collection(COLLECTION);
+    await collection.createIndex(
+      { expiresAt: 1 },
+      { expireAfterSeconds: 0 },
+    );
+    await collection.createIndex(
+      { key: 1, createdAt: -1 },
+    );
+  } catch (err) {
+    // IndexOptionsConflict (code 85) means the index already exists — non-fatal
+    if ((err as { code?: number })?.code !== 85) {
+      console.warn("[RATE_LIMIT] Index creation failed (non-fatal):", err);
+    }
+  }
+};
 
 const getIp = (request: Request): string => {
   const forwarded = request.headers.get("x-forwarded-for");

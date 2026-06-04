@@ -36,7 +36,7 @@ export default function FormsOverviewPage() {
       ]);
 
       if (!authRes.ok) {
-        router.push("/login");
+        router.push("/auth");
         return;
       }
 
@@ -57,7 +57,7 @@ export default function FormsOverviewPage() {
       setFormMeta(getFormMeta());
       setIsLoading(false);
     } catch {
-      router.push("/login");
+      router.push("/auth");
     }
   }, [router]);
 

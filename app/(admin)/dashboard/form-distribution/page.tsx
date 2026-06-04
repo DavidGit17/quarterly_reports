@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input-shadcn";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/admin/dashboard/page-header";
 import { Toolbar } from "@/components/admin/dashboard/toolbar";
@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Pencil, Pause, Play, CalendarDays, Clock, Send } from "lucide-react";
+import { Plus, Trash2, Pencil, Pause, Play, CalendarDays, Clock, Send, Mail, History, Zap } from "lucide-react";
 import type { MultiSelectOption } from "@/components/ui/multi-select";
 import type { AdminUserRecord } from "@/app/api/admin/users/route";
 import { cn } from "@/lib/shared/utils";
@@ -570,7 +570,10 @@ export default function FormDistributionPage() {
               variant="outline"
               onClick={() => router.push("/dashboard/form-distribution/history")}
             >
-              <Send className="w-4 h-4" />
+              <span className="relative inline-flex items-center justify-center w-4 h-4">
+                <Mail className="w-full h-full" />
+                <History className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 stroke-[2.5]" />
+              </span>
               Send History
             </Button>
             <Button
@@ -694,7 +697,10 @@ export default function FormDistributionPage() {
                         className="rounded-xl p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
                         title="Send Now"
                       >
-                        <Send className="h-4 w-4" />
+                        <span className="relative inline-flex items-center justify-center h-4 w-4">
+                          <Mail className="h-full w-full" />
+                          <Zap className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 stroke-[2.5]" />
+                        </span>
                       </button>
                       <button
                         onClick={() => setDeletingRule(rule)}

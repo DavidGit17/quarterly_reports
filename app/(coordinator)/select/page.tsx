@@ -29,7 +29,7 @@ export default function SelectPage() {
         const response = await fetch("/api/auth/me", { cache: "no-store" });
 
         if (response.status === 401) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
 
@@ -42,7 +42,7 @@ export default function SelectPage() {
 
         setIsReady(true);
       } catch {
-        router.push("/login");
+        router.push("/auth");
       }
     };
 

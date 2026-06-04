@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { getDb } from "@/server/db/mongodb";
@@ -9,6 +10,7 @@ import {
 } from "@/server/auth/jwt";
 import { sendWelcomeEmail } from "@/server/email/brevo-email";
 import { checkRateLimit } from "@/server/auth/rate-limit";
+import { getUsersCollection, MAX_ADMIN_ACCOUNTS } from "@/server/auth/auth";
 import { cookies } from "next/headers";
 
 const MAX_OTP_ATTEMPTS = 5;
@@ -88,8 +90,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify OTP
-    if (otpRecord.otp !== otp) {
+    // Verify OTP against hash
+    const otpHash = createHash("sha256").update(otp).digest("hex");
+    if (otpRecord.otpHash !== otpHash) {
       await otpCollection.updateOne({ email }, { $inc: { attempts: 1 } });
       return NextResponse.json(
         { message: "Invalid OTP. Please try again." },
@@ -106,9 +109,20 @@ export async function POST(request: Request) {
 
       if (existingUser) {
         return NextResponse.json(
-          { message: "Username or email already registered." },
-          { status: 409 },
+          { message: "Account creation processed." },
         );
+      }
+
+      // Enforce admin account limit
+      if (role === "admin") {
+        const usersCollection = await getUsersCollection();
+        const adminCount = await usersCollection.countDocuments({ role: "admin" });
+        if (adminCount >= MAX_ADMIN_ACCOUNTS) {
+          return NextResponse.json(
+            { message: "Admin account limit exceeded" },
+            { status: 403 },
+          );
+        }
       }
 
       // Hash password

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { sendOTPEmail } from "@/server/email/brevo-email";
 import { getDb } from "@/server/db/mongodb";
@@ -83,10 +84,7 @@ export async function POST(request: Request) {
 
     if (existingUser && existingUser.isVerified) {
       console.log(`[OTP] User already verified for ${email}`);
-      return NextResponse.json(
-        { message: "This email is already registered." },
-        { status: 409 },
-      );
+      return NextResponse.json({ message: "OTP sent." });
     }
 
     // Generate OTP
@@ -132,14 +130,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Store OTP in database (only after successful email)
+    // Store hashed OTP in database (only after successful email)
+    const otpHash = createHash("sha256").update(otp).digest("hex");
     await otpCollection.updateOne(
       { email },
       {
         $set: {
           email,
           username,
-          otp,
+          otpHash,
           expiresAt,
           attempts: 0,
           maxAttempts: MAX_OTP_ATTEMPTS,

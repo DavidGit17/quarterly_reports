@@ -8,19 +8,11 @@ export const maxDuration = 120;
 
 function validateCronRequest(request: Request): { valid: boolean; reason?: string } {
   const cronSecret = process.env.CRON_SECRET;
-  console.log(`[CRON VALIDATE] CRON_SECRET is ${cronSecret ? "SET" : "NOT SET"}`);
   if (!cronSecret) {
-    console.log(`[CRON VALIDATE] No CRON_SECRET configured, allowing request`);
-    return { valid: true };
+    return { valid: false, reason: "CRON_SECRET not configured" };
   }
   const headerValue = request.headers.get("x-cron-secret") || request.headers.get("x_cron_secret");
-  console.log(`[CRON VALIDATE] Header x-cron-secret: "${headerValue ? "PRESENT" : "MISSING"}"`);
-  console.log(`[CRON VALIDATE] Expected secret: "${cronSecret}"`);
-  if (headerValue === cronSecret) {
-    console.log(`[CRON VALIDATE] Secret match: SUCCESS`);
-    return { valid: true };
-  }
-  console.log(`[CRON VALIDATE] Secret match: FAILED`);
+  if (headerValue === cronSecret) return { valid: true };
   return { valid: false, reason: "Invalid cron secret" };
 }
 

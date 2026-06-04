@@ -1,13 +1,16 @@
-import bcrypt from "bcryptjs";
+import { createHash, randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
+import { getDb } from "@/server/db/mongodb";
 import { getUsersCollection } from "@/server/auth/auth";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import { checkRateLimit } from "@/server/auth/rate-limit";
+import { sendPasswordResetEmail } from "@/server/email/brevo-email";
+
+const RESET_TOKEN_EXPIRY_HOURS = 1;
 
 type ForgotPasswordPayload = {
   username?: string;
   email?: string;
-  newPassword?: string;
 };
 
 const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
@@ -24,12 +27,11 @@ export async function POST(request: Request) {
     const payload = (await request.json()) as ForgotPasswordPayload;
 
     const username = payload.username?.trim() || "";
-    const email = payload.email?.trim() || "";
-    const newPassword = payload.newPassword || "";
+    const email = payload.email?.trim().toLowerCase() || "";
 
-    if (!username || !email || !newPassword) {
+    if (!username || !email) {
       return NextResponse.json(
-        { message: "Username, email and new password are required." },
+        { message: "Username and email are required." },
         { status: 400 },
       );
     }
@@ -41,67 +43,62 @@ export async function POST(request: Request) {
       );
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json(
-        { message: "New password must be at least 6 characters." },
-        { status: 400 },
-      );
-    }
-
     const usersCollection = await getUsersCollection();
 
     const user = await usersCollection.findOne({
       usernameLower: username.toLowerCase(),
-      emailLower: email.toLowerCase(),
+      emailLower: email,
     });
 
+    // Generic response to prevent email enumeration
     if (!user) {
-      return NextResponse.json(
-        { message: "No account found for the provided username and email." },
-        { status: 404 },
-      );
+      return NextResponse.json({
+        message: "If an account with that information exists, a reset link has been sent.",
+      });
     }
 
-    const isSameAsCurrentPassword = await bcrypt.compare(
-      newPassword,
-      user.password,
-    );
+    // Generate reset token
+    const token = randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
 
-    if (isSameAsCurrentPassword) {
+    // Store token in a dedicated collection
+    const db = await getDb();
+    const tokensCollection = db.collection("password_reset_tokens");
+    await tokensCollection.insertOne({
+      userId: user._id,
+      email,
+      tokenHash,
+      expiresAt,
+      used: false,
+      createdAt: new Date(),
+    });
+
+    // Send reset email
+    try {
+      await sendPasswordResetEmail(email, token);
+    } catch {
+      // If email fails, delete the token and return error
+      await tokensCollection.deleteOne({ tokenHash });
       return NextResponse.json(
-        {
-          message: "Could not use old password. Please choose a new password.",
-        },
-        { status: 400 },
+        { message: "Failed to send reset email. Please try again." },
+        { status: 500 },
       );
     }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await usersCollection.updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          password: hashedPassword,
-        },
-      },
-    );
 
     return NextResponse.json({
-      message: "Password reset successful. You can now log in.",
+      message: "If an account with that information exists, a reset link has been sent.",
     });
   } catch (error) {
     const mongoError = getMongoRouteErrorResponse(error);
-
     if (mongoError) {
       return NextResponse.json(
         { message: mongoError.message },
         { status: mongoError.status },
       );
     }
-
     return NextResponse.json(
-      { message: "Unable to reset password right now." },
+      { message: "Unable to process request right now." },
       { status: 500 },
     );
   }

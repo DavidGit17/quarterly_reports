@@ -50,7 +50,7 @@ function SubmitReportContent() {
         const response = await fetch("/api/auth/me", { cache: "no-store" });
 
         if (response.status === 401) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
 

@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { getFormDistributionCollection } from "@/server/form-distribution/form-distribution";
-import { getUsersCollection } from "@/server/auth/auth";
+import { getUsersCollection, requireAdmin } from "@/server/auth/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const { error } = await requireAdmin();
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: error.status });
+  }
   try {
     const rulesCollection = await getFormDistributionCollection();
     const usersCollection = await getUsersCollection();

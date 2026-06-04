@@ -7,25 +7,30 @@ import { sendCampaignEmail } from "@/server/email/campaign-email";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-function validateCronRequest(request: Request): boolean {
+function validateCronRequest(request: Request): { valid: boolean; reason?: string } {
   const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) return true;
+  if (!cronSecret) {
+    return { valid: false, reason: "CRON_SECRET not configured" };
+  }
   const headerValue =
     request.headers.get("x-cron-secret") ||
     request.headers.get("x_cron_secret");
-  return headerValue === cronSecret;
+  if (headerValue === cronSecret) return { valid: true };
+  return { valid: false, reason: "Invalid cron secret" };
 }
 
 export async function GET(request: Request) {
-  if (!validateCronRequest(request)) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  const validation = validateCronRequest(request);
+  if (!validation.valid) {
+    return NextResponse.json({ message: validation.reason }, { status: 401 });
   }
   return processCampaigns();
 }
 
 export async function POST(request: Request) {
-  if (!validateCronRequest(request)) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  const validation = validateCronRequest(request);
+  if (!validation.valid) {
+    return NextResponse.json({ message: validation.reason }, { status: 401 });
   }
   return processCampaigns();
 }

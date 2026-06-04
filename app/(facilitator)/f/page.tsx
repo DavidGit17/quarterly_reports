@@ -47,7 +47,7 @@ export default function FacilitatorDashboard() {
     const load = async () => {
       try {
         const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.status === 401) { router.push("/login"); return; }
+        if (res.status === 401) { router.push("/auth"); return; }
         const data = (await res.json()) as MeResponse;
         if (data.user?.role !== "facilitator") { router.push("/dashboard"); return; }
         setUsername(data.user?.username || "Facilitator");
@@ -55,7 +55,7 @@ export default function FacilitatorDashboard() {
           setFormHref(`/f/form/${toProjectSlug(data.user.project)}`);
         }
         setIsReady(true);
-      } catch { router.push("/login"); }
+      } catch { router.push("/auth"); }
     };
     void load();
   }, [router]);

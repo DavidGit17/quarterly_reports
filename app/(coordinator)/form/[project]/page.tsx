@@ -157,7 +157,7 @@ export default function ProjectFormPage() {
         if (cancelled) return;
 
         if (authRes.status === 401) {
-          router.push("/login");
+          router.push("/auth");
           return;
         }
 
@@ -538,7 +538,7 @@ export default function ProjectFormPage() {
           <p className={`${FORM_META_CLASS} mb-5`}>
             You can only access the form for your assigned project.
           </p>
-          <Link href="/login" className={FORM_LINK_CLASS}>
+          <Link href="/auth" className={FORM_LINK_CLASS}>
             Return to Login
           </Link>
         </div>

@@ -228,28 +228,64 @@ export default function UnifiedAuthPage() {
     }
   };
 
+
+
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row">
-      {/* THE UNIFIED FLOATING CARD */}
-      <div className="w-full flex flex-col lg:flex-row">
-        {/* LEFT PANE: 4 of 12 columns (approx 33%) */}
-        <div className="hidden lg:flex flex-col justify-center w-full lg:w-4/12 p-12 xl:p-16 relative z-0">
+    <div className="min-h-screen w-full flex flex-col lg:grid lg:grid-cols-12 lg:items-center bg-background select-none overflow-x-hidden">
+      {/* LEFT PANE: Vertically locked and fully isolated desktop configuration */}
+      <div className="hidden lg:flex lg:col-span-5 bg-slate-100 flex-col justify-center p-8 sm:p-12 xl:p-16 relative z-0 min-h-screen border-r border-border">
+        <div className="max-w-md mx-auto w-full">
           <h1 className="text-2xl xl:text-3xl font-bold tracking-tight text-primary mb-5 leading-tight">
             Quarterly Reports <br /> Management System
           </h1>
 
-          <p className="text-base text-muted-foreground mb-14 max-w-sm">
+          <p className="text-sm xl:text-base text-gray-600 mb-10 xl:mb-14">
             Securely access your workspace, manage projects, and file your
             quarterly reports efficiently.
           </p>
 
-          <div className="w-full max-w-[320px] mx-auto opacity-85">
+          <div className="w-full max-w-[320px] sm:max-w-[360px] mx-auto opacity-95">
             <svg
-              viewBox="0 0 400 350"
+              viewBox="0 0 400 380"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="w-full h-full drop-shadow-lg"
+              className="w-full h-full drop-shadow-md"
             >
+              {/* Dynamic SVG Definitions for Pulse/Verify Animations */}
+              <defs>
+                <filter
+                  id="shadow"
+                  x="-10"
+                  y="-10"
+                  width="150"
+                  height="150"
+                  filterUnits="userSpaceOnUse"
+                >
+                  <feDropShadow
+                    dx="0"
+                    dy="8"
+                    stdDeviation="12"
+                    floodColor="#000000"
+                    floodOpacity="0.1"
+                  />
+                </filter>
+                <style>
+                  {`
+                    @keyframes pulseBeam {
+                      0% { r: 15; opacity: 0.6; }
+                      100% { r: 45; opacity: 0; }
+                    }
+                    @keyframes flowDash {
+                      to { stroke-dashoffset: -20; }
+                    }
+                    .pulsing-signal { animation: pulseBeam 2s infinite cubic-bezier(0.24, 0, 0.38, 1); transform-origin: 265px 230px; }
+                    .pulsing-signal-delay { animation: pulseBeam 2s infinite cubic-bezier(0.24, 0, 0.38, 1); animation-delay: 1s; transform-origin: 265px 230px; }
+                    .flowing-dots { stroke-dasharray: 4, 4; animation: flowDash 1.2s linear infinite; }
+                  `}
+                </style>
+              </defs>
+
+              {/* Background Circuit Lines */}
               <path
                 d="M260 140 H 340 L 360 120 H 380"
                 stroke="#a1a1aa"
@@ -271,6 +307,8 @@ export default function UnifiedAuthPage() {
                 strokeLinejoin="round"
               />
               <circle cx="100" cy="30" r="4" fill="#a1a1aa" />
+
+              {/* Desktop Monitor Base Structure */}
               <path d="M150 210 L 140 250 H 200 L 190 210 Z" fill="#e4e4e7" />
               <rect
                 x="120"
@@ -280,6 +318,8 @@ export default function UnifiedAuthPage() {
                 rx="4"
                 fill="#a1a1aa"
               />
+
+              {/* Desktop Screen Body */}
               <rect
                 x="20"
                 y="40"
@@ -296,6 +336,8 @@ export default function UnifiedAuthPage() {
                 rx="13"
                 fill="#ffffff"
               />
+
+              {/* Desktop Screen UI Blueprint */}
               <rect x="26" y="46" width="60" height="168" fill="#f4f4f5" />
               <rect x="36" y="60" width="40" height="8" rx="4" fill="#e4e4e7" />
               <rect x="36" y="80" width="40" height="6" rx="3" fill="#e4e4e7" />
@@ -334,6 +376,24 @@ export default function UnifiedAuthPage() {
                 rx="6"
                 fill="#f4f4f5"
               />
+
+              {/* ADDED ELEMENT: Bottom Technical Ground Vector Underneath Devices */}
+              <path
+                d="M60 280 H 340"
+                stroke="#e4e4e7"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M90 280 L 110 300 H 290 L 310 280"
+                stroke="#e4e4e7"
+                strokeWidth="1.5"
+                strokeDasharray="3,3"
+                fill="none"
+              />
+              <circle cx="200" cy="300" r="3" fill="#a1a1aa" />
+
+              {/* OVERLAPPING MOBILE PHONE */}
               <g transform="translate(70, 20)">
                 <rect
                   x="120"
@@ -355,6 +415,27 @@ export default function UnifiedAuthPage() {
                   d="M165 83 H 225 V 95 C 225 100.5 220.5 105 215 105 H 175 C 169.5 105 165 100.5 165 95 V 83 Z"
                   fill="#27272a"
                 />
+
+                {/* ADDED ELEMENT: Verify Code Transmission Animating Signal Array */}
+                <circle
+                  cx="265"
+                  cy="230"
+                  r="25"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="1.5"
+                  className="pulsing-signal"
+                />
+                <circle
+                  cx="265"
+                  cy="230"
+                  r="25"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="1.5"
+                  className="pulsing-signal-delay"
+                />
+
                 <circle
                   cx="195"
                   cy="160"
@@ -368,6 +449,7 @@ export default function UnifiedAuthPage() {
                   d="M177 178 C 177 168 183 162 195 162 C 207 162 213 168 213 178 V 188 H 177 V 178 Z"
                   fill="#27272a"
                 />
+
                 <g transform="translate(10, 110)">
                   <rect
                     width="110"
@@ -386,11 +468,18 @@ export default function UnifiedAuthPage() {
                     rx="3"
                     fill="#27272a"
                   />
-                  <circle cx="45" cy="20" r="3" fill="#a1a1aa" />
-                  <circle cx="58" cy="20" r="3" fill="#a1a1aa" />
-                  <circle cx="71" cy="20" r="3" fill="#a1a1aa" />
-                  <circle cx="84" cy="20" r="3" fill="#a1a1aa" />
+                  {/* ADDED ELEMENT: Active Flowing Verification Input Indicators */}
+                  <line
+                    x1="40"
+                    y1="20"
+                    x2="90"
+                    y2="20"
+                    stroke="#10b981"
+                    strokeWidth="2"
+                    className="flowing-dots"
+                  />
                 </g>
+
                 <g transform="translate(120, 200)">
                   <rect
                     width="70"
@@ -430,19 +519,23 @@ export default function UnifiedAuthPage() {
             </svg>
           </div>
         </div>
+      </div>
 
-        {/* RIGHT PANE: 8 of 12 columns (approx 67%), form-priority layout */}
-        <div className="w-full lg:w-8/12 bg-luxury-glass p-8 sm:p-12 lg:p-16 xl:p-20 flex flex-col justify-center relative z-10 border">
-          <div className="w-full max-w-xl mx-auto bg-white rounded-3xl shadow-md p-10">
-            {/* Segmented Control Toggle */}
-            <div className="flex p-1.5 mb-8 rounded-xl bg-zinc-100/80 border border-zinc-200/60 relative z-20">
+      {/* RIGHT PANE: Takes full screen bounds on mobile devices, wraps the toned-down opacity variables smoothly */}
+      <div
+        className="w-full lg:col-span-7 p-4 sm:p-12 lg:p-16 xl:p-24 flex flex-col justify-center bg-luxury-glass relative z-10 min-h-screen overflow-y-visible lg:overflow-y-hidden"
+      >
+        <div className="w-full max-w-lg mx-auto bg-white rounded-[32px] shadow-xl p-6 sm:p-10 border border-white/40 backdrop-blur-md flex flex-col justify-center min-h-0 animate-in fade-in zoom-in-95 duration-500">
+          <div>
+            {/* Segmented Control Toggle Buttons */}
+            <div className="flex p-1.5 mb-8 rounded-xl bg-zinc-900/5 border border-zinc-200/50 relative z-20">
               <button
                 type="button"
                 onClick={() => toggleAuthMode("login")}
-                className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
                   authMode === "login"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-zinc-800 text-white shadow-sm"
+                    : "text-zinc-600 hover:text-zinc-900"
                 }`}
               >
                 Login
@@ -450,17 +543,17 @@ export default function UnifiedAuthPage() {
               <button
                 type="button"
                 onClick={() => toggleAuthMode("signup")}
-                className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
                   authMode === "signup"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-zinc-800 text-white shadow-sm"
+                    : "text-zinc-600 hover:text-zinc-900"
                 }`}
               >
                 Register
               </button>
             </div>
 
-            <div className="mb-8 relative z-20">
+            <div className="mb-6 relative z-20">
               <h2 className="text-2xl font-bold tracking-tight text-primary">
                 {authMode === "login" ? "Welcome back" : "Create an account"}
               </h2>
@@ -471,8 +564,8 @@ export default function UnifiedAuthPage() {
               </p>
             </div>
 
-            {/* BUTTER SMOOTH DYNAMIC HEIGHT CONTAINER */}
-            <div className="relative w-full">
+            {/* BUTTER SMOOTH DYNAMIC VIEWS CONTAINER */}
+            <div className="relative w-full min-h-0">
               {/* === LOGIN FORM === */}
               <div
                 className={`w-full transform-gpu ${
@@ -481,7 +574,11 @@ export default function UnifiedAuthPage() {
                     : "absolute top-0 left-0 opacity-0 -translate-x-4 z-0 pointer-events-none transition-all duration-200 ease-in"
                 }`}
               >
-                <form noValidate onSubmit={handleLogin} className="space-y-4 max-w-md mx-auto">
+                <form
+                  noValidate
+                  onSubmit={handleLogin}
+                  className="space-y-5 py-1"
+                >
                   <div>
                     <Label
                       htmlFor="login-username"
@@ -550,16 +647,10 @@ export default function UnifiedAuthPage() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl mt-4 font-semibold text-base hover:bg-primary/90 transition-all"
+                    className="w-full h-12 rounded-xl mt-4 font-semibold text-base hover:bg-primary/90 transition-all shadow-sm"
                   >
                     {isSubmitting ? "Logging in..." : "Login"}
                   </Button>
-
-                  {errorMessage && (
-                    <p className="text-sm text-destructive text-center font-medium animate-in fade-in pt-2">
-                      {errorMessage}
-                    </p>
-                  )}
                 </form>
               </div>
 
@@ -571,7 +662,11 @@ export default function UnifiedAuthPage() {
                     : "absolute top-0 left-0 opacity-0 translate-x-4 z-0 pointer-events-none transition-all duration-200 ease-in"
                 }`}
               >
-                <form noValidate onSubmit={handleSignup} className="space-y-4">
+                <form
+                  noValidate
+                  onSubmit={handleSignup}
+                  className="space-y-4 py-1"
+                >
                   <div>
                     <Label
                       htmlFor="signup-username"
@@ -750,23 +845,26 @@ export default function UnifiedAuthPage() {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-12 rounded-xl mt-4 font-semibold text-base flex items-center justify-center gap-2 group hover:bg-primary/90 transition-all"
+                    className="w-full h-12 rounded-xl mt-4 font-semibold text-base flex items-center justify-center gap-2 group hover:bg-primary/90 transition-all shadow-sm"
                   >
                     {isSubmitting ? "Registering..." : "Register"}
                     {!isSubmitting && (
                       <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                     )}
                   </Button>
-
-                  {errorMessage && (
-                    <p className="text-sm text-destructive text-center font-medium animate-in fade-in pt-2">
-                      {errorMessage}
-                    </p>
-                  )}
                 </form>
               </div>
             </div>
           </div>
+
+          {/* Form Bottom Error Toast Bar */}
+          {errorMessage && (
+            <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
+              <p className="text-sm text-destructive text-center font-medium">
+                {errorMessage}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
