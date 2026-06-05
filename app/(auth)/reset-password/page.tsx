@@ -93,7 +93,7 @@ function ResetPasswordContent() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-[#1768DB] bg-white"
                 placeholder="Enter your email"
                 required
               />
@@ -108,7 +108,7 @@ function ResetPasswordContent() {
                 autoComplete="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-[#1768DB] bg-white"
                 placeholder="Create a new password"
                 required
               />
@@ -117,7 +117,7 @@ function ResetPasswordContent() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-slate-900 transition-colors"
+              className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-[#113263] transition-colors"
             >
               {isSubmitting ? "Resetting..." : "Reset Password"}
             </button>
@@ -148,9 +148,9 @@ export default function ResetPasswordPage() {
       fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="animate-pulse space-y-4 w-full max-w-md p-8">
-            <div className="h-8 w-48 bg-slate-200 rounded mx-auto" />
-            <div className="h-4 w-64 bg-slate-200 rounded mx-auto" />
-            <div className="h-12 w-full bg-slate-200 rounded" />
+            <div className="h-8 w-48 bg-[#DFE1E6] rounded mx-auto" />
+            <div className="h-4 w-64 bg-[#DFE1E6] rounded mx-auto" />
+            <div className="h-12 w-full bg-[#DFE1E6] rounded" />
           </div>
         </div>
       }

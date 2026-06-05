@@ -170,7 +170,7 @@ function VerifyOTPContent() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#eff4fa] p-8 animate-in fade-in duration-700">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F8FAFC] p-8 animate-in fade-in duration-700">
         <div className="w-full max-w-[400px] mx-auto">
           <svg
             viewBox="0 0 400 380"
@@ -242,25 +242,25 @@ function VerifyOTPContent() {
           </svg>
         </div>
         <div className="w-full max-w-[320px] mt-10">
-          <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
-            <div className="h-full bg-[#5B51D8] rounded-full transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
-          </div>
-          <p className="text-sm text-zinc-500 mt-3 text-center">{successMessage}</p>
+            <div className="h-2 bg-[#DFE1E6] rounded-full overflow-hidden">
+              <div className="h-full bg-[#1768DB] rounded-full transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
+            </div>
+            <p className="text-sm text-[#5E6C84] mt-3 text-center">{successMessage}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#eff4fa]">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
       
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 relative flex flex-col animate-in fade-in zoom-in-95 duration-500">
         
         <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Verify Email</h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-[#172B4D]">Verify Email</h1>
+          <p className="text-sm text-[#5E6C84] mt-1">
             Enter the verification code sent to <br />
-            <span className="font-semibold text-zinc-900">{email}</span>
+            <span className="font-semibold text-[#172B4D]">{email}</span>
           </p>
         </div>
 
@@ -268,7 +268,7 @@ function VerifyOTPContent() {
           <div>
             <Label
               htmlFor="otp"
-              className="text-sm font-semibold text-zinc-900 mb-1.5 block"
+              className="text-sm font-semibold text-[#172B4D] mb-1.5 block"
             >
               Verification Code
             </Label>
@@ -279,8 +279,8 @@ function VerifyOTPContent() {
               value={otp}
               onChange={handleOTPChange}
               placeholder="000000"
-              className={`w-full h-14 rounded-lg border bg-white px-4 text-center text-3xl tracking-[0.3em] font-mono text-zinc-900 placeholder:text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-[#5B51D8]/20 focus:border-[#5B51D8] ${
-                errorMessage ? "border-destructive focus:border-destructive" : "border-zinc-200"
+              className={`w-full h-14 rounded-lg border bg-white px-4 text-center text-3xl tracking-[0.3em] font-mono text-[#172B4D] placeholder:text-[#5E6C84] transition-colors focus:outline-none focus:border-[#1768DB] ${
+                  errorMessage ? "border-destructive focus:border-destructive" : "border-[#DFE1E6]"
               }`}
               required
               maxLength={6}
@@ -290,7 +290,7 @@ function VerifyOTPContent() {
                 {errorMessage}
               </p>
             ) : (
-              <p className="text-xs text-zinc-500 mt-2 text-center">
+              <p className="text-xs text-[#5E6C84] mt-2 text-center">
                 6-digit code (valid for 15 minutes)
               </p>
             )}
@@ -299,20 +299,20 @@ function VerifyOTPContent() {
           <button
             type="submit"
             disabled={isSubmitting || otp.length !== 6}
-            className="w-full h-12 rounded-lg font-bold text-base bg-[#5B51D8] hover:bg-[#4a42b8] text-white transition-all shadow-md disabled:opacity-60"
+            className="w-full h-12 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#113263] text-white transition-all shadow-md disabled:opacity-60"
           >
             {isSubmitting ? "Verifying..." : "Verify Email"}
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-zinc-200 text-center">
-          <p className="text-sm text-zinc-500 mb-3">
+        <div className="mt-8 pt-6 border-t border-[#DFE1E6] text-center">
+          <p className="text-sm text-[#5E6C84] mb-3">
             Didn&apos;t receive the code?
           </p>
           <button
             onClick={handleResendOTP}
             disabled={resendLoading || resendCountdown > 0}
-            className="text-sm font-semibold text-[#5B51D8] hover:underline transition-colors disabled:text-zinc-400 disabled:no-underline disabled:cursor-not-allowed"
+            className="text-sm font-semibold text-[#1768DB] hover:underline transition-colors disabled:text-[#6B778C] disabled:no-underline disabled:cursor-not-allowed"
           >
             {resendCountdown > 0
               ? `Resend code in ${resendCountdown}s`
@@ -323,7 +323,7 @@ function VerifyOTPContent() {
         <div className="mt-6 text-center">
           <Link
             href="/auth"
-            className="text-sm font-semibold text-[#5B51D8] hover:underline transition-colors"
+            className="text-sm font-semibold text-[#1768DB] hover:underline transition-colors"
           >
             Back to Sign Up
           </Link>
@@ -337,17 +337,17 @@ export default function VerifyOTPPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#eff4fa]">
+        <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 flex flex-col space-y-6 animate-pulse">
             <div className="space-y-3">
-              <div className="h-8 w-1/2 bg-zinc-200/60 rounded-md" />
-              <div className="h-4 w-3/4 bg-zinc-200/60 rounded-md" />
+              <div className="h-8 w-1/2 bg-[#DFE1E6]/60 rounded-md" />
+              <div className="h-4 w-3/4 bg-[#DFE1E6]/60 rounded-md" />
             </div>
             <div className="space-y-2 mt-4">
-              <div className="h-4 w-1/3 bg-zinc-200/60 rounded-md" />
-              <div className="h-14 w-full bg-zinc-200/60 rounded-lg" />
+              <div className="h-4 w-1/3 bg-[#DFE1E6]/60 rounded-md" />
+              <div className="h-14 w-full bg-[#DFE1E6]/60 rounded-lg" />
             </div>
-            <div className="h-12 w-full bg-zinc-200/60 rounded-lg mt-4" />
+            <div className="h-12 w-full bg-[#DFE1E6]/60 rounded-lg mt-4" />
           </div>
         </div>
       }

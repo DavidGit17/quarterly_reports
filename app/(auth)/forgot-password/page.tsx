@@ -24,8 +24,8 @@ export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getFieldClassName = (hasError: boolean) => {
-    const baseClasses = "w-full h-12 rounded-lg border bg-white px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
-    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-zinc-200 focus:border-primary"}`;
+    const baseClasses = "w-full h-12 rounded-lg border bg-white px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus:border-[#1768DB]";
+    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6]"}`;
   };
 
   const handleSendResetLink = async (e: React.FormEvent) => {
@@ -101,7 +101,7 @@ export default function ForgotPasswordPage() {
             <h1 className="text-2xl font-bold tracking-tight text-primary">
               Forgot Password
             </h1>
-            <p className="text-sm text-zinc-700">
+            <p className="text-sm text-[#5E6C84]">
               Enter your details to receive a reset link
             </p>
           </div>
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-zinc-700 mb-1.5"
+                className="block text-sm font-medium text-[#5E6C84] mb-1.5"
               >
                 Username
               </label>
@@ -136,7 +136,7 @@ export default function ForgotPasswordPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-zinc-700 mb-1.5"
+                className="block text-sm font-medium text-[#5E6C84] mb-1.5"
               >
                 Email
               </label>
@@ -183,7 +183,7 @@ export default function ForgotPasswordPage() {
             )}
           </form>
 
-          <div className="mt-6 pt-4 border-t border-zinc-100 text-center text-sm text-zinc-700">
+          <div className="mt-6 pt-4 border-t border-[#DFE1E6] text-center text-sm text-[#5E6C84]">
             Remember your password?{" "}
             <Link
               href="/auth"

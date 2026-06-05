@@ -87,8 +87,8 @@ export default function UnifiedAuthPage() {
 
   const getFieldClassName = (hasError: boolean) => {
     const baseClasses =
-      "w-full h-12 rounded-xl border bg-white/80 px-4 text-base text-zinc-900 placeholder:text-zinc-400 transition-all focus:outline-none";
-    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-zinc-200 focus:border-[#5B51D8] focus:ring-2 focus:ring-[#5B51D8]/20"}`;
+      "w-full h-12 rounded-xl border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
+    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"}`;
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -246,276 +246,333 @@ export default function UnifiedAuthPage() {
 
   if (loginSuccess) {
     return (
-      <div className="min-h-screen w-full flex flex-col bg-[#eff4fa] animate-in fade-in duration-700">
-        <div className="flex items-center gap-2.5 px-6 sm:px-8 lg:px-10 pt-3 sm:pt-4 lg:pt-5">
-          <svg viewBox="0 0 40 40" width="30" height="30" className="shrink-0">
-            <rect x="4" y="8" width="32" height="28" rx="6" fill="#5B51D8" opacity="0.12" />
-            <rect x="8" y="12" width="24" height="20" rx="3" fill="white" stroke="#5B51D8" strokeWidth="1.5" />
-            <rect x="12" y="17" width="7" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
-            <rect x="12" y="22" width="12" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
-            <rect x="12" y="27" width="9" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
-            <path d="M25 15 L 27 18 L 30 16" stroke="#5B51D8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          </svg>
-          <div>
-            <p className="text-sm font-bold text-zinc-900 tracking-tight leading-tight">Quarterly Reports</p>
-            <p className="text-[11px] text-zinc-400 leading-tight">Management System</p>
+      <div className="min-h-screen w-full bg-[#F8FAFC] animate-in fade-in duration-700 relative overflow-hidden flex flex-col items-center justify-center">
+        <div className="relative z-10 flex flex-col items-center px-6">
+          <div className="flex items-center gap-2 justify-center mb-0.5">
+            <span className="text-3xl font-black text-[#1768DB] tracking-tight">R</span>
+            <span className="text-xs font-bold text-[#1768DB] tracking-[0.15em]">QUARTERLY REPORTS</span>
           </div>
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center px-8 py-3 sm:py-4 lg:py-5">
-          <div className="w-full max-w-[400px] mx-auto">
-          <svg
-            viewBox="0 0 400 380"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full"
-          >
-            <defs>
-              <style>{`@keyframes ringPulse { 0% { r: 75; opacity: 0.4; } 100% { r: 110; opacity: 0; } } @keyframes ringPulse2 { 0% { r: 85; opacity: 0.3; } 100% { r: 130; opacity: 0; } } .pulse-ring1 { animation: ringPulse 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); transform-origin: 200px 180px; } .pulse-ring2 { animation: ringPulse2 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); animation-delay: 0.8s; transform-origin: 200px 180px; } @keyframes checkDraw { to { stroke-dashoffset: 0; } } .check-path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: checkDraw 0.5s ease-out 0.3s forwards; }`}</style>
-            </defs>
-            <circle cx="100" cy="80" r="5" fill="#a1a1aa" opacity="0.3" />
-            <circle cx="310" cy="70" r="3" fill="#a1a1aa" opacity="0.25" />
-            <circle cx="340" cy="290" r="6" fill="#a1a1aa" opacity="0.2" />
-            <circle cx="60" cy="300" r="4" fill="#a1a1aa" opacity="0.25" />
-            <circle cx="200" cy="45" r="3" fill="#a1a1aa" opacity="0.3" />
-            <circle cx="200" cy="180" r="75" fill="none" stroke="#a1a1aa" strokeWidth="1.5" opacity="0.25" className="pulse-ring1" />
-            <circle cx="200" cy="180" r="85" fill="none" stroke="#a1a1aa" strokeWidth="1" opacity="0.15" className="pulse-ring2" />
-            <path d="M200 85 L 260 115 V 185 C 260 235 235 265 200 280 C 165 265 140 235 140 185 V 115 Z" stroke="#a1a1aa" strokeWidth="2" fill="#fafafa" />
-            <path d="M200 105 L 242 125 V 180 C 242 218 225 240 200 250 C 175 240 158 218 158 180 V 125 Z" fill="#f4f4f5" />
-            <path d="M172 185 L 192 205 L 228 170" stroke="#a1a1aa" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="check-path" />
-          </svg>
-        </div>
-        <div className="w-full max-w-[320px] mt-10">
-          <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
-            <div className="h-full bg-[#5B51D8] rounded-full transition-all duration-100 ease-out" style={{ width: `${loginProgress}%` }} />
+          <p className="text-[10px] text-[#6B778C] mb-5">Management System</p>
+          <div className="w-full max-w-[360px] mt-8">
+            <svg viewBox="0 0 400 380" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+              <defs>
+                <style>{`@keyframes ringPulse { 0% { r: 75; opacity: 0.4; } 100% { r: 110; opacity: 0; } } @keyframes ringPulse2 { 0% { r: 85; opacity: 0.3; } 100% { r: 130; opacity: 0; } } .pulse-ring1 { animation: ringPulse 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); transform-origin: 200px 180px; } .pulse-ring2 { animation: ringPulse2 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); animation-delay: 0.8s; transform-origin: 200px 180px; } @keyframes checkDraw { to { stroke-dashoffset: 0; } } .check-path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: checkDraw 0.5s ease-out 0.3s forwards; }`}</style>
+              </defs>
+              <circle cx="100" cy="80" r="5" fill="#6B778C" opacity="0.3" />
+              <circle cx="310" cy="70" r="3" fill="#6B778C" opacity="0.25" />
+              <circle cx="340" cy="290" r="6" fill="#6B778C" opacity="0.2" />
+              <circle cx="60" cy="300" r="4" fill="#6B778C" opacity="0.25" />
+              <circle cx="200" cy="45" r="3" fill="#6B778C" opacity="0.3" />
+              <circle cx="200" cy="180" r="75" fill="none" stroke="#6B778C" strokeWidth="1.5" opacity="0.25" className="pulse-ring1" />
+              <circle cx="200" cy="180" r="85" fill="none" stroke="#6B778C" strokeWidth="1" opacity="0.15" className="pulse-ring2" />
+              <path d="M200 85 L 260 115 V 185 C 260 235 235 265 200 280 C 165 265 140 235 140 185 V 115 Z" stroke="#6B778C" strokeWidth="2" fill="#F8FAFC" />
+              <path d="M200 105 L 242 125 V 180 C 242 218 225 240 200 250 C 175 240 158 218 158 180 V 125 Z" fill="#F1F2F4" />
+              <path d="M172 185 L 192 205 L 228 170" stroke="#6B778C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="check-path" />
+            </svg>
           </div>
-          <p className="text-sm text-zinc-500 mt-3 text-center">{loginMessage}</p>
-        </div>
+          <div className="w-full max-w-[280px] mt-8">
+            <div className="h-1.5 bg-[#DFE1E6] rounded-full overflow-hidden">
+              <div className="h-full bg-[#1768DB] rounded-full transition-all duration-100 ease-out" style={{ width: `${loginProgress}%` }} />
+            </div>
+            <p className="text-sm text-[#5E6C84] mt-3 text-center">{loginMessage}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col select-none overflow-x-hidden bg-[#eff4fa]">
-      <div className="flex items-center gap-2.5 px-6 sm:px-8 lg:px-10 pt-3 sm:pt-4 lg:pt-5">
-        <svg viewBox="0 0 40 40" width="30" height="30" className="shrink-0">
-          <rect x="4" y="8" width="32" height="28" rx="6" fill="#5B51D8" opacity="0.12" />
-          <rect x="8" y="12" width="24" height="20" rx="3" fill="white" stroke="#5B51D8" strokeWidth="1.5" />
-          <rect x="12" y="17" width="7" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
-          <rect x="12" y="22" width="12" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
-          <rect x="12" y="27" width="9" height="2" rx="1" fill="#5B51D8" opacity="0.5" />
-          <path d="M25 15 L 27 18 L 30 16" stroke="#5B51D8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <div className="min-h-screen w-full bg-[#F8FAFC] relative select-none">
+      {/* Bottom-left illustration: Document workflow */}
+      <div className="hidden sm:block absolute bottom-0 left-0 pointer-events-none" style={{ transform: 'translate(-8%, 6%)' }}>
+        <svg viewBox="0 0 500 450" width="500" height="450" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="60" y="180" width="200" height="240" rx="12" fill="#1768DB" opacity="0.04" />
+          <rect x="70" y="190" width="180" height="220" rx="8" fill="white" stroke="#DFE1E6" strokeWidth="1" />
+          <rect x="90" y="210" width="90" height="6" rx="3" fill="#1768DB" opacity="0.15" />
+          <rect x="90" y="228" width="140" height="4" rx="2" fill="#C1C7D0" />
+          <rect x="90" y="242" width="120" height="4" rx="2" fill="#C1C7D0" />
+          <rect x="90" y="256" width="130" height="4" rx="2" fill="#C1C7D0" />
+          <rect x="90" y="280" width="60" height="24" rx="6" fill="#1768DB" opacity="0.08" />
+          <circle cx="105" cy="292" r="4" fill="#1768DB" opacity="0.4" />
+          <rect x="90" y="320" width="90" height="6" rx="3" fill="#1768DB" opacity="0.15" />
+          <rect x="90" y="338" width="140" height="4" rx="2" fill="#C1C7D0" />
+          <rect x="90" y="352" width="120" height="4" rx="2" fill="#C1C7D0" />
+          <rect x="90" y="366" width="130" height="4" rx="2" fill="#C1C7D0" />
+          <rect x="90" y="390" width="60" height="24" rx="6" fill="#1768DB" opacity="0.08" />
+          <circle cx="105" cy="402" r="4" fill="#1768DB" opacity="0.4" />
+          <path d="M170 230 L 220 230" stroke="#C1C7D0" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="240" cy="230" r="8" fill="#1768DB" opacity="0.06" />
+          <circle cx="240" cy="230" r="4" fill="#1768DB" opacity="0.2" />
+          <path d="M170 340 L 220 340" stroke="#C1C7D0" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="240" cy="340" r="8" fill="#1768DB" opacity="0.06" />
+          <circle cx="240" cy="340" r="4" fill="#1768DB" opacity="0.2" />
+          <path d="M60 120 L 300 120" stroke="#DFE1E6" strokeWidth="1" />
+          <rect x="40" y="90" width="120" height="30" rx="8" fill="#1768DB" opacity="0.04" />
+          <rect x="40" y="100" width="80" height="5" rx="2.5" fill="#1768DB" opacity="0.15" />
         </svg>
-        <div>
-          <p className="text-sm font-bold text-zinc-900 tracking-tight leading-tight">Quarterly Reports</p>
-          <p className="text-[11px] text-zinc-400 leading-tight">Management System</p>
+      </div>
+
+      {/* Bottom-right illustration: Analytics & collaboration */}
+      <div className="hidden sm:block absolute bottom-0 right-0 pointer-events-none" style={{ transform: 'translate(8%, 8%)' }}>
+        <svg viewBox="0 0 500 420" width="500" height="420" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="30" y="180" width="220" height="200" rx="12" fill="#1768DB" opacity="0.04" />
+          <rect x="45" y="195" width="190" height="170" rx="8" fill="white" stroke="#DFE1E6" strokeWidth="1" />
+          <rect x="60" y="215" width="40" height="80" rx="4" fill="#1768DB" opacity="0.12" />
+          <rect x="110" y="245" width="40" height="50" rx="4" fill="#1768DB" opacity="0.08" />
+          <rect x="160" y="225" width="40" height="70" rx="4" fill="#1768DB" opacity="0.1" />
+          <circle cx="224" cy="215" r="3" fill="#C1C7D0" />
+          <circle cx="224" cy="240" r="3" fill="#C1C7D0" />
+          <circle cx="224" cy="265" r="3" fill="#C1C7D0" />
+          <circle cx="224" cy="290" r="3" fill="#C1C7D0" />
+          <line x1="60" y1="310" x2="210" y2="310" stroke="#C1C7D0" strokeWidth="1" />
+          <rect x="60" y="325" width="30" height="20" rx="4" fill="#1768DB" opacity="0.06" />
+          <rect x="100" y="325" width="50" height="20" rx="4" fill="#1768DB" opacity="0.06" />
+          <path d="M260 260 C 320 200 350 300 400 250" stroke="#DFE1E6" strokeWidth="1" fill="none" />
+          <circle cx="270" cy="250" r="20" fill="white" stroke="#DFE1E6" strokeWidth="1" />
+          <circle cx="270" cy="250" r="8" fill="#1768DB" opacity="0.1" />
+          <circle cx="310" cy="230" r="16" fill="white" stroke="#DFE1E6" strokeWidth="1" />
+          <circle cx="310" cy="230" r="6" fill="#1768DB" opacity="0.08" />
+          <circle cx="350" cy="240" r="18" fill="white" stroke="#DFE1E6" strokeWidth="1" />
+          <circle cx="350" cy="240" r="7" fill="#1768DB" opacity="0.12" />
+          <circle cx="390" cy="220" r="14" fill="white" stroke="#DFE1E6" strokeWidth="1" />
+          <circle cx="390" cy="220" r="5" fill="#1768DB" opacity="0.08" />
+          <line x1="288" y1="240" x2="296" y2="235" stroke="#C1C7D0" strokeWidth="1" />
+          <line x1="324" y1="238" x2="334" y2="242" stroke="#C1C7D0" strokeWidth="1" />
+          <line x1="366" y1="243" x2="378" y2="235" stroke="#C1C7D0" strokeWidth="1" />
+        </svg>
+      </div>
+
+      {/* Centered Card */}
+      <div className="w-full min-h-screen flex flex-col relative z-10">
+        <div className="flex-1 flex flex-col sm:items-center sm:justify-center pt-6 sm:p-6 lg:p-8">
+          <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
+            {/* Logo centered at top */}
+            <div className="flex flex-col items-center mb-7">
+              <div className="flex items-center gap-2 justify-center mb-0.5">
+                <span className="text-xl font-bold text-[#1768DB] tracking-tight">R</span>
+                <span className="text-xl font-bold text-[#1768DB] tracking-[0.02em]">QUARTERLY REPORTS</span>
+              </div>
+              <p className="text-xs text-[#6B778C] w-full text-center">Management System</p>
+            </div>
+
+            <div className="mb-7 text-center">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#172B4D]">
+                {authMode === "login" ? "Log in to continue" : "Create account"}
+              </h2>
+              <p className="text-sm text-[#5E6C84] mt-1.5">
+                {authMode === "login"
+                  ? "Access your reports, forms and workflows securely"
+                  : "Sign up to get started with your account"}
+              </p>
+            </div>
+  
+            {authMode === "login" ? (
+              <div key="login" className="w-full animate-in fade-in duration-300 ease-out">
+                <form noValidate onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
+                  <div>
+                    <label htmlFor="login-username" className="block text-sm font-medium text-[#172B4D] mb-1.5">Username</label>
+                    <input
+                      id="login-username" type="text" value={username}
+                      onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined }); }}
+                      className={getFieldClassName(!!fieldErrors.username)}
+                      placeholder="Enter your username"
+                    />
+                    {fieldErrors.username && <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">{fieldErrors.username}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="login-password" className="block text-sm font-medium text-[#172B4D] mb-1.5">Password</label>
+                    <PasswordInput
+                      id="login-password" value={password}
+                      onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined }); }}
+                      className={getFieldClassName(!!fieldErrors.password)}
+                      placeholder="Enter your password"
+                    />
+                    {fieldErrors.password && <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">{fieldErrors.password}</p>}
+                  </div>
+                  <div className="flex items-center justify-between -mt-1">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" className="h-4 w-4 rounded border-[#DFE1E6] text-[#1768DB] focus:ring-[#1768DB]/20" />
+                      <span className="text-sm text-[#172B4D] select-none">Remember me</span>
+                    </label>
+                    <Link href="/forgot-password" className="text-sm font-medium text-[#1768DB] hover:underline transition-colors">Forgot password?</Link>
+                  </div>
+                  <Button type="submit" disabled={isSubmitting}
+                    className="w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#113263] text-white transition-all shadow-md mt-2"
+                  >
+                    {isSubmitting ? "Signing In..." : "Sign In"}
+                  </Button>
+                </form>
+                {errorMessage && (
+                  <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
+                    <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
+                  </div>
+                )}
+                <div className="space-y-3 mt-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-[#DFE1E6]" />
+                    <span className="text-xs text-[#6B778C] font-medium uppercase tracking-wider">or continue with</span>
+                    <div className="flex-1 h-px bg-[#DFE1E6]" />
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="button"
+                      onClick={() => toast({ title: "Coming Soon", description: "Google OAuth is not yet configured." })}
+                      className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-[#DFE1E6] bg-white hover:bg-[#F1F2F4] transition-colors text-sm font-medium text-[#5E6C84]"
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
+                      Google
+                    </button>
+                    <button type="button"
+                      onClick={() => toast({ title: "Coming Soon", description: "Microsoft OAuth is not yet configured." })}
+                      className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-[#DFE1E6] bg-white hover:bg-[#F1F2F4] transition-colors text-sm font-medium text-[#5E6C84]"
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="2" width="9.6" height="9.6" fill="#F25022" rx="1.5" /><rect x="12.4" y="2" width="9.6" height="9.6" fill="#7FBA00" rx="1.5" /><rect x="2" y="12.4" width="9.6" height="9.6" fill="#00A4EF" rx="1.5" /><rect x="12.4" y="12.4" width="9.6" height="9.6" fill="#FFB900" rx="1.5" /></svg>
+                      Microsoft
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div key="signup" className="w-full animate-in fade-in duration-300 ease-out">
+                <form noValidate onSubmit={handleSignup} className="space-y-4 sm:space-y-5">
+                  <div>
+                    <input
+                      id="signup-username" type="text" value={username}
+                      onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined }); }}
+                      className={getFieldClassName(!!fieldErrors.username)}
+                      placeholder="Full Name (or Teams ID)"
+                    />
+                    {fieldErrors.username ? (
+                      <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.username}</p>
+                    ) : (
+                      <p className="text-xs text-[#5E6C84] mt-1.5 flex items-center gap-1.5"><Info className="size-3.5 shrink-0" /><span>Use Teams ID for Coordinator/Facilitator</span></p>
+                    )}
+                  </div>
+                  <div>
+                    <input
+                      id="signup-email" type="email" value={email}
+                      onChange={(e) => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: undefined }); }}
+                      className={getFieldClassName(!!fieldErrors.email)}
+                      placeholder="Email Address"
+                    />
+                    {fieldErrors.email && <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.email}</p>}
+                  </div>
+                  <div>
+                    <PasswordInput
+                      id="signup-password" value={password}
+                      onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined }); }}
+                      className={getFieldClassName(!!fieldErrors.password)}
+                      placeholder="Password"
+                    />
+                    {fieldErrors.password && <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.password}</p>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div className="relative">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"><User className="size-4 text-[#6B778C]" /></div>
+                      <select
+                        id="signup-role" value={role}
+                        onChange={(e) => { setRole(e.target.value as "coordinator" | "facilitator" | "admin" | ""); if (fieldErrors.role) setFieldErrors({ ...fieldErrors, role: undefined }); }}
+                        className={`${getFieldClassName(!!fieldErrors.role)} pl-10 pr-8 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394A3B8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.2rem] bg-[right_0.5rem_center] bg-no-repeat`}
+                      >
+                        <option value="" disabled hidden>Role</option>
+                        <option value="coordinator">Coordinator</option>
+                        <option value="facilitator">Facilitator</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                      {fieldErrors.role && <p className="text-xs font-medium text-destructive mt-1.5">{fieldErrors.role}</p>}
+                    </div>
+                    {(role === "coordinator" || role === "facilitator") && (
+                      <div className="relative animate-in fade-in duration-300">
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"><Folder className="size-4 text-[#6B778C]" /></div>
+                        {projectOptions.length === 0 ? (
+                          <p className="text-xs text-destructive font-medium pt-3">No projects found.</p>
+                        ) : (
+                          <>
+                            <select
+                              id="signup-project" value={project}
+                              onChange={(e) => { setProject(e.target.value); if (fieldErrors.project) setFieldErrors({ ...fieldErrors, project: undefined }); }}
+                              className={`${getFieldClassName(!!fieldErrors.project)} pl-10 pr-8 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394A3B8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.2rem] bg-[right_0.5rem_center] bg-no-repeat`}
+                            >
+                              <option value="" disabled hidden>Project</option>
+                              {projectOptions.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
+                            </select>
+                            {fieldErrors.project && <p className="text-xs font-medium text-destructive mt-1.5">{fieldErrors.project}</p>}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Button type="submit" disabled={isSubmitting}
+                    className="group w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#113263] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? "Creating Account..." : "Sign Up"}
+                    {!isSubmitting && <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />}
+                  </Button>
+                </form>
+                {errorMessage && (
+                  <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
+                    <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
+                  </div>
+                )}
+                <div className="space-y-3 mt-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-[#DFE1E6]" />
+                    <span className="text-xs text-[#6B778C] font-medium uppercase tracking-wider">or continue with</span>
+                    <div className="flex-1 h-px bg-[#DFE1E6]" />
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="button"
+                      onClick={() => toast({ title: "Coming Soon", description: "Google OAuth is not yet configured." })}
+                      className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-[#DFE1E6] bg-white hover:bg-[#F1F2F4] transition-colors text-sm font-medium text-[#5E6C84]"
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
+                      Google
+                    </button>
+                    <button type="button"
+                      onClick={() => toast({ title: "Coming Soon", description: "Microsoft OAuth is not yet configured." })}
+                      className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-[#DFE1E6] bg-white hover:bg-[#F1F2F4] transition-colors text-sm font-medium text-[#5E6C84]"
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="2" width="9.6" height="9.6" fill="#F25022" rx="1.5" /><rect x="12.4" y="2" width="9.6" height="9.6" fill="#7FBA00" rx="1.5" /><rect x="2" y="12.4" width="9.6" height="9.6" fill="#00A4EF" rx="1.5" /><rect x="12.4" y="12.4" width="9.6" height="9.6" fill="#FFB900" rx="1.5" /></svg>
+                      Microsoft
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+  
+            <div className="mt-6 sm:mt-8 text-center">
+              {authMode === "signup" ? (
+                <p className="text-sm text-[#5E6C84]">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => toggleAuthMode("login")}
+                    className="font-medium text-[#1768DB] hover:underline"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              ) : (
+                <p className="text-sm text-[#5E6C84]">
+                  Do not have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => toggleAuthMode("signup")}
+                    className="font-medium text-[#1768DB] hover:underline"
+                  >
+                    Sign up
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5">
-        <div className="w-full max-w-[420px] bg-[#ffffff] backdrop-blur-md rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-10 relative">
-          <div className="mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl lg:text-[28px] font-bold tracking-tight text-zinc-900">
-              {authMode === "login" ? "Welcome Back" : "Create Account"}
-            </h2>
-            <p className="text-sm text-zinc-500 mt-1">
-              {authMode === "login"
-                ? "Sign in to continue to your dashboard"
-                : "Sign up to get started with your account"}
-            </p>
-          </div>
 
-          {authMode === "login" ? (
-            <div key="login" className="w-full animate-in fade-in duration-300 ease-out">
-              <form noValidate onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
-                <div>
-                  <input
-                    id="login-username" type="text" value={username}
-                    onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined }); }}
-                    className={getFieldClassName(!!fieldErrors.username)}
-                    placeholder="Username"
-                  />
-                  {fieldErrors.username && <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">{fieldErrors.username}</p>}
-                </div>
-                <div>
-                  <PasswordInput
-                    id="login-password" value={password}
-                    onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined }); }}
-                    className={getFieldClassName(!!fieldErrors.password)}
-                    placeholder="Password"
-                  />
-                  {fieldErrors.password && <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">{fieldErrors.password}</p>}
-                </div>
-                <div className="flex justify-end -mt-1">
-                  <Link href="/forgot-password" className="text-sm font-medium text-[#5B51D8] hover:underline transition-colors">Forgot password?</Link>
-                </div>
-                <Button type="submit" disabled={isSubmitting}
-                  className="w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#5B51D8] hover:bg-[#4a42b8] text-white transition-all shadow-md mt-2"
-                >
-                  {isSubmitting ? "Signing In..." : "Sign In"}
-                </Button>
-              </form>
-              {errorMessage && (
-                <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
-                  <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
-                </div>
-              )}
-              <div className="space-y-3 mt-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-zinc-200" />
-                  <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">or continue with</span>
-                  <div className="flex-1 h-px bg-zinc-200" />
-                </div>
-                <div className="flex gap-3">
-                  <button type="button"
-                    onClick={() => toast({ title: "Coming Soon", description: "Google OAuth is not yet configured." })}
-                    className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors text-sm font-medium text-zinc-600"
-                  >
-                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
-                    Google
-                  </button>
-                  <button type="button"
-                    onClick={() => toast({ title: "Coming Soon", description: "Microsoft OAuth is not yet configured." })}
-                    className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors text-sm font-medium text-zinc-600"
-                  >
-                    <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="2" width="9.6" height="9.6" fill="#F25022" rx="1.5" /><rect x="12.4" y="2" width="9.6" height="9.6" fill="#7FBA00" rx="1.5" /><rect x="2" y="12.4" width="9.6" height="9.6" fill="#00A4EF" rx="1.5" /><rect x="12.4" y="12.4" width="9.6" height="9.6" fill="#FFB900" rx="1.5" /></svg>
-                    Outlook
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div key="signup" className="w-full animate-in fade-in duration-300 ease-out">
-              <form noValidate onSubmit={handleSignup} className="space-y-4 sm:space-y-5">
-                <div>
-                  <input
-                    id="signup-username" type="text" value={username}
-                    onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined }); }}
-                    className={getFieldClassName(!!fieldErrors.username)}
-                    placeholder="Full Name (or Teams ID)"
-                  />
-                  {fieldErrors.username ? (
-                    <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.username}</p>
-                  ) : (
-                    <p className="text-xs text-zinc-500 mt-1.5 flex items-center gap-1.5"><Info className="size-3.5 shrink-0" /><span>Use Teams ID for Coordinator/Facilitator</span></p>
-                  )}
-                </div>
-                <div>
-                  <input
-                    id="signup-email" type="email" value={email}
-                    onChange={(e) => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: undefined }); }}
-                    className={getFieldClassName(!!fieldErrors.email)}
-                    placeholder="Email Address"
-                  />
-                  {fieldErrors.email && <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.email}</p>}
-                </div>
-                <div>
-                  <PasswordInput
-                    id="signup-password" value={password}
-                    onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined }); }}
-                    className={getFieldClassName(!!fieldErrors.password)}
-                    placeholder="Password"
-                  />
-                  {fieldErrors.password && <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.password}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div className="relative">
-                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"><User className="size-4 text-zinc-400" /></div>
-                    <select
-                      id="signup-role" value={role}
-                      onChange={(e) => { setRole(e.target.value as "coordinator" | "facilitator" | "admin" | ""); if (fieldErrors.role) setFieldErrors({ ...fieldErrors, role: undefined }); }}
-                      className={`${getFieldClassName(!!fieldErrors.role)} pl-10 pr-8 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a1a1aa%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.2rem] bg-[right_0.5rem_center] bg-no-repeat`}
-                    >
-                      <option value="" disabled hidden>Role</option>
-                      <option value="coordinator">Coordinator</option>
-                      <option value="facilitator">Facilitator</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                    {fieldErrors.role && <p className="text-xs font-medium text-destructive mt-1.5">{fieldErrors.role}</p>}
-                  </div>
-                  {(role === "coordinator" || role === "facilitator") && (
-                    <div className="relative animate-in fade-in duration-300">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"><Folder className="size-4 text-zinc-400" /></div>
-                      {projectOptions.length === 0 ? (
-                        <p className="text-xs text-destructive font-medium pt-3">No projects found.</p>
-                      ) : (
-                        <>
-                          <select
-                            id="signup-project" value={project}
-                            onChange={(e) => { setProject(e.target.value); if (fieldErrors.project) setFieldErrors({ ...fieldErrors, project: undefined }); }}
-                            className={`${getFieldClassName(!!fieldErrors.project)} pl-10 pr-8 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23a1a1aa%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-[length:1.2rem] bg-[right_0.5rem_center] bg-no-repeat`}
-                          >
-                            <option value="" disabled hidden>Project</option>
-                            {projectOptions.map((opt) => (<option key={opt} value={opt}>{opt}</option>))}
-                          </select>
-                          {fieldErrors.project && <p className="text-xs font-medium text-destructive mt-1.5">{fieldErrors.project}</p>}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <Button type="submit" disabled={isSubmitting}
-                  className="group w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#5B51D8] hover:bg-[#4a42b8] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
-                >
-                  {isSubmitting ? "Creating Account..." : "Sign Up"}
-                  {!isSubmitting && <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />}
-                </Button>
-              </form>
-              {errorMessage && (
-                <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
-                  <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
-                </div>
-              )}
-              <div className="space-y-3 mt-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-zinc-200" />
-                  <span className="text-xs text-zinc-400 font-medium uppercase tracking-wider">or continue with</span>
-                  <div className="flex-1 h-px bg-zinc-200" />
-                </div>
-                <div className="flex gap-3">
-                  <button type="button"
-                    onClick={() => toast({ title: "Coming Soon", description: "Google OAuth is not yet configured." })}
-                    className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors text-sm font-medium text-zinc-600"
-                  >
-                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
-                    Google
-                  </button>
-                  <button type="button"
-                    onClick={() => toast({ title: "Coming Soon", description: "Microsoft OAuth is not yet configured." })}
-                    className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors text-sm font-medium text-zinc-600"
-                  >
-                    <svg viewBox="0 0 24 24" width="18" height="18"><rect x="2" y="2" width="9.6" height="9.6" fill="#F25022" rx="1.5" /><rect x="12.4" y="2" width="9.6" height="9.6" fill="#7FBA00" rx="1.5" /><rect x="2" y="12.4" width="9.6" height="9.6" fill="#00A4EF" rx="1.5" /><rect x="12.4" y="12.4" width="9.6" height="9.6" fill="#FFB900" rx="1.5" /></svg>
-                    Outlook
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="mt-6 sm:mt-8 text-center">
-            {authMode === "signup" ? (
-              <p className="text-sm text-zinc-500">
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => toggleAuthMode("login")}
-                  className="font-medium text-[#5B51D8] hover:underline"
-                >
-                  Sign in
-                </button>
-              </p>
-            ) : (
-              <p className="text-sm text-zinc-500">
-                Do not have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => toggleAuthMode("signup")}
-                  className="font-medium text-[#5B51D8] hover:underline"
-                >
-                  Sign up
-                </button>
-              </p>
-            )}
-          </div>
+      {/* Footer */}
+      <div className="w-full flex flex-col items-center pb-6 z-10">
+        <div className="flex items-center gap-2 opacity-40">
+          <span className="text-lg font-black text-[#1768DB]">R</span>
+          <span className="text-xs text-[#5E6C84]">&copy; 2026 Quarterly Reports Management System</span>
         </div>
       </div>
     </div>

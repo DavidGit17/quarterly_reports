@@ -44,36 +44,36 @@ export default function SecurityPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 md:p-6">
+    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-6">
       <div className="mx-auto max-w-5xl">
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 font-medium transition-colors"
+          className="flex items-center gap-2 text-[#5E6C84] hover:text-[#172B4D] mb-6 font-medium transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </button>
 
-        <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+        <div className="rounded-lg border border-[#DFE1E6] bg-white overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-[200px_1fr]">
-            <aside className="border-b md:border-b-0 md:border-r border-slate-200 bg-slate-50 p-4">
-              <h1 className="text-3xl font-semibold text-slate-900 mb-1">
+            <aside className="border-b md:border-b-0 md:border-r border-[#DFE1E6] bg-[#F1F2F4] p-4">
+              <h1 className="text-3xl font-semibold text-[#172B4D] mb-1">
                 Account
               </h1>
-              <p className="text-sm text-slate-500 mb-5">
+              <p className="text-sm text-[#5E6C84] mb-5">
                 Manage your account info.
               </p>
 
               <nav className="space-y-1">
                 <Link
                   href="/profile"
-                  className="w-full rounded-lg px-3 py-2 text-sm text-slate-600 font-medium flex items-center gap-2 hover:bg-slate-100"
+                  className="w-full rounded-lg px-3 py-2 text-sm text-[#5E6C84] font-medium flex items-center gap-2 hover:bg-[#F1F2F4]"
                 >
                   <UserCircle2 className="h-4 w-4" />
                   Profile
                 </Link>
-                <button className="w-full rounded-lg bg-slate-200 px-3 py-2 text-sm text-slate-800 font-medium flex items-center gap-2 justify-start">
+                <button className="w-full rounded-lg bg-[#DFE1E6] px-3 py-2 text-sm text-[#172B4D] font-medium flex items-center gap-2 justify-start">
                   <Shield className="h-4 w-4" />
                   Security
                 </button>
@@ -82,17 +82,17 @@ export default function SecurityPage() {
 
             <main>
               <div className="max-w-3xl mx-auto px-6 py-8">
-                <h2 className="text-2xl font-semibold text-slate-900 mb-5">
+                <h2 className="text-2xl font-semibold text-[#172B4D] mb-5">
                   Security
                 </h2>
 
                 <form
                   onSubmit={handleSubmit}
-                  className="border border-slate-200 rounded-lg bg-white p-4 space-y-4"
+                  className="border border-[#DFE1E6] rounded-lg bg-white p-4 space-y-4"
                 >
                   <div>
                     <label
-                      className="block text-sm text-slate-600 mb-1"
+                      className="block text-sm text-[#5E6C84] mb-1"
                       htmlFor="current-password"
                     >
                       Current password
@@ -109,7 +109,7 @@ export default function SecurityPage() {
 
                   <div>
                     <label
-                      className="block text-sm text-slate-600 mb-1"
+                      className="block text-sm text-[#5E6C84] mb-1"
                       htmlFor="new-password"
                     >
                       New password
@@ -124,7 +124,7 @@ export default function SecurityPage() {
 
                   <div>
                     <label
-                      className="block text-sm text-slate-600 mb-1"
+                      className="block text-sm text-[#5E6C84] mb-1"
                       htmlFor="confirm-password"
                     >
                       Confirm password
@@ -151,7 +151,7 @@ export default function SecurityPage() {
                     <Button
                       type="submit"
                       size="default"
-                      className="bg-slate-900 hover:bg-slate-800 w-full sm:w-auto"
+                      className="bg-[#1768DB] hover:bg-[#113263] w-full sm:w-auto"
                     >
                       Update password
                     </Button>
