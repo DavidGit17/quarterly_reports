@@ -1,321 +1,421 @@
-Redesign the entire authentication experience of the Quarterly Reports Management System using a clean enterprise SaaS design inspired by modern platforms like Atlassian, Jira, Confluence, Microsoft 365, and other professional internal business tools.
+We need to completely refactor the existing email automation system and migrate it to a clean, scalable architecture using Agenda + MongoDB + Brevo.
 
-LAYOUT
+Current situation:
+- Brevo email sending logic exists in controllers and/or cron-related files.
+- Some email workflows may be triggered directly from API endpoints.
+- There may be server-level cron jobs or manual scheduling logic.
+- We want to replace all scheduled email automation with Agenda.
 
-Use a fully centered authentication layout.
+Goal:
 
-Structure:
+Controller
+→ Agenda Job
+→ Worker
+→ Brevo Service
 
-1. Company Logo (centered)
-2. Authentication Title
-3. Subtitle
-4. Form Fields
-5. Remember Me / Forgot Password section
-6. Primary Action Button
-7. Social Login Buttons (optional)
-8. Sign In / Sign Up switch links
-9. Footer Section
+No controller should send emails directly.
 
-The authentication card should be vertically centered on desktop and comfortably positioned on mobile.
+No scheduled workflow should bypass Agenda.
 
-Do NOT use split-screen layouts.
+---
 
-Do NOT place the logo in the top-left corner.
+## TASK 1 — Audit Existing Implementation
 
-Move all branding into the authentication card.
+Before making changes, scan the entire codebase and identify:
 
-LOGO
+- All Brevo-related files
+- All email sending functions
+- Any cron jobs
+- Any scheduled tasks
+- Any direct calls to Brevo APIs
+- Any controller methods currently responsible for sending emails
+- Any duplicate scheduling implementations
 
-Place the Quarterly Reports logo centered at the top of the card.
+Provide a list of findings before refactoring.
 
-Use the custom "R" logo mark and wordmark.
+---
 
-Below the logo:
+## TASK 2 — Create Dedicated Brevo Service
 
-Title:
-"Log in to continue"
+Create:
 
-Subtitle:
-"Access your reports, forms and workflows securely"
+services/brevoService.js
 
-AUTHENTICATION CARD
+Move ALL Brevo-specific logic into this file.
 
-Width:
-420px–480px desktop
+Create:
 
-Background:
-White
+sendProjectFormEmail(emails, formUrl)
 
-Border:
-1px solid #DFE1E6
+Requirements:
 
-Border Radius:
-16px
+- Accept an array of recipient emails
+- Accept a project form URL
+- Build email content
+- Send email through Brevo
+- Use official Brevo SDK or Axios
+- Throw meaningful errors
+- No business logic
+- No database queries
+- No scheduling logic
 
-Shadow:
-Very subtle enterprise-style shadow
+This service should only be responsible for email delivery.
 
-Padding:
-Generous whitespace
+---
 
-FORMS
+## TASK 3 — Configure Agenda
 
-Input Background:
-#FFFFFF
+Install:
 
-Input Border:
-#DFE1E6
+agenda
 
-Input Hover:
-#C1C7D0
+Create:
 
-Input Focus Border:
-#1768DB
+config/agenda.js
 
-Focus Ring:
-Soft blue glow
+Requirements:
 
-Label Color:
-#172B4D
+- Use process.env.MONGO_URI
+- Reuse existing MongoDB database
+- Export a singleton Agenda instance
+- Handle connection failures gracefully
+- Log Agenda initialization success
+- Use modern ES modules
 
-Placeholder:
-#5E6C84
+---
 
-FORM FIELDS
+## TASK 4 — Create Email Worker
 
-Use current login fields:
+Create:
 
-- Email / Username
-- Password
-- Show Password Toggle
-- Remember Me checkbox
-- Forgot Password
+workers/emailWorker.js
 
-BUTTONS
+Define a job:
 
-Primary Button
+send-project-form-links
 
-Background:
-#1768DB
+Job flow:
 
-Text:
-White
+### Input
 
-Hover:
-#113263
+Read:
 
-Radius:
-10px
+projectId
+formUrl
 
-Height:
-48px–52px
+from:
 
-Full Width
+job.attrs.data
 
-Secondary Buttons
+### Runtime Database Query
 
-Background:
-White
+When the job executes:
 
-Border:
-#DFE1E6
+- Query MongoDB
+- Find all users/employees assigned to the specified project
+- Retrieve only email fields
 
-Text:
-#1458BC
+Example:
 
-Hover Background:
-#F1F2F4
+User.find({ projectId }).select("email")
 
-SOCIAL LOGIN
+### Validation
 
-Keep:
+If no users exist:
 
-- Google
-- Microsoft
+- Log warning
+- Exit successfully
 
-Remove unnecessary providers unless specifically required.
+### Delivery
 
-Social buttons should look clean and enterprise-grade.
+If users exist:
 
-LINKS
+sendProjectFormEmail(emailList, formUrl)
 
-Primary Link:
-#1458BC
+---
 
-Hover:
-#113263
+## TASK 5 — Automation API
 
-Link Hover Background:
-#F1F2F4
+Create or refactor:
 
-TYPOGRAPHY
+controllers/automationController.js
 
-Primary Text:
-#172B4D
+### Schedule Automation
 
-Secondary Text:
-#5E6C84
+Route:
 
-Muted Text:
-#6B778C
+POST /api/automation/schedule
 
-FONT STYLE
+Request:
 
-Professional SaaS typography.
+{
+  "projectId": "...",
+  "formUrl": "...",
+  "scheduleDate": "..."
+}
 
-Similar to Atlassian, Microsoft, Linear, Notion.
+Behavior:
 
-Avoid decorative fonts.
+agenda.schedule(
+  scheduleDate,
+  "send-project-form-links",
+  {
+    projectId,
+    formUrl
+  }
+)
 
-COLOR SYSTEM
+Return:
 
-Primary Blue:
-#1768DB
+{
+  "success": true,
+  "jobId": "<agenda-job-id>"
+}
 
-Primary Hover:
-#113263
+Store the Agenda job ID so it can later be canceled.
 
-Secondary Blue:
-#1458BC
+---
 
-Hover Background:
-#F1F2F4
+### Stop Automation
 
-Page Background:
-#F8FAFC
+Route:
 
-Card Background:
-#FFFFFF
+POST /api/automation/stop
 
-Primary Text:
-#172B4D
+Request:
 
-Secondary Text:
-#5E6C84
+{
+  "automationJobId": "..."
+}
 
-Borders:
-#DFE1E6
+Behavior:
 
-Success:
-#22C55E
+agenda.cancel({
+  _id: automationJobId
+})
 
-Warning:
-#F59E0B
+Return:
 
-Error:
-#EF4444
+{
+  "success": true
+}
 
-BACKGROUND & ILLUSTRATIONS
+This should immediately remove the pending Agenda job from MongoDB.
 
-Use a light professional background.
+---
 
-Add subtle enterprise illustrations near page edges and corners.
+## TASK 6 — Store Automation Metadata
 
-Illustration themes:
+Create or update:
 
-- Quarterly reporting
-- Team collaboration
-- Form submissions
-- Secure document workflows
-- Approval processes
-- Analytics dashboards
-- Role-based access management
-- File management
+models/Automation.js
 
-Examples:
+Suggested schema:
 
-Left Side:
-People reviewing forms and reports
+{
+  projectId,
+  formUrl,
+  scheduleDate,
+  agendaJobId,
+  status,
+  createdBy,
+  createdAt,
+  updatedAt
+}
 
-Right Side:
-Documents moving through approval workflows
+Status values:
 
-Keep illustrations subtle and secondary.
+scheduled
+completed
+cancelled
+failed
 
-The authentication card must remain the primary focal point.
+Purpose:
 
-FOOTER
+- Display upcoming automations
+- Display automation history
+- Allow cancellation from dashboard
+- Track execution state
 
-At the bottom of the page:
+---
 
-Greyed-out Quarterly Reports logo
+## TASK 7 — Server Startup
 
-Opacity:
-40-50%
+Update:
 
-Footer text:
+server.js
 
-© 2026 Quarterly Reports Management System
+or
 
-Additional links:
+app.js
 
-Privacy Policy
-Terms of Use
+Requirements:
 
-Centered layout.
+Startup order:
 
-Enterprise SaaS appearance.
+1. Connect MongoDB
+2. Initialize Agenda
+3. Register worker definitions
+4. Start Agenda
+5. Start Express server
 
-DASHBOARD & SITE-WIDE DESIGN
+Example:
 
-Apply the same color system throughout the application.
+await connectDB()
 
-Navigation
+registerWorkers()
 
-Active Item:
-Background #E9F2FF
-Text #1768DB
+await agenda.start()
 
-Hover:
-#F1F2F4
+app.listen(...)
 
-Sidebar:
-White with subtle border
+Ensure Agenda starts only once.
 
-Tables
+---
 
-Header:
-#F8FAFC
+## TASK 8 — Remove Legacy Implementation
 
-Row Hover:
-#F1F2F4
+After Agenda is fully integrated:
 
-Cards
+Remove:
 
-White background
-Border #DFE1E6
-12px radius
-Soft shadow
+- Direct Brevo calls from controllers
+- Cron-based email automation
+- Server-level cron jobs
+- Duplicate scheduling logic
+- Any scheduled workflow that bypasses Agenda
 
-OVERALL FEELING
+Keep only immediate/non-scheduled email workflows if genuinely required elsewhere.
 
-Professional
-Secure
-Trusted
-Enterprise
-Internal Business Tool
-Document Management
-Workflow Automation
-Role-Based Access Control
-Quarterly Reporting Platform
+Final architecture:
+
+Controller
+→ Agenda
+→ Worker
+→ Brevo Service
+
+---
+
+## TASK 9 — Security Audit & Hardening
+
+While performing the migration, review the application for security issues and improve where appropriate.
+
+### MongoDB Security
+
+Verify:
+
+- Credentials stored in environment variables
+- Authentication enabled
+- No unnecessary public exposure
+- Sensitive collections protected
+- Agenda jobs store minimal data only
+
+### RBAC Security
+
+Verify:
+
+- Only Admin users can schedule automations
+- Only Admin users can cancel automations
+- Coordinators cannot create automations unless explicitly allowed
+- Facilitators cannot create automations unless explicitly allowed
+
+Identify:
+
+- Missing authorization checks
+- Privilege escalation risks
+- Route protection issues
+
+### API Key Security
+
+Verify:
+
+- Brevo API keys are never hardcoded
+- API keys exist only in environment variables
+- Secrets are never exposed to frontend code
+- Email configuration is secure
+
+### File Upload Security
+
+Review:
+
+- File type validation
+- File size limits
+- Upload authorization
+- Storage strategy
+- Potential malicious upload risks
+
+Provide recommendations where necessary.
+
+### Agenda Security
+
+Ensure Agenda jobs never store:
+
+- Passwords
+- OTPs
+- Access tokens
+- Refresh tokens
+- API keys
+- Sensitive personal information
+
+Store only:
+
+{
+  projectId,
+  formUrl,
+  automationId
+}
+
+or equivalent minimal metadata.
+
+---
+
+## TASK 10 — Code Quality
+
+Refactor using:
+
+- Modern ES modules
+- Async/await
+- Separation of concerns
+- Reusable services
+- Reusable workers
+- Consistent error handling
+- Consistent logging
 
 Avoid:
-- Neon colors
-- Heavy gradients
-- Glassmorphism
-- Gaming aesthetics
-- Excessive animations
-- Marketing-style landing pages
 
-Use color sparingly.
+- Business logic inside controllers
+- Database queries inside Brevo service
+- Email logic inside workers
+- Scheduling logic inside email service
 
-90% of the interface should be white, slate gray, and light gray.
+---
 
-Blue should be reserved for:
-- Primary actions
-- Active navigation
-- Focus states
-- Links
-- Important highlights
+## OUTPUT REQUIRED
 
-The final design should feel like a premium enterprise platform used by organizations to manage secure reports, forms, approvals, file uploads, and role-based workflows.
+Provide:
+
+1. Full folder structure
+
+2. All new files
+
+3. All modified files
+
+4. Complete code implementations
+
+5. Route definitions
+
+6. Required npm packages
+
+7. Required environment variables
+
+8. MongoDB indexes recommended for Agenda
+
+9. Migration steps
+
+10. Security review report
+
+11. List of removed legacy code
+
+12. Final architecture diagram
+
+Use modern Node.js, Express, MongoDB, Mongoose, Agenda, and Brevo best practices throughout the implementation.

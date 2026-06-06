@@ -248,26 +248,22 @@ export default function UnifiedAuthPage() {
     return (
       <div className="min-h-screen w-full bg-[#F8FAFC] animate-in fade-in duration-700 relative overflow-hidden flex flex-col items-center justify-center">
         <div className="relative z-10 flex flex-col items-center px-6">
-          <div className="flex items-center gap-2 justify-center mb-0.5">
-            <span className="text-3xl font-black text-[#1768DB] tracking-tight">R</span>
-            <span className="text-xs font-bold text-[#1768DB] tracking-[0.15em]">QUARTERLY REPORTS</span>
-          </div>
-          <p className="text-[10px] text-[#6B778C] mb-5">Management System</p>
+          <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-32 w-auto mb-1" />
           <div className="w-full max-w-[360px] mt-8">
             <svg viewBox="0 0 400 380" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
               <defs>
                 <style>{`@keyframes ringPulse { 0% { r: 75; opacity: 0.4; } 100% { r: 110; opacity: 0; } } @keyframes ringPulse2 { 0% { r: 85; opacity: 0.3; } 100% { r: 130; opacity: 0; } } .pulse-ring1 { animation: ringPulse 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); transform-origin: 200px 180px; } .pulse-ring2 { animation: ringPulse2 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); animation-delay: 0.8s; transform-origin: 200px 180px; } @keyframes checkDraw { to { stroke-dashoffset: 0; } } .check-path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: checkDraw 0.5s ease-out 0.3s forwards; }`}</style>
               </defs>
-              <circle cx="100" cy="80" r="5" fill="#6B778C" opacity="0.3" />
-              <circle cx="310" cy="70" r="3" fill="#6B778C" opacity="0.25" />
-              <circle cx="340" cy="290" r="6" fill="#6B778C" opacity="0.2" />
-              <circle cx="60" cy="300" r="4" fill="#6B778C" opacity="0.25" />
-              <circle cx="200" cy="45" r="3" fill="#6B778C" opacity="0.3" />
-              <circle cx="200" cy="180" r="75" fill="none" stroke="#6B778C" strokeWidth="1.5" opacity="0.25" className="pulse-ring1" />
-              <circle cx="200" cy="180" r="85" fill="none" stroke="#6B778C" strokeWidth="1" opacity="0.15" className="pulse-ring2" />
-              <path d="M200 85 L 260 115 V 185 C 260 235 235 265 200 280 C 165 265 140 235 140 185 V 115 Z" stroke="#6B778C" strokeWidth="2" fill="#F8FAFC" />
+              <circle cx="100" cy="80" r="5" fill="#1768DB" opacity="0.35" />
+              <circle cx="310" cy="70" r="3" fill="#1768DB" opacity="0.3" />
+              <circle cx="340" cy="290" r="6" fill="#1768DB" opacity="0.25" />
+              <circle cx="60" cy="300" r="4" fill="#1768DB" opacity="0.3" />
+              <circle cx="200" cy="45" r="3" fill="#1768DB" opacity="0.35" />
+              <circle cx="200" cy="180" r="75" fill="none" stroke="#1768DB" strokeWidth="1.5" opacity="0.3" className="pulse-ring1" />
+              <circle cx="200" cy="180" r="85" fill="none" stroke="#1768DB" strokeWidth="1" opacity="0.2" className="pulse-ring2" />
+              <path d="M200 85 L 260 115 V 185 C 260 235 235 265 200 280 C 165 265 140 235 140 185 V 115 Z" stroke="#1768DB" strokeWidth="2" fill="#F8FAFC" />
               <path d="M200 105 L 242 125 V 180 C 242 218 225 240 200 250 C 175 240 158 218 158 180 V 125 Z" fill="#F1F2F4" />
-              <path d="M172 185 L 192 205 L 228 170" stroke="#6B778C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="check-path" />
+              <path d="M172 185 L 192 205 L 228 170" stroke="#1768DB" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="check-path" />
             </svg>
           </div>
           <div className="w-full max-w-[280px] mt-8">
@@ -282,84 +278,22 @@ export default function UnifiedAuthPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#F8FAFC] relative select-none">
-      {/* Bottom-left illustration: Document workflow */}
-      <div className="hidden sm:block absolute bottom-0 left-0 pointer-events-none" style={{ transform: 'translate(-8%, 6%)' }}>
-        <svg viewBox="0 0 500 450" width="500" height="450" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="60" y="180" width="200" height="240" rx="12" fill="#1768DB" opacity="0.04" />
-          <rect x="70" y="190" width="180" height="220" rx="8" fill="white" stroke="#DFE1E6" strokeWidth="1" />
-          <rect x="90" y="210" width="90" height="6" rx="3" fill="#1768DB" opacity="0.15" />
-          <rect x="90" y="228" width="140" height="4" rx="2" fill="#C1C7D0" />
-          <rect x="90" y="242" width="120" height="4" rx="2" fill="#C1C7D0" />
-          <rect x="90" y="256" width="130" height="4" rx="2" fill="#C1C7D0" />
-          <rect x="90" y="280" width="60" height="24" rx="6" fill="#1768DB" opacity="0.08" />
-          <circle cx="105" cy="292" r="4" fill="#1768DB" opacity="0.4" />
-          <rect x="90" y="320" width="90" height="6" rx="3" fill="#1768DB" opacity="0.15" />
-          <rect x="90" y="338" width="140" height="4" rx="2" fill="#C1C7D0" />
-          <rect x="90" y="352" width="120" height="4" rx="2" fill="#C1C7D0" />
-          <rect x="90" y="366" width="130" height="4" rx="2" fill="#C1C7D0" />
-          <rect x="90" y="390" width="60" height="24" rx="6" fill="#1768DB" opacity="0.08" />
-          <circle cx="105" cy="402" r="4" fill="#1768DB" opacity="0.4" />
-          <path d="M170 230 L 220 230" stroke="#C1C7D0" strokeWidth="1" strokeDasharray="3 3" />
-          <circle cx="240" cy="230" r="8" fill="#1768DB" opacity="0.06" />
-          <circle cx="240" cy="230" r="4" fill="#1768DB" opacity="0.2" />
-          <path d="M170 340 L 220 340" stroke="#C1C7D0" strokeWidth="1" strokeDasharray="3 3" />
-          <circle cx="240" cy="340" r="8" fill="#1768DB" opacity="0.06" />
-          <circle cx="240" cy="340" r="4" fill="#1768DB" opacity="0.2" />
-          <path d="M60 120 L 300 120" stroke="#DFE1E6" strokeWidth="1" />
-          <rect x="40" y="90" width="120" height="30" rx="8" fill="#1768DB" opacity="0.04" />
-          <rect x="40" y="100" width="80" height="5" rx="2.5" fill="#1768DB" opacity="0.15" />
-        </svg>
-      </div>
+    <div className="min-h-screen w-full bg-[#F8FAFC] flex flex-col select-none">
 
-      {/* Bottom-right illustration: Analytics & collaboration */}
-      <div className="hidden sm:block absolute bottom-0 right-0 pointer-events-none" style={{ transform: 'translate(8%, 8%)' }}>
-        <svg viewBox="0 0 500 420" width="500" height="420" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="30" y="180" width="220" height="200" rx="12" fill="#1768DB" opacity="0.04" />
-          <rect x="45" y="195" width="190" height="170" rx="8" fill="white" stroke="#DFE1E6" strokeWidth="1" />
-          <rect x="60" y="215" width="40" height="80" rx="4" fill="#1768DB" opacity="0.12" />
-          <rect x="110" y="245" width="40" height="50" rx="4" fill="#1768DB" opacity="0.08" />
-          <rect x="160" y="225" width="40" height="70" rx="4" fill="#1768DB" opacity="0.1" />
-          <circle cx="224" cy="215" r="3" fill="#C1C7D0" />
-          <circle cx="224" cy="240" r="3" fill="#C1C7D0" />
-          <circle cx="224" cy="265" r="3" fill="#C1C7D0" />
-          <circle cx="224" cy="290" r="3" fill="#C1C7D0" />
-          <line x1="60" y1="310" x2="210" y2="310" stroke="#C1C7D0" strokeWidth="1" />
-          <rect x="60" y="325" width="30" height="20" rx="4" fill="#1768DB" opacity="0.06" />
-          <rect x="100" y="325" width="50" height="20" rx="4" fill="#1768DB" opacity="0.06" />
-          <path d="M260 260 C 320 200 350 300 400 250" stroke="#DFE1E6" strokeWidth="1" fill="none" />
-          <circle cx="270" cy="250" r="20" fill="white" stroke="#DFE1E6" strokeWidth="1" />
-          <circle cx="270" cy="250" r="8" fill="#1768DB" opacity="0.1" />
-          <circle cx="310" cy="230" r="16" fill="white" stroke="#DFE1E6" strokeWidth="1" />
-          <circle cx="310" cy="230" r="6" fill="#1768DB" opacity="0.08" />
-          <circle cx="350" cy="240" r="18" fill="white" stroke="#DFE1E6" strokeWidth="1" />
-          <circle cx="350" cy="240" r="7" fill="#1768DB" opacity="0.12" />
-          <circle cx="390" cy="220" r="14" fill="white" stroke="#DFE1E6" strokeWidth="1" />
-          <circle cx="390" cy="220" r="5" fill="#1768DB" opacity="0.08" />
-          <line x1="288" y1="240" x2="296" y2="235" stroke="#C1C7D0" strokeWidth="1" />
-          <line x1="324" y1="238" x2="334" y2="242" stroke="#C1C7D0" strokeWidth="1" />
-          <line x1="366" y1="243" x2="378" y2="235" stroke="#C1C7D0" strokeWidth="1" />
-        </svg>
-      </div>
 
       {/* Centered Card */}
-      <div className="w-full min-h-screen flex flex-col relative z-10">
-        <div className="flex-1 flex flex-col sm:items-center sm:justify-center pt-6 sm:p-6 lg:p-8">
+      <div className="flex-1 flex flex-col sm:items-center sm:justify-center relative z-10 pt-8 sm:p-6 lg:p-8">
           <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
             {/* Logo centered at top */}
-            <div className="flex flex-col items-center mb-7">
-              <div className="flex items-center gap-2 justify-center mb-0.5">
-                <span className="text-xl font-bold text-[#1768DB] tracking-tight">R</span>
-                <span className="text-xl font-bold text-[#1768DB] tracking-[0.02em]">QUARTERLY REPORTS</span>
-              </div>
-              <p className="text-xs text-[#6B778C] w-full text-center">Management System</p>
+            <div className="flex flex-col items-center mb-8">
+              <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-10 w-auto" />
             </div>
 
-            <div className="mb-7 text-center">
-              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#172B4D]">
+            <div className="mb-6 text-center">
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#172B4D]">
                 {authMode === "login" ? "Log in to continue" : "Create account"}
               </h2>
-              <p className="text-sm text-[#5E6C84] mt-1.5">
+              <p className="text-sm text-[#5E6C84] mt-2 max-w-[320px] mx-auto leading-relaxed">
                 {authMode === "login"
                   ? "Access your reports, forms and workflows securely"
                   : "Sign up to get started with your account"}
@@ -397,9 +331,10 @@ export default function UnifiedAuthPage() {
                     <Link href="/forgot-password" className="text-sm font-medium text-[#1768DB] hover:underline transition-colors">Forgot password?</Link>
                   </div>
                   <Button type="submit" disabled={isSubmitting}
-                    className="w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#113263] text-white transition-all shadow-md mt-2"
+                    className="w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2"
                   >
                     {isSubmitting ? "Signing In..." : "Sign In"}
+                    
                   </Button>
                 </form>
                 {errorMessage && (
@@ -439,12 +374,12 @@ export default function UnifiedAuthPage() {
                       id="signup-username" type="text" value={username}
                       onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined }); }}
                       className={getFieldClassName(!!fieldErrors.username)}
-                      placeholder="Full Name (or Teams ID)"
+                      placeholder="Username"
                     />
                     {fieldErrors.username ? (
                       <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.username}</p>
                     ) : (
-                      <p className="text-xs text-[#5E6C84] mt-1.5 flex items-center gap-1.5"><Info className="size-3.5 shrink-0" /><span>Use Teams ID for Coordinator/Facilitator</span></p>
+                      <p className="text-xs text-[#5E6C84] mt-1.5 flex items-center gap-1.5"><Info className="size-3.5 shrink-0" /><span>Use Teams ID as username for Coordinator/Facilitator</span></p>
                     )}
                   </div>
                   <div>
@@ -502,7 +437,7 @@ export default function UnifiedAuthPage() {
                     )}
                   </div>
                   <Button type="submit" disabled={isSubmitting}
-                    className="group w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#113263] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
+                    className="group w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? "Creating Account..." : "Sign Up"}
                     {!isSubmitting && <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />}
@@ -566,12 +501,11 @@ export default function UnifiedAuthPage() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Footer */}
       <div className="w-full flex flex-col items-center pb-6 z-10">
-        <div className="flex items-center gap-2 opacity-40">
-          <span className="text-lg font-black text-[#1768DB]">R</span>
+        <div className="flex items-center gap-3 opacity-40">
+          {/* <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-5 w-auto" /> */}
           <span className="text-xs text-[#5E6C84]">&copy; 2026 Quarterly Reports Management System</span>
         </div>
       </div>

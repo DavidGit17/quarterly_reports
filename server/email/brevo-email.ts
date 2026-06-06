@@ -202,8 +202,60 @@ export const sendWelcomeEmail = async (
 };
 
 /**
- * Send password reset email
+ * Send project form URL email to multiple recipients
  */
+export const sendProjectFormEmail = async (
+  emails: string[],
+  formUrl: string,
+): Promise<{ sent: number; failed: number }> => {
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: #1768DB; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0;">Quarterly Report Form</h1>
+      </div>
+      <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px;">
+        <p style="color: #333; font-size: 16px; margin-bottom: 20px;">
+          A new quarterly report form is ready for your submission. Please use the link below to access the form and submit your report before the deadline.
+        </p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${formUrl}"
+             style="background: #1768DB; color: white; padding: 14px 36px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; font-size: 16px;">
+            Open Form
+          </a>
+        </div>
+        <p style="color: #999; font-size: 14px; margin-top: 20px;">
+          If the button above does not work, copy and paste the following URL into your browser:
+        </p>
+        <p style="color: #1768DB; font-size: 13px; word-break: break-all; background: white; padding: 12px; border-radius: 6px; border: 1px solid #DFE1E6;">
+          ${formUrl}
+        </p>
+        <p style="color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+          This is an automated message from Quarterly Reports Management System. Please do not reply directly to this email.
+        </p>
+      </div>
+    </div>
+  `;
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const email of emails) {
+    try {
+      await sendEmail({
+        to: email,
+        subject: "Quarterly Report Form - Action Required",
+        htmlContent,
+      });
+      sent++;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      console.error(`[BREVO] Failed to send project form email to ${email}: ${message}`);
+      failed++;
+    }
+  }
+
+  return { sent, failed };
+};
 export const sendPasswordResetEmail = async (
   email: string,
   resetToken: string,

@@ -24,8 +24,8 @@ export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getFieldClassName = (hasError: boolean) => {
-    const baseClasses = "w-full h-12 rounded-lg border bg-white px-4 text-base text-foreground placeholder:text-muted-foreground/75 transition-colors focus:outline-none focus:border-[#1768DB]";
-    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6]"}`;
+    const baseClasses = "w-full h-12 rounded-xl border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
+    return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"}`;
   };
 
   const handleSendResetLink = async (e: React.FormEvent) => {
@@ -92,27 +92,28 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-luxury-glass flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        
-        <div className="border rounded-2xl bg-white p-6 sm:p-8 shadow-sm">
+    <div className="min-h-screen w-full bg-[#F8FAFC] flex flex-col select-none">
+
+      <div className="flex-1 flex flex-col sm:items-center sm:justify-center pt-2 sm:p-6 lg:p-8">
+        <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
           
-          <div className="flex flex-col gap-1 mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-primary">
-              Forgot Password
-            </h1>
-            <p className="text-sm text-[#5E6C84]">
+            <div className="flex flex-col items-center mb-4">
+            <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-28 w-auto" />
+          </div>
+
+          <div className="mb-5 text-center">
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#172B4D]">
+              Forgot password
+            </h2>
+            <p className="text-sm text-[#5E6C84] mt-1.5">
               Enter your details to receive a reset link
             </p>
           </div>
 
-          <form noValidate onSubmit={handleSendResetLink} className="space-y-5">
-            
+          <form noValidate onSubmit={handleSendResetLink} className="space-y-4 sm:space-y-5">
+
             <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-[#5E6C84] mb-1.5"
-              >
+              <label htmlFor="username" className="block text-sm font-medium text-[#172B4D] mb-1.5">
                 Username
               </label>
               <input
@@ -134,10 +135,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-[#5E6C84] mb-1.5"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-[#172B4D] mb-1.5">
                 Email
               </label>
               <input
@@ -161,42 +159,47 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 rounded-lg font-medium text-base transition-all mt-4 flex items-center justify-center gap-2 group"
+              className="w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2 group"
             >
               {isSubmitting ? "Sending..." : "Send Reset Link"}
-              
               {!isSubmitting && (
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
               )}
             </Button>
 
             {errorMessage && (
-              <p className="text-sm text-destructive text-center font-medium animate-in fade-in">
-                {errorMessage}
-              </p>
+              <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
+                <p className="text-sm text-destructive text-center font-medium">{errorMessage}</p>
+              </div>
             )}
 
             {successMessage && (
-              <p className="text-sm text-emerald-600 text-center font-medium animate-in fade-in">
-                {successMessage}
-              </p>
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 animate-in fade-in">
+                <p className="text-sm text-emerald-700 text-center font-medium">{successMessage}</p>
+              </div>
             )}
           </form>
 
-          <div className="mt-6 pt-4 border-t border-[#DFE1E6] text-center text-sm text-[#5E6C84]">
-            Remember your password?{" "}
-            <Link
-              href="/auth"
-              className="font-medium text-primary hover:underline"
-            >
-              Login
-            </Link>
+          <div className="mt-6 sm:mt-8 text-center">
+            <p className="text-sm text-[#5E6C84]">
+              Remember your password?{" "}
+              <Link
+                href="/unified-auth-page"
+                className="font-medium text-[#1768DB] hover:underline"
+              >
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
+      </div>
 
-        <p className="text-center text-xs text-white mt-6">
-          Verification is required to ensure account security.
-        </p>
+      {/* Footer */}
+      <div className="w-full flex flex-col items-center pb-6">
+        <div className="flex items-center gap-3 opacity-40">
+          {/* <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-5 w-auto" /> */}
+          <span className="text-xs text-[#5E6C84]">&copy; 2026 Quarterly Reports Management System</span>
+        </div>
       </div>
     </div>
   );

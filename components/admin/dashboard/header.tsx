@@ -162,19 +162,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           >
             <Menu className="w-5 h-5 text-slate-500" aria-hidden="true" />
           </button>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-sm font-semibold text-white">
-            QR
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="truncate text-base font-semibold text-slate-950 leading-tight">
-                Quarterly Reports
-              </h1>
-            </div>
-            <p className="text-xs font-medium uppercase tracking-[0.05em] text-slate-500 leading-tight">
-              Admin Dashboard
-            </p>
-          </div>
+          <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-20 w-auto" />
         </div>
 
         {/* Right: Actions */}
