@@ -1,421 +1,475 @@
-We need to completely refactor the existing email automation system and migrate it to a clean, scalable architecture using Agenda + MongoDB + Brevo.
+Create a new Admin module called Storage Management and add it to the existing Admin Dashboard sidebar navigation.
 
-Current situation:
-- Brevo email sending logic exists in controllers and/or cron-related files.
-- Some email workflows may be triggered directly from API endpoints.
-- There may be server-level cron jobs or manual scheduling logic.
-- We want to replace all scheduled email automation with Agenda.
+IMPORTANT
 
-Goal:
+- Do NOT create a new dashboard.
+- Do NOT create a new layout.
+- Do NOT create a standalone admin interface.
+- Integrate this page into the existing Admin Dashboard structure and routing.
+- Add a new sidebar menu item called "Storage Management".
+- The page must use the same layout, header, sidebar, breadcrumbs, cards, tables, forms, modals, typography, spacing, animations, icons, and interaction patterns already used throughout the application.
 
-Controller
-→ Agenda Job
-→ Worker
-→ Brevo Service
+BEFORE IMPLEMENTING
 
-No controller should send emails directly.
+Analyze existing Admin Dashboard pages and reuse their patterns, including:
 
-No scheduled workflow should bypass Agenda.
+- Users Management
+- Projects Management
+- Forms Management
+- Reports Management
+- Automation Management
 
----
+Mirror their:
 
-## TASK 1 — Audit Existing Implementation
+- Page structure
+- Layout hierarchy
+- Search patterns
+- Filter patterns
+- Table styling
+- Action menus
+- Modal styling
+- Form styling
+- Responsive behavior
+- Empty states
+- Loading states
+- Toast notifications
 
-Before making changes, scan the entire codebase and identify:
+Do not introduce any new UI libraries, design systems, component libraries, icon libraries, animation libraries, table libraries, modal libraries, or styling approaches.
 
-- All Brevo-related files
-- All email sending functions
-- Any cron jobs
-- Any scheduled tasks
-- Any direct calls to Brevo APIs
-- Any controller methods currently responsible for sending emails
-- Any duplicate scheduling implementations
+Reuse existing components wherever possible.
 
-Provide a list of findings before refactoring.
+If a component already exists in the codebase, use it instead of creating a new one.
 
----
+Do not create new colors.
 
-## TASK 2 — Create Dedicated Brevo Service
+Do not create new shadows.
 
-Create:
+Do not create new border radius values.
 
-services/brevoService.js
+Do not create new typography scales.
 
-Move ALL Brevo-specific logic into this file.
+Do not create new spacing systems.
 
-Create:
+Use the exact design tokens already used throughout the Admin Dashboard.
 
-sendProjectFormEmail(emails, formUrl)
+The final result should feel like it was originally built as part of the existing QRMS Admin Dashboard.
 
-Requirements:
+--------------------------------------------------
 
-- Accept an array of recipient emails
-- Accept a project form URL
-- Build email content
-- Send email through Brevo
-- Use official Brevo SDK or Axios
-- Throw meaningful errors
-- No business logic
-- No database queries
-- No scheduling logic
+MODULE PURPOSE
 
-This service should only be responsible for email delivery.
+This page allows Administrators to manage storage allocations, upload permissions, and file upload restrictions for all users in the system.
 
----
+Supported roles:
 
-## TASK 3 — Configure Agenda
+- Admin
+- Coordinator
+- Facilitator
 
-Install:
+Storage allocation is an application-level quota system and is not directly tied to AWS S3 allocation.
 
-agenda
+--------------------------------------------------
 
-Create:
+SIDEBAR
 
-config/agenda.js
+Add:
 
-Requirements:
+Storage Management
 
-- Use process.env.MONGO_URI
-- Reuse existing MongoDB database
-- Export a singleton Agenda instance
-- Handle connection failures gracefully
-- Log Agenda initialization success
-- Use modern ES modules
+Use an appropriate existing icon style already used in the dashboard.
 
----
+Place it alongside other administration modules.
 
-## TASK 4 — Create Email Worker
+--------------------------------------------------
 
-Create:
+PAGE HEADER
 
-workers/emailWorker.js
+Title:
 
-Define a job:
+Storage Management
 
-send-project-form-links
+Description:
 
-Job flow:
+Manage storage quotas, usage limits, and upload permissions across users and projects.
 
-### Input
+Actions:
 
-Read:
+- Refresh
+- Export (placeholder for future implementation)
 
-projectId
-formUrl
+--------------------------------------------------
 
-from:
+SUMMARY SECTION
 
-job.attrs.data
+Display dashboard summary cards similar to other admin pages.
 
-### Runtime Database Query
+Cards:
 
-When the job executes:
+Total Users
 
-- Query MongoDB
-- Find all users/employees assigned to the specified project
-- Retrieve only email fields
+Total Allocated Storage
+
+Total Used Storage
+
+Available Storage
+
+Total Projects
+
+These cards should reuse existing dashboard card patterns.
+
+--------------------------------------------------
+
+SEARCH AND FILTER SECTION
+
+Provide a search and filtering area above the table.
+
+Search should support:
+
+- User ID
+- Username
+- Full Name
+- Project Name
+- Role
+
+Example searches:
+
+USR-001
+admin1
+coordinator4
+facilitator2
+health-outreach
+
+Filters:
+
+Role
+
+- All
+- Admin
+- Coordinator
+- Facilitator
+
+Project
+
+- All Projects
+- Dynamic project list
+
+Storage Status
+
+- All
+- Low Usage
+- Medium Usage
+- High Usage
+- Near Limit
+
+Date
+
+- Created Date
+- Updated Date
+
+--------------------------------------------------
+
+MAIN TABLE
+
+Create a professional enterprise-style table.
+
+Columns:
+
+User ID
+
+Username
+
+Role
+
+Project
+
+Storage Used
+
+Storage Limit
+
+Usage %
+
+Allowed File Types
+
+Maximum File Size
+
+Last Updated
+
+Actions
+
+Example Row:
+
+USR-001
+
+coordinator1
+
+Coordinator
+
+Health Outreach
+
+4.2 GB / 10 GB
+
+42%
+
+PDF, JPG, PNG, MP4
+
+2 GB
+
+2026-06-07
+
+[Pencil Icon]
+
+--------------------------------------------------
+
+USAGE VISUALIZATION
+
+Display:
+
+4.2 GB / 10 GB
+
+with a progress indicator.
+
+Color Rules:
+
+0-60%
+Normal
+
+61-85%
+Warning
+
+86-100%
+Critical
+
+Reuse existing badge/progress styling if available.
+
+--------------------------------------------------
+
+ACTIONS COLUMN
+
+Provide icon-only actions.
+
+Primary action:
+
+Edit Storage Configuration
+
+Use a Pencil/Edit icon.
+
+Tooltip:
+
+Edit Storage Settings
+
+--------------------------------------------------
+
+EDIT STORAGE MODAL
+
+Opening the Edit action should display a modal.
+
+Title:
+
+Edit Storage Configuration
+
+--------------------------------------------------
+
+USER INFORMATION
+
+Read-only section.
+
+Display:
+
+User ID
+
+Username
+
+Role
+
+Project
+
+Current Usage
+
+--------------------------------------------------
+
+STORAGE QUOTA SECTION
+
+Allow Admin to configure storage limits.
+
+Fields:
+
+Storage Limit
+
+Numeric Input
+
+Unit Selector
+
+Supported Units:
+
+MB
+
+GB
+
+TB
+
+Examples:
+
+2 GB
+
+10 GB
+
+50 GB
+
+100 GB
+
+Display:
+
+Current Usage
+
+Remaining Storage
+
+Projected Remaining Storage
+
+--------------------------------------------------
+
+UPLOAD PERMISSIONS SECTION
+
+Allow administrators to configure permitted file types.
+
+Use grouped multi-select controls or checkbox groups.
+
+Documents
+
+- PDF
+- DOC
+- DOCX
+- XLS
+- XLSX
+- PPT
+- PPTX
+- TXT
+
+Images
+
+- JPG
+- JPEG
+- PNG
+- WEBP
+
+Videos
+
+- MP4
+- MOV
+- AVI
+
+Archives
+
+- ZIP
+- RAR
+
+--------------------------------------------------
+
+FILE SIZE RESTRICTIONS
+
+Allow Admin to configure:
+
+Maximum Single File Size
 
 Example:
 
-User.find({ projectId }).select("email")
+2 GB
 
-### Validation
+10 GB
 
-If no users exist:
+500 MB
 
-- Log warning
-- Exit successfully
+Use numeric input plus unit selector.
 
-### Delivery
+--------------------------------------------------
 
-If users exist:
+VALIDATION RULES
 
-sendProjectFormEmail(emailList, formUrl)
+Prevent:
 
----
+- Negative storage values
+- Zero storage limits
+- Invalid file size limits
+- Empty file type selection
 
-## TASK 5 — Automation API
+Display validation using existing form validation patterns.
 
-Create or refactor:
+--------------------------------------------------
 
-controllers/automationController.js
+SAVE ACTIONS
 
-### Schedule Automation
+Buttons:
 
-Route:
+Cancel
 
-POST /api/automation/schedule
-
-Request:
-
-{
-  "projectId": "...",
-  "formUrl": "...",
-  "scheduleDate": "..."
-}
-
-Behavior:
-
-agenda.schedule(
-  scheduleDate,
-  "send-project-form-links",
-  {
-    projectId,
-    formUrl
-  }
-)
-
-Return:
-
-{
-  "success": true,
-  "jobId": "<agenda-job-id>"
-}
-
-Store the Agenda job ID so it can later be canceled.
-
----
-
-### Stop Automation
-
-Route:
-
-POST /api/automation/stop
-
-Request:
-
-{
-  "automationJobId": "..."
-}
-
-Behavior:
-
-agenda.cancel({
-  _id: automationJobId
-})
-
-Return:
-
-{
-  "success": true
-}
-
-This should immediately remove the pending Agenda job from MongoDB.
-
----
-
-## TASK 6 — Store Automation Metadata
-
-Create or update:
-
-models/Automation.js
-
-Suggested schema:
-
-{
-  projectId,
-  formUrl,
-  scheduleDate,
-  agendaJobId,
-  status,
-  createdBy,
-  createdAt,
-  updatedAt
-}
-
-Status values:
-
-scheduled
-completed
-cancelled
-failed
-
-Purpose:
-
-- Display upcoming automations
-- Display automation history
-- Allow cancellation from dashboard
-- Track execution state
-
----
-
-## TASK 7 — Server Startup
-
-Update:
-
-server.js
-
-or
-
-app.js
+Save Changes
 
 Requirements:
 
-Startup order:
+- Show loading state while saving
+- Show success toast after save
+- Refresh table data automatically
+- Close modal after successful update
 
-1. Connect MongoDB
-2. Initialize Agenda
-3. Register worker definitions
-4. Start Agenda
-5. Start Express server
+--------------------------------------------------
+
+EMPTY STATE
+
+If no users match filters:
+
+Display a professional empty state.
+
+Message:
+
+No matching users found
+
+Action:
+
+Clear Filters
+
+Reuse existing empty-state patterns from the Admin Dashboard.
+
+--------------------------------------------------
+
+RESPONSIVE BEHAVIOR
+
+Desktop
+
+- Full table layout
+
+Tablet
+
+- Horizontally scrollable table
+
+Mobile
+
+- Responsive card-based view
+
+--------------------------------------------------
+
+FUTURE-READY ARCHITECTURE
+
+Design the data structure to support both:
+
+User-Level Quotas
 
 Example:
 
-await connectDB()
+David → 10 GB
 
-registerWorkers()
+Coordinator1 → 20 GB
 
-await agenda.start()
+Project-Level Quotas
 
-app.listen(...)
+Example:
 
-Ensure Agenda starts only once.
+Health Outreach Project → 100 GB
 
----
+Education Project → 50 GB
 
-## TASK 8 — Remove Legacy Implementation
+Prepare the UI and architecture so project-level storage limits can be added later without redesigning the module.
 
-After Agenda is fully integrated:
+--------------------------------------------------
 
-Remove:
+GOAL
 
-- Direct Brevo calls from controllers
-- Cron-based email automation
-- Server-level cron jobs
-- Duplicate scheduling logic
-- Any scheduled workflow that bypasses Agenda
-
-Keep only immediate/non-scheduled email workflows if genuinely required elsewhere.
-
-Final architecture:
-
-Controller
-→ Agenda
-→ Worker
-→ Brevo Service
-
----
-
-## TASK 9 — Security Audit & Hardening
-
-While performing the migration, review the application for security issues and improve where appropriate.
-
-### MongoDB Security
-
-Verify:
-
-- Credentials stored in environment variables
-- Authentication enabled
-- No unnecessary public exposure
-- Sensitive collections protected
-- Agenda jobs store minimal data only
-
-### RBAC Security
-
-Verify:
-
-- Only Admin users can schedule automations
-- Only Admin users can cancel automations
-- Coordinators cannot create automations unless explicitly allowed
-- Facilitators cannot create automations unless explicitly allowed
-
-Identify:
-
-- Missing authorization checks
-- Privilege escalation risks
-- Route protection issues
-
-### API Key Security
-
-Verify:
-
-- Brevo API keys are never hardcoded
-- API keys exist only in environment variables
-- Secrets are never exposed to frontend code
-- Email configuration is secure
-
-### File Upload Security
-
-Review:
-
-- File type validation
-- File size limits
-- Upload authorization
-- Storage strategy
-- Potential malicious upload risks
-
-Provide recommendations where necessary.
-
-### Agenda Security
-
-Ensure Agenda jobs never store:
-
-- Passwords
-- OTPs
-- Access tokens
-- Refresh tokens
-- API keys
-- Sensitive personal information
-
-Store only:
-
-{
-  projectId,
-  formUrl,
-  automationId
-}
-
-or equivalent minimal metadata.
-
----
-
-## TASK 10 — Code Quality
-
-Refactor using:
-
-- Modern ES modules
-- Async/await
-- Separation of concerns
-- Reusable services
-- Reusable workers
-- Consistent error handling
-- Consistent logging
-
-Avoid:
-
-- Business logic inside controllers
-- Database queries inside Brevo service
-- Email logic inside workers
-- Scheduling logic inside email service
-
----
-
-## OUTPUT REQUIRED
-
-Provide:
-
-1. Full folder structure
-
-2. All new files
-
-3. All modified files
-
-4. Complete code implementations
-
-5. Route definitions
-
-6. Required npm packages
-
-7. Required environment variables
-
-8. MongoDB indexes recommended for Agenda
-
-9. Migration steps
-
-10. Security review report
-
-11. List of removed legacy code
-
-12. Final architecture diagram
-
-Use modern Node.js, Express, MongoDB, Mongoose, Agenda, and Brevo best practices throughout the implementation.
+The final page should feel like a professional enterprise storage administration module similar to what would exist inside Atlassian, Microsoft Azure Portal, or other modern SaaS administration systems, while remaining visually identical to the existing QRMS Admin Dashboard.

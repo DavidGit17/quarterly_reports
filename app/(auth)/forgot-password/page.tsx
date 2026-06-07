@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
         
         if (lowerMsg.includes("email")) {
           setFieldErrors({ email: apiMsg });
-        } else if (lowerMsg.includes("user") || lowerMsg.includes("find")) {
+        } else if (lowerMsg.includes("username")) {
           setFieldErrors({ username: apiMsg });
         } else {
           setErrorMessage(apiMsg);
@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
           
             <div className="flex flex-col items-center mb-4">
-            <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-28 w-auto" />
+            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-12 w-auto max-w-full" />
           </div>
 
           <div className="mb-5 text-center">

@@ -38,24 +38,32 @@ export async function POST(request: Request) {
 
     if (!isValidEmail(email)) {
       return NextResponse.json(
-        { message: "Email is invalid." },
+        { message: "Invalid email address." },
         { status: 400 },
       );
     }
 
     const usersCollection = await getUsersCollection();
 
-    const user = await usersCollection.findOne({
-      usernameLower: username.toLowerCase(),
+    const emailMatch = await usersCollection.findOne({
       emailLower: email,
     });
 
-    // Generic response to prevent email enumeration
-    if (!user) {
-      return NextResponse.json({
-        message: "If an account with that information exists, a reset link has been sent.",
-      });
+    if (emailMatch && emailMatch.usernameLower !== username.toLowerCase()) {
+      return NextResponse.json(
+        { message: "Invalid username." },
+        { status: 400 },
+      );
     }
+
+    if (!emailMatch) {
+      return NextResponse.json(
+        { message: "Invalid email address." },
+        { status: 400 },
+      );
+    }
+
+    const user = emailMatch;
 
     // Generate reset token
     const token = randomBytes(32).toString("hex");

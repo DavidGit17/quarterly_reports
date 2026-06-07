@@ -10,6 +10,7 @@ import {
   UserCog,
   Send,
   PanelLeft,
+  HardDrive,
 } from "lucide-react";
 import { cn } from "@/lib/shared/utils";
 
@@ -55,6 +56,11 @@ export const sidebarItems: SidebarItem[] = [
     label: "Users",
     href: "/dashboard/users",
     icon: <UserCog className="w-5 h-5" />,
+  },
+  {
+    label: "Storage Management",
+    href: "/dashboard/storage",
+    icon: <HardDrive className="w-5 h-5" />,
   },
   {
     label: "Settings",

@@ -162,7 +162,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           >
             <Menu className="w-5 h-5 text-slate-500" aria-hidden="true" />
           </button>
-          <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-20 w-auto" />
+           <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-9 w-auto" />
         </div>
 
         {/* Right: Actions */}

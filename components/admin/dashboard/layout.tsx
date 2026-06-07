@@ -28,7 +28,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         >
           <div className="flex h-16 items-center justify-between border-b border-slate-200 px-4">
             <div className="flex items-center gap-2">
-              <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-16 w-auto" />
+              <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto" />
             </div>
             <button
               onClick={() => setMobileMenuOpen(false)}

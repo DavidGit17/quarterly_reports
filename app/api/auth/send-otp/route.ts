@@ -83,8 +83,11 @@ export async function POST(request: Request) {
     });
 
     if (existingUser && existingUser.isVerified) {
-      console.log(`[OTP] User already verified for ${email}`);
-      return NextResponse.json({ message: "OTP sent." });
+      console.log(`[OTP] User already verified for ${email} — returning error`);
+      return NextResponse.json(
+        { message: "This email is already registered. Please sign in instead." },
+        { status: 409 },
+      );
     }
 
     // Generate OTP
