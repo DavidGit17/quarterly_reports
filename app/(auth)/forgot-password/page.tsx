@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button"; 
+import { Button } from "@/components/ui/button";
 
 type ForgotPasswordResponse = {
   message?: string;
@@ -17,14 +17,15 @@ type FormErrors = {
 export default function ForgotPasswordPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  
+
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getFieldClassName = (hasError: boolean) => {
-    const baseClasses = "w-full h-12 rounded-xl border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
+    const baseClasses =
+      "w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
     return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"}`;
   };
 
@@ -33,7 +34,7 @@ export default function ForgotPasswordPage() {
     setErrorMessage("");
     setSuccessMessage("");
     setFieldErrors({});
-    
+
     let hasError = false;
     const newErrors: FormErrors = {};
 
@@ -48,7 +49,7 @@ export default function ForgotPasswordPage() {
 
     if (hasError) {
       setFieldErrors(newErrors);
-      return; 
+      return;
     }
 
     setIsSubmitting(true);
@@ -72,7 +73,7 @@ export default function ForgotPasswordPage() {
       if (!response.ok) {
         const apiMsg = data.message || "Request failed.";
         const lowerMsg = apiMsg.toLowerCase();
-        
+
         if (lowerMsg.includes("email")) {
           setFieldErrors({ email: apiMsg });
         } else if (lowerMsg.includes("username")) {
@@ -96,16 +97,16 @@ export default function ForgotPasswordPage() {
 
       <div className="flex-1 flex flex-col sm:items-center sm:justify-center pt-2 sm:p-6 lg:p-8">
         <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
-          
-            <div className="flex flex-col items-center mb-4">
-            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-12 w-auto max-w-full" />
+
+            <div className="flex flex-col items-center mb-10">
+            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" />
           </div>
 
-          <div className="mb-5 text-center">
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#172B4D]">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold tracking-tight text-[#172B4D]">
               Forgot password
             </h2>
-            <p className="text-sm text-[#5E6C84] mt-1.5">
+            <p className="text-sm text-[#5E6C84] mt-2 max-w-[320px] mx-auto leading-relaxed">
               Enter your details to receive a reset link
             </p>
           </div>
@@ -159,7 +160,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2 group"
+              className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2 group"
             >
               {isSubmitting ? "Sending..." : "Send Reset Link"}
               {!isSubmitting && (
@@ -197,7 +198,6 @@ export default function ForgotPasswordPage() {
       {/* Footer */}
       <div className="w-full flex flex-col items-center pb-6">
         <div className="flex items-center gap-3 opacity-40">
-          {/* <img src="/brand/logo.svg" alt="Quarterly Reports" className="h-5 w-auto" /> */}
           <span className="text-xs text-[#5E6C84]">&copy; 2026 Quarterly Reports Management System</span>
         </div>
       </div>

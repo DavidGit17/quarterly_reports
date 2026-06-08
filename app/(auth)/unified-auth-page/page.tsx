@@ -87,7 +87,7 @@ export default function UnifiedAuthPage() {
 
   const getFieldClassName = (hasError: boolean) => {
     const baseClasses =
-      "w-full h-12 rounded-xl border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
+      "w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
     return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"}`;
   };
 
@@ -290,12 +290,12 @@ export default function UnifiedAuthPage() {
       <div className="flex-1 flex flex-col sm:items-center sm:justify-center relative z-10 pt-8 sm:p-6 lg:p-8">
           <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
             {/* Logo centered at top */}
-            <div className="flex flex-col items-center mb-8">
-              <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-12 w-auto max-w-full" />
+            <div className="flex flex-col items-center mb-10">
+              <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" />
             </div>
 
             <div className="mb-6 text-center">
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#172B4D]">
+              <h2 className="text-2xl font-bold tracking-tight text-[#172B4D]">
                 {authMode === "login" ? "Log in to continue" : "Create account"}
               </h2>
               <p className="text-sm text-[#5E6C84] mt-2 max-w-[320px] mx-auto leading-relaxed">
@@ -336,9 +336,9 @@ export default function UnifiedAuthPage() {
                     <Link href="/forgot-password" className="text-sm font-medium text-[#1768DB] hover:underline transition-colors">Forgot password?</Link>
                   </div>
                   <Button type="submit" disabled={isSubmitting}
-                    className="w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2"
+                    className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2"
                   >
-                    {isSubmitting ? "Signing In..." : "Sign In"}
+                    {isSubmitting ? "Signing In..." : "Login"}
                     
                   </Button>
                 </form>
@@ -442,7 +442,7 @@ export default function UnifiedAuthPage() {
                     )}
                   </div>
                   <Button type="submit" disabled={isSubmitting}
-                    className="group w-full h-12 sm:h-[52px] rounded-xl font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
+                    className="group w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? "Creating Account..." : "Sign Up"}
                     {!isSubmitting && <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />}

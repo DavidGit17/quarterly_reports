@@ -242,7 +242,7 @@ function VerifyOTPContent() {
           </svg>
         </div>
         <div className="w-full max-w-[320px] mt-10">
-            <div className="h-2 bg-[#DFE1E6] rounded-full overflow-hidden">
+            <div className="h-1.5 bg-[#DFE1E6] rounded-full overflow-hidden">
               <div className="h-full bg-[#1768DB] rounded-full transition-all duration-100 ease-out" style={{ width: `${progress}%` }} />
             </div>
             <p className="text-sm text-[#5E6C84] mt-3 text-center">{successMessage}</p>
@@ -253,22 +253,26 @@ function VerifyOTPContent() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
-      
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 relative flex flex-col animate-in fade-in zoom-in-95 duration-500">
-        
-        <div className="mb-8">
+
+      <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10 relative flex flex-col animate-in fade-in zoom-in-95 duration-500">
+
+        <div className="flex flex-col items-center mb-10">
+          <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" />
+        </div>
+
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold tracking-tight text-[#172B4D]">Verify Email</h1>
-          <p className="text-sm text-[#5E6C84] mt-1">
+          <p className="text-sm text-[#5E6C84] mt-2 max-w-[320px] mx-auto leading-relaxed">
             Enter the verification code sent to <br />
             <span className="font-semibold text-[#172B4D]">{email}</span>
           </p>
         </div>
 
-        <form onSubmit={handleVerifyOTP} className="space-y-6">
+        <form onSubmit={handleVerifyOTP} className="space-y-4 sm:space-y-5">
           <div>
             <Label
               htmlFor="otp"
-              className="text-sm font-semibold text-[#172B4D] mb-1.5 block"
+              className="text-sm font-medium text-[#172B4D] mb-1.5 block"
             >
               Verification Code
             </Label>
@@ -279,8 +283,8 @@ function VerifyOTPContent() {
               value={otp}
               onChange={handleOTPChange}
               placeholder="000000"
-              className={`w-full h-14 rounded-lg border bg-white px-4 text-center text-3xl tracking-[0.3em] font-mono text-[#172B4D] placeholder:text-[#5E6C84] transition-colors focus:outline-none focus:border-[#1768DB] ${
-                  errorMessage ? "border-destructive focus:border-destructive" : "border-[#DFE1E6]"
+              className={`w-full h-11 rounded-lg border bg-white text-center px-0 text-3xl tracking-[0.3em] font-mono text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none ${
+                  errorMessage ? "border-destructive focus:border-destructive" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"
               }`}
               required
               maxLength={6}
@@ -299,7 +303,7 @@ function VerifyOTPContent() {
           <button
             type="submit"
             disabled={isSubmitting || otp.length !== 6}
-            className="w-full h-12 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#113263] text-white transition-all shadow-md disabled:opacity-60"
+            className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 disabled:opacity-60"
           >
             {isSubmitting ? "Verifying..." : "Verify Email"}
           </button>
@@ -312,7 +316,7 @@ function VerifyOTPContent() {
           <button
             onClick={handleResendOTP}
             disabled={resendLoading || resendCountdown > 0}
-            className="text-sm font-semibold text-[#1768DB] hover:underline transition-colors disabled:text-[#6B778C] disabled:no-underline disabled:cursor-not-allowed"
+            className="text-sm font-medium text-[#1768DB] hover:underline disabled:text-[#6B778C] disabled:no-underline disabled:cursor-not-allowed"
           >
             {resendCountdown > 0
               ? `Resend code in ${resendCountdown}s`
@@ -323,7 +327,7 @@ function VerifyOTPContent() {
         <div className="mt-6 text-center">
           <Link
             href="/auth"
-            className="text-sm font-semibold text-[#1768DB] hover:underline transition-colors"
+            className="text-sm font-medium text-[#1768DB] hover:underline"
           >
             Back to Sign Up
           </Link>
@@ -338,16 +342,16 @@ export default function VerifyOTPPage() {
     <Suspense
       fallback={
         <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 flex flex-col space-y-6 animate-pulse">
+          <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10 flex flex-col space-y-6 animate-pulse">
             <div className="space-y-3">
               <div className="h-8 w-1/2 bg-[#DFE1E6]/60 rounded-md" />
               <div className="h-4 w-3/4 bg-[#DFE1E6]/60 rounded-md" />
             </div>
             <div className="space-y-2 mt-4">
               <div className="h-4 w-1/3 bg-[#DFE1E6]/60 rounded-md" />
-              <div className="h-14 w-full bg-[#DFE1E6]/60 rounded-lg" />
+              <div className="h-11 w-full bg-[#DFE1E6]/60 rounded-lg" />
             </div>
-            <div className="h-12 w-full bg-[#DFE1E6]/60 rounded-lg mt-4" />
+            <div className="h-11 w-full bg-[#DFE1E6]/60 rounded-lg mt-4" />
           </div>
         </div>
       }
