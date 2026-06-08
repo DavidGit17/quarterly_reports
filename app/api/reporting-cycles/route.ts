@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import {
   getReportingCyclesCollection,
@@ -23,6 +24,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get("status")?.trim() || "";
     const projectFilter = searchParams.get("project")?.trim() || "";
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
+    const skip = (page - 1) * limit;
 
     const collection = await getReportingCyclesCollection();
     const query: Record<string, unknown> = {};
@@ -34,13 +38,13 @@ export async function GET(request: Request) {
       query.linkedProjects = projectFilter;
     }
 
-    const docs = await collection
-      .find(query)
-      .sort({ createdAt: -1 })
-      .toArray();
+    const [docs, total] = await Promise.all([
+      collection.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+      collection.countDocuments(query),
+    ]);
     const cycles = docs.map(toCycleResponse);
 
-    return NextResponse.json({ cycles });
+    return NextResponse.json({ cycles, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (err) {
     const mongoError = getMongoRouteErrorResponse(err);
     if (mongoError) {
@@ -64,6 +68,11 @@ export async function POST(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "create-cycle");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as {
@@ -186,6 +195,11 @@ export async function PATCH(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "update-cycle");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as {
@@ -329,6 +343,11 @@ export async function DELETE(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "delete-cycle");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as { id?: string };

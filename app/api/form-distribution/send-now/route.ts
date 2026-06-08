@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import { executeRuleNow } from "@/server/form-distribution/execution-engine";
 
@@ -14,6 +15,11 @@ export async function POST(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "send-now");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as { ruleId?: string };

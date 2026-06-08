@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getDb } from "@/server/db/mongodb";
 import { requireAdmin } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import { ObjectId } from "mongodb";
 
@@ -81,12 +82,13 @@ export async function GET(request: Request) {
     let seq = 1;
     const allConfigs: StorageConfig[] = [];
     const now = new Date();
+    const missingDocs: Record<string, unknown>[] = [];
 
     for (const user of allUsers) {
       const uid = (user._id as ObjectId).toHexString();
       let doc = configMap.get(uid);
       if (!doc) {
-        doc = {
+        const newDoc = {
           _id: new ObjectId(),
           userId: uid,
           displayId: `USR-${padId(seq)}`,
@@ -102,10 +104,15 @@ export async function GET(request: Request) {
           createdAt: now,
           updatedAt: now,
         } as Record<string, unknown>;
-        await configsCollection.insertOne(doc as Record<string, unknown>);
+        missingDocs.push(newDoc);
+        doc = newDoc;
       }
       allConfigs.push(configFromDoc(doc));
       seq++;
+    }
+
+    if (missingDocs.length > 0) {
+      await configsCollection.insertMany(missingDocs);
     }
 
     let filtered = allConfigs;
@@ -179,6 +186,11 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ message: error.message }, { status: error.status });
     }
 
+    const rateLimitResult = await checkRateLimit(request, "update-storage");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const body = (await request.json()) as {
       id?: string;
       storageLimit?: number;
@@ -230,5 +242,39 @@ export async function PATCH(request: Request) {
       { message: mongoError?.message || "Unable to update storage configuration." },
       { status: mongoError?.status || 500 },
     );
+  }
+}
+
+export async function checkStorageQuota(
+  userId: string,
+  fileSize: number,
+): Promise<{ allowed: boolean; reason?: string }> {
+  try {
+    const configsCollection = await getCollection();
+    const config = await configsCollection.findOne({ userId });
+    if (!config) {
+      return { allowed: true };
+    }
+    if (config.storageUsed + fileSize > config.storageLimit) {
+      return { allowed: false, reason: "Storage quota exceeded" };
+    }
+    return { allowed: true };
+  } catch {
+    return { allowed: true };
+  }
+}
+
+export async function incrementStorageUsed(
+  userId: string,
+  bytes: number,
+): Promise<void> {
+  try {
+    const configsCollection = await getCollection();
+    await configsCollection.updateOne(
+      { userId },
+      { $inc: { storageUsed: bytes }, $set: { updatedAt: new Date() } },
+    );
+  } catch {
+    // Best-effort
   }
 }

@@ -118,8 +118,10 @@ export default function EmailCampaignsPage() {
   }, []);
 
   useEffect(() => {
-    fetchCampaigns();
-    fetchCycles();
+    const load = async () => {
+      await Promise.all([fetchCampaigns(), fetchCycles()]);
+    };
+    void load();
   }, [fetchCampaigns, fetchCycles]);
 
   const selectedCycle = cycles.find((c) => c.id === draft.cycleId);

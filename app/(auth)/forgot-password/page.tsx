@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
 
             <div className="flex flex-col items-center mb-10">
-            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" />
+            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" fetchPriority="high" />
           </div>
 
           <div className="mb-6 text-center">

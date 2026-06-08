@@ -15,6 +15,7 @@ import {
   getNotificationsCollection,
   type NotificationDocument,
 } from "@/server/notifications/notifications";
+import { logger } from "@/server/logging/logger";
 
 // A rule locked longer than this is considered stale and will be recovered
 const LOCK_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
@@ -47,7 +48,10 @@ function toSlug(name: string): string {
 }
 
 function getSigningKey(): string {
-  const secret = process.env.AUTH_JWT_SECRET || "fallback-secret-do-not-use";
+  const secret = process.env.AUTH_JWT_SECRET;
+  if (!secret) {
+    throw new Error("Missing AUTH_JWT_SECRET environment variable for recipient token signing.");
+  }
   return crypto.createHash("sha256").update(secret).digest("hex");
 }
 
@@ -136,16 +140,12 @@ function buildEmailHtml(opts: {
 async function resolveRecipients(
   rule: DistributionRuleRecord,
 ): Promise<UserRecord[]> {
-  console.log(
-    `[EXECUTION ENGINE] resolveRecipients called for rule: "${rule.name}"`,
-  );
-  console.log(`[EXECUTION ENGINE]   - recipients type: ${rule.recipients}`);
-  console.log(
-    `[EXECUTION ENGINE]   - projects: ${JSON.stringify(rule.projects)}`,
-  );
-  console.log(
-    `[EXECUTION ENGINE]   - specificUsers: ${JSON.stringify(rule.specificUsers)}`,
-  );
+  logger.info("EXECUTION_ENGINE", "resolveRecipients called", {
+    ruleName: rule.name,
+    recipients: rule.recipients,
+    projects: rule.projects,
+    specificUsers: rule.specificUsers,
+  });
   const usersCollection = await getUsersCollection();
 
   if (rule.recipients === "specific") {
@@ -163,9 +163,9 @@ async function resolveRecipients(
         (p) => p.toLowerCase() === (u.project || "").toLowerCase(),
       ),
     );
-    console.log(
-      `[EXECUTION ENGINE] resolveRecipients returning ${filteredUsers.length} users for rule "${rule.name}"`,
-    );
+    logger.info("EXECUTION_ENGINE", "resolveRecipients returning specific users", {
+      count: filteredUsers.length, ruleName: rule.name,
+    });
     return filteredUsers;
   }
 
@@ -188,13 +188,13 @@ async function resolveRecipients(
       },
     })
     .toArray();
-  console.log(
-    `[EXECUTION ENGINE] resolveRecipients found ${users.length} users before project filter`,
-  );
+  logger.info("EXECUTION_ENGINE", "resolveRecipients found users", {
+    count: users.length, ruleName: rule.name,
+  });
   const filteredUsers = users;
-  console.log(
-    `[EXECUTION ENGINE] resolveRecipients returning ${filteredUsers.length} users for rule "${rule.name}"`,
-  );
+  logger.info("EXECUTION_ENGINE", "resolveRecipients returning filtered users", {
+    count: filteredUsers.length, ruleName: rule.name,
+  });
   return filteredUsers;
 }
 
@@ -366,6 +366,7 @@ async function processChunk(
   users: UserRecord[],
   cursor: number,
   skipDedupe = false,
+  alreadySentUserIds?: Set<string>,
 ): Promise<{
   newCursor: number | null;
   sentCount: number;
@@ -391,7 +392,7 @@ async function processChunk(
 
     // Deduplicate: skip if already sent in a previous (timed-out) run
     // Unless skipDedupe is true (for manual Send Now)
-    const alreadySent = skipDedupe ? false : await wasAlreadySent(rule._id, user._id);
+    const alreadySent = skipDedupe ? false : alreadySentUserIds?.has(user._id.toString()) ?? await wasAlreadySent(rule._id, user._id);
     if (alreadySent) {
       skippedCount++;
       continue;
@@ -491,9 +492,19 @@ export async function processRule(
     const refreshed = await collection.findOne({ _id: rule._id });
     const cursor = refreshed?.processingCursor ?? 0;
 
+    // 3b. Pre-fetch sent records for this rule to avoid N+1 dedup queries
+    let alreadySentUserIds: Set<string> | undefined;
+    if (!skipDedupe) {
+      const sentHistory = await getSendHistoryCollection();
+      const sentRecords = await sentHistory
+        .find({ ruleId: rule._id }, { projection: { recipientUserId: 1 } })
+        .toArray();
+      alreadySentUserIds = new Set(sentRecords.map((r) => r.recipientUserId?.toString()).filter((id): id is string => !!id));
+    }
+
     // 4. Process one chunk
     const { newCursor, sentCount, failedCount, skippedCount } =
-      await processChunk(rule, users, cursor, skipDedupe);
+      await processChunk(rule, users, cursor, skipDedupe, alreadySentUserIds);
 
     // 5. Release or update lock
     await releaseLock(rule._id, instanceId, newCursor, users.length);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getFormDistributionCollection } from "@/server/form-distribution/form-distribution";
 import { requireAdmin } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: error.message }, { status: error.status });
   }
   try {
+    const rateLimitResult = await checkRateLimit(request, "force-unlock");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const body = await request.json();
     const { ruleId } = body;
     if (!ruleId) {

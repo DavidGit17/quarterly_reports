@@ -199,12 +199,17 @@ export default function ProjectsPage() {
       return;
     }
 
+    const previousProjects = projects;
+    const projectToDelete = deletingProject;
+    setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+    setDeletingProject(null);
+
     try {
       setError("");
       const response = await fetch("/api/projects", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: deletingProject.id }),
+        body: JSON.stringify({ id: projectToDelete.id }),
       });
 
       if (!response.ok) {
@@ -212,9 +217,9 @@ export default function ProjectsPage() {
         throw new Error(data.message || "Failed to delete project.");
       }
 
-      setDeletingProject(null);
       await fetchProjects();
     } catch (err) {
+      setProjects(previousProjects);
       setError(err instanceof Error ? err.message : "Failed to delete project.");
     }
   };

@@ -8,15 +8,12 @@ type AuthJwtPayload = {
   sub: string; // user _id
 };
 
-const getJwtSecret = () => {
+const getJwtSecret = (): string => {
   const configuredSecret =
     process.env.AUTH_JWT_SECRET ||
     process.env.JWT_SECRET ||
     process.env.NEXTAUTH_SECRET;
   if (configuredSecret) return configuredSecret;
-  if (process.env.NODE_ENV !== "production") {
-    return "dev-insecure-jwt-secret-change-me";
-  }
   throw new Error("Missing JWT secret. Set AUTH_JWT_SECRET.");
 };
 

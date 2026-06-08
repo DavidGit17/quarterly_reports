@@ -9,6 +9,7 @@ export async function createAllIndexes(db: Db): Promise<void> {
         key: { role: 1, status: 1, project: 1 },
         name: "users_role_status_project_idx",
       },
+      { key: { project: 1 }, name: "users_project_idx" },
     ]),
     db.collection("rate_limits").createIndexes([
       {
@@ -93,6 +94,8 @@ export async function createAllIndexes(db: Db): Promise<void> {
       },
       { key: { cycleId: 1 }, name: "campaigns_cycle_id_idx" },
       { key: { createdAt: -1 }, name: "campaigns_created_at_desc_idx" },
+      { key: { targetRoles: 1 }, name: "campaigns_target_roles_idx" },
+      { key: { projectName: 1 }, name: "campaigns_project_name_idx" },
     ]),
   ];
 

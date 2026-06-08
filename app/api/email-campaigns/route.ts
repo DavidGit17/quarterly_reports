@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import {
   getEmailCampaignsCollection,
@@ -26,6 +27,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const statusFilter = searchParams.get("status")?.trim() || "";
     const cycleFilter = searchParams.get("cycleId")?.trim() || "";
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
+    const skip = (page - 1) * limit;
 
     const collection = await getEmailCampaignsCollection();
     const query: Record<string, unknown> = {};
@@ -44,13 +48,13 @@ export async function GET(request: Request) {
       }
     }
 
-    const docs = await collection
-      .find(query)
-      .sort({ createdAt: -1 })
-      .toArray();
+    const [docs, total] = await Promise.all([
+      collection.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray(),
+      collection.countDocuments(query),
+    ]);
     const campaigns = docs.map(toCampaignResponse);
 
-    return NextResponse.json({ campaigns });
+    return NextResponse.json({ campaigns, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (err) {
     const mongoError = getMongoRouteErrorResponse(err);
     if (mongoError) {
@@ -74,6 +78,11 @@ export async function POST(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "create-campaign");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as {
@@ -171,20 +180,29 @@ export async function POST(request: Request) {
         let sentCount = 0;
         let failedCount = 0;
 
-        for (const user of targetUsers) {
-          try {
-            await sendCampaignEmail({
-              to: user.email,
-              username: user.username,
-              cycleName,
-              projectName: created.projectName,
-              formUrl,
-              campaignType: created.campaignType,
-              scheduledAt: scheduledAtStr,
-            });
-            sentCount++;
-          } catch {
-            failedCount++;
+        // Send in batches of 5 to avoid overwhelming Brevo API rate limits
+        const BATCH_SIZE = 5;
+        for (let i = 0; i < targetUsers.length; i += BATCH_SIZE) {
+          const batch = targetUsers.slice(i, i + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map((user) =>
+              sendCampaignEmail({
+                to: user.email,
+                username: user.username,
+                cycleName,
+                projectName: created.projectName,
+                formUrl,
+                campaignType: created.campaignType,
+                scheduledAt: scheduledAtStr,
+              }),
+            ),
+          );
+          for (const result of results) {
+            if (result.status === "fulfilled") {
+              sentCount++;
+            } else {
+              failedCount++;
+            }
           }
         }
 
@@ -239,6 +257,11 @@ export async function PATCH(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "update-campaign");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as {
@@ -332,6 +355,11 @@ export async function DELETE(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "delete-campaign");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as { id?: string };

@@ -4,10 +4,11 @@ import { NextResponse } from "next/server";
 import {
   requireAdmin,
   getUsersCollection,
-  type UserDocument,
-  type UserRole,
-  type UserStatus,
+  UserRole,
+  UserStatus,
+  UserDocument,
 } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 
 export type AdminUserRecord = {
@@ -123,6 +124,11 @@ export async function POST(request: Request) {
       );
     }
 
+    const rateLimitResult = await checkRateLimit(request, "create-user");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const payload = (await request.json()) as {
       username?: string;
       email?: string;
@@ -223,6 +229,11 @@ export async function PATCH(request: Request) {
       );
     }
 
+    const rateLimitResult = await checkRateLimit(request, "update-user");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const payload = (await request.json()) as {
       id?: string;
       username?: string;
@@ -311,6 +322,11 @@ export async function DELETE(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "delete-user");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const { searchParams } = new URL(request.url);

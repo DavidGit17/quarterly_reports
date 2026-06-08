@@ -116,6 +116,7 @@ export function FacilitatorsTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(facilitator)}
+                    title="Edit facilitator"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -123,6 +124,7 @@ export function FacilitatorsTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(facilitator)}
+                    title="Delete facilitator"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

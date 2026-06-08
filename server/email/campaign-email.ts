@@ -1,3 +1,5 @@
+import { logger } from "@/server/logging/logger";
+
 interface SendCampaignEmailOptions {
   to: string;
   username: string;
@@ -14,12 +16,7 @@ export const sendCampaignEmail = async (
   const apiKey = (process.env.BREVO_API_KEY || "").trim();
 
   if (!apiKey) {
-    const errorMsg =
-      "[CAMPAIGN EMAIL] BREVO_API_KEY is not configured in environment variables. Email could not be sent.";
-    console.error(errorMsg);
-    console.error(
-      `[CAMPAIGN EMAIL] Failed to send to ${options.to}: Missing API key`,
-    );
+    logger.error("CAMPAIGN_EMAIL", "BREVO_API_KEY not configured", { to: options.to });
     throw new Error("BREVO_API_KEY not configured");
   }
 
@@ -49,15 +46,16 @@ export const sendCampaignEmail = async (
       },
     });
 
-    console.log(
-      `[CAMPAIGN EMAIL] Sent to ${options.to} for campaign "${options.cycleName}"`,
-    );
+    logger.info("CAMPAIGN_EMAIL", "Email sent", {
+      to: options.to,
+      cycleName: options.cycleName,
+    });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    console.error(
-      `[CAMPAIGN EMAIL] Failed to send to ${options.to}: ${message}`,
-    );
-    throw new Error(message);
+    logger.error("CAMPAIGN_EMAIL", "Failed to send email", {
+      to: options.to,
+      error: err instanceof Error ? err.message : "Unknown error",
+    });
+    throw err;
   }
 };
 

@@ -254,13 +254,25 @@ export default function StoragePage() {
       return;
     }
 
+    const previousConfigs = configs;
+    const configToEdit = editingConfig;
+    setConfigs((prev) =>
+      prev.map((c) =>
+        c._id === configToEdit._id
+          ? { ...c, storageLimit: storageLimitBytes, maxFileSize: maxFileSizeBytes, allowedFileTypes: [...editAllowedTypes] }
+          : c,
+      ),
+    );
+    setIsEditDialogOpen(false);
+    setEditingConfig(null);
+
     setIsSaving(true);
     try {
       const response = await fetch("/api/admin/storage", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: editingConfig._id,
+          id: configToEdit._id,
           storageLimit: storageLimitBytes,
           maxFileSize: maxFileSizeBytes,
           allowedFileTypes: [...editAllowedTypes],
@@ -268,15 +280,15 @@ export default function StoragePage() {
       });
       const data = await response.json();
       if (!response.ok) {
-        setEditError(data.message || "Failed to update storage configuration.");
-        return;
+        throw new Error(data.message || "Failed to update storage configuration.");
       }
-      setIsEditDialogOpen(false);
-      setEditingConfig(null);
       setSuccessMessage("Storage configuration updated successfully.");
       void fetchData();
-    } catch {
-      setEditError("Failed to update storage configuration.");
+    } catch (err) {
+      setConfigs(previousConfigs);
+      setEditError(err instanceof Error ? err.message : "Failed to update storage configuration.");
+      setIsEditDialogOpen(true);
+      setEditingConfig(configToEdit);
     } finally {
       setIsSaving(false);
     }

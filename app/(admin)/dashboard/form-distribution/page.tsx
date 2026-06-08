@@ -326,10 +326,10 @@ export default function FormDistributionPage() {
   }, []);
 
   useEffect(() => {
-    fetchRules();
-    fetchProjects();
-    fetchForms();
-    fetchUsers();
+    const load = async () => {
+      await Promise.all([fetchRules(), fetchProjects(), fetchForms(), fetchUsers()]);
+    };
+    void load();
   }, [fetchRules, fetchProjects, fetchForms, fetchUsers]);
 
   const filteredRules = rules.filter(

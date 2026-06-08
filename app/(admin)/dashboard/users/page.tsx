@@ -276,21 +276,25 @@ export default function UsersPage() {
     if (!deletingUser) return;
     setErrorMessage("");
 
+    const previousUsers = users;
+    const userToDelete = deletingUser;
+    setUsers((prev) => prev.filter((u) => u._id !== userToDelete._id));
+    setDeletingUser(null);
+
     try {
       const response = await fetch(
-        `/api/admin/users?id=${deletingUser._id}`,
+        `/api/admin/users?id=${userToDelete._id}`,
         { method: "DELETE" },
       );
       const data = await response.json();
       if (!response.ok) {
-        setErrorMessage(data.message || "Failed to delete user.");
-        return;
+        throw new Error(data.message || "Failed to delete user.");
       }
-      setDeletingUser(null);
       setSuccessMessage("User deleted successfully.");
       void fetchUsers();
-    } catch {
-      setErrorMessage("Failed to delete user.");
+    } catch (err) {
+      setUsers(previousUsers);
+      setErrorMessage(err instanceof Error ? err.message : "Failed to delete user.");
     }
   };
 
@@ -301,24 +305,32 @@ export default function UsersPage() {
     const newStatus: UserStatus =
       togglingUser.status === "active" ? "inactive" : "active";
 
+    const previousUsers = users;
+    const userToToggle = togglingUser;
+    setUsers((prev) =>
+      prev.map((u) =>
+        u._id === userToToggle._id ? { ...u, status: newStatus } : u,
+      ),
+    );
+    setTogglingUser(null);
+
     try {
       const response = await fetch("/api/admin/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: togglingUser._id, status: newStatus }),
+        body: JSON.stringify({ id: userToToggle._id, status: newStatus }),
       });
       const data = await response.json();
       if (!response.ok) {
-        setErrorMessage(data.message || "Failed to update status.");
-        return;
+        throw new Error(data.message || "Failed to update status.");
       }
-      setTogglingUser(null);
       setSuccessMessage(
         `User ${newStatus === "active" ? "activated" : "deactivated"} successfully.`,
       );
       void fetchUsers();
-    } catch {
-      setErrorMessage("Failed to update status.");
+    } catch (err) {
+      setUsers(previousUsers);
+      setErrorMessage(err instanceof Error ? err.message : "Failed to update status.");
     }
   };
 
@@ -482,6 +494,7 @@ export default function UsersPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => openEdit(user)}
+                        title="Edit user"
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -489,6 +502,7 @@ export default function UsersPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => setDeletingUser(user)}
+                        title="Delete user"
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>

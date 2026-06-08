@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Bell, Trash2, Check } from "lucide-react";
 import { formatIsoDateTime } from "@/lib/shared/date-format";
+import { dedupedFetch, invalidateCache } from "@/lib/shared/fetch-cache";
 
 function mapNotificationType(apiType: string): "report" | "approval" | "system" | "alert" {
   if (apiType === "form_sent" || apiType === "form_failed") return "system";
@@ -37,6 +38,7 @@ interface Notification {
 export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [reportNotifications, setReportNotifications] = useState(true);
@@ -44,12 +46,14 @@ export default function NotificationsPage() {
   const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
-    fetch("/api/admin/notifications")
-      .then((r) => r.json())
+    dedupedFetch<{ notifications: Array<{ createdAt: string; id: string; type: string; title: string; message: string; read: boolean; actionUrl?: string }> }>(
+      "/api/admin/notifications",
+      { cacheKey: "admin-notifications" },
+    )
       .then((data) => {
         if (data.notifications) {
           setNotifications(
-            data.notifications.map((n: { createdAt: string; id: string; type: string; title: string; message: string; read: boolean; actionUrl?: string }) => ({
+            data.notifications.map((n) => ({
               id: n.id,
               type: mapNotificationType(n.type),
               title: n.title,
@@ -61,7 +65,8 @@ export default function NotificationsPage() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -200,7 +205,12 @@ export default function NotificationsPage() {
             </div>
 
             {/* Notifications */}
-            {notifications.length > 0 ? (
+            {loading ? (
+              <div className="animate-pulse bg-white border border-slate-200 rounded-2xl p-12 text-center">
+                <div className="w-8 h-8 bg-slate-200 rounded-full mx-auto mb-3" />
+                <div className="h-4 w-40 bg-slate-200 rounded mx-auto" />
+              </div>
+            ) : notifications.length > 0 ? (
               <div className="space-y-3">
                 {notifications.map((notification) => (
                   <div
@@ -390,25 +400,25 @@ export default function NotificationsPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      fetch("/api/admin/notifications")
-                        .then((r) => r.json())
-                        .then((data) => {
-                          if (data.notifications) {
-                            setNotifications(
-                              data.notifications.map((n: { createdAt: string; id: string; type: string; title: string; message: string; read: boolean; actionUrl?: string }) => ({
-                                id: n.id,
-                                type: mapNotificationType(n.type),
-                                title: n.title,
-                                message: n.message,
-                                timestamp: n.createdAt,
-                                read: n.read,
-                                actionUrl: n.actionUrl || undefined,
-                              })),
-                            );
-                          }
-                        })
-                        .catch(() => {});
+                    onClick={async () => {
+                      invalidateCache("admin-notifications");
+                      const data = await dedupedFetch<{ notifications: Array<{ createdAt: string; id: string; type: string; title: string; message: string; read: boolean; actionUrl?: string }> }>(
+                        "/api/admin/notifications",
+                        { cacheKey: "admin-notifications" },
+                      );
+                      if (data.notifications) {
+                        setNotifications(
+                          data.notifications.map((n) => ({
+                            id: n.id,
+                            type: mapNotificationType(n.type),
+                            title: n.title,
+                            message: n.message,
+                            timestamp: n.createdAt,
+                            read: n.read,
+                            actionUrl: n.actionUrl || undefined,
+                          })),
+                        );
+                      }
                     }}
                     className="mt-2 w-full text-sm"
                   >

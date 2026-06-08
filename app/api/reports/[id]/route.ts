@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 import { requireActiveUser } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import {
   getReportsCollection,
   toReportResponse,
@@ -81,6 +82,11 @@ export async function PATCH(request: Request, { params }: Params) {
       { message: error!.message },
       { status: error!.status },
     );
+  }
+
+  const rateLimitResult = await checkRateLimit(request, "update-report");
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
   }
 
   if (currentUser.role !== "admin" && currentUser.role !== "facilitator") {

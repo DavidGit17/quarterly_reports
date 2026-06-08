@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import {
   getFormDistributionCollection,
@@ -54,6 +55,11 @@ export async function POST(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "create-distribution");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as {
@@ -175,6 +181,11 @@ export async function PATCH(request: Request) {
       );
     }
 
+    const rateLimitResult = await checkRateLimit(request, "update-distribution");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
+    }
+
     const body = (await request.json()) as {
       id?: string;
       name?: string;
@@ -285,6 +296,11 @@ export async function DELETE(request: Request) {
         { message: error.message },
         { status: error.status },
       );
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "delete-distribution");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as { id?: string };

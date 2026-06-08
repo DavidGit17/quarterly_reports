@@ -106,6 +106,7 @@ export function CoordinatorsTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(coordinator)}
+                    title="Edit coordinator"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -113,6 +114,7 @@ export function CoordinatorsTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(coordinator)}
+                    title="Delete coordinator"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

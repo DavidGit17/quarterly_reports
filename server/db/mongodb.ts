@@ -14,7 +14,7 @@ const dbName = process.env.MONGODB_DB_NAME || "quarterly_reports";
 
 const CONNECTION_POOL_OPTIONS = {
   minPoolSize: 0,
-  maxPoolSize: 5,
+  maxPoolSize: 25,
   waitQueueTimeoutMS: 10_000,
   serverSelectionTimeoutMS: 5_000,
   connectTimeoutMS: 10_000,

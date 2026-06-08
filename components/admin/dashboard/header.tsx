@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatIsoDateTime } from "@/lib/shared/date-format";
 import { useAuth } from "./auth-context";
+import { dedupedFetch, invalidateCache } from "@/lib/shared/fetch-cache";
 
 interface HeaderProps {
   onMobileMenuClick?: () => void;
@@ -92,12 +93,14 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
-    fetch("/api/admin/notifications")
-      .then((r) => r.json())
+    dedupedFetch<{ notifications: Array<{ createdAt: string; id: string; type: string; title: string; message: string; read: boolean; actionUrl?: string }> }>(
+      "/api/admin/notifications",
+      { cacheKey: "admin-notifications" },
+    )
       .then((data) => {
         if (data.notifications) {
           setNotifications(
-            data.notifications.map((n: { createdAt: string; id: string; type: string; title: string; message: string; read: boolean; actionUrl?: string }) => ({
+            data.notifications.map((n) => ({
               id: n.id,
               type: mapNotificationType(n.type),
               title: n.title,
@@ -121,6 +124,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "markRead", id }),
     }).catch(() => {});
+    invalidateCache("admin-notifications");
   };
 
   const handleMarkAllAsRead = async () => {
@@ -130,6 +134,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "markAllRead" }),
     }).catch(() => {});
+    invalidateCache("admin-notifications");
   };
 
   const handleDelete = async (id: string) => {
@@ -139,6 +144,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "delete", id }),
     }).catch(() => {});
+    invalidateCache("admin-notifications");
   };
 
   const handleClearAll = async () => {
@@ -148,6 +154,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "clearAll" }),
     }).catch(() => {});
+    invalidateCache("admin-notifications");
   };
 
   return (
@@ -170,7 +177,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           {/* Notifications */}
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-              <button className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors">
+              <button className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors" aria-label="Notifications" title="Notifications">
                 <Bell className="w-5 h-5 text-slate-500" aria-hidden="true" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-4.5 h-4.5 px-1 rounded-full bg-red-500 text-white text-xs font-semibold leading-none">
@@ -344,7 +351,7 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="p-1 hover:bg-slate-100 rounded-xl transition-colors">
+                <button className="p-1 hover:bg-slate-100 rounded-xl transition-colors" aria-label="User menu" title="User menu">
                   <Avatar className="w-8 h-8 border border-slate-200">
                     {user.profileImage ? (
                       <AvatarImage

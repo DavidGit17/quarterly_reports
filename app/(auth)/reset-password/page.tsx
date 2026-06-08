@@ -107,7 +107,7 @@ function ResetPasswordContent() {
         <div className="flex-1 flex flex-col sm:items-center sm:justify-center pt-2 sm:p-6 lg:p-8">
           <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10 text-center">
             <div className="flex flex-col items-center mb-10">
-            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" />
+            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" fetchPriority="high" />
             </div>
             <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#172B4D] mb-2">
               Invalid Link
@@ -139,7 +139,7 @@ function ResetPasswordContent() {
         <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
 
           <div className="flex flex-col items-center mb-10">
-            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" />
+            <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-8 w-auto max-w-full" fetchPriority="high" />
           </div>
 
           <div className="mb-6 text-center">

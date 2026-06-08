@@ -42,60 +42,59 @@ export async function GET(
 
     const usersCollection = await getUsersCollection();
     const assignedUsers = await usersCollection
-      .find({
-        role: { $in: cycle.targetRoles as Array<"coordinator" | "facilitator"> },
-        status: "active",
-        project: { $in: cycle.linkedProjects },
-      })
+      .find(
+        {
+          role: { $in: cycle.targetRoles as Array<"coordinator" | "facilitator"> },
+          status: "active",
+          project: { $in: cycle.linkedProjects },
+        },
+        { projection: { _id: 1, project: 1 } },
+      )
       .toArray();
 
     const reportsCollection = await getReportsCollection();
     const submittedReports = await reportsCollection
-      .find({ cycleId })
+      .find(
+        { cycleId },
+        { projection: { createdBy: 1, projectName: 1 } },
+      )
       .toArray();
 
-    const submittedByUser = new Map<string, typeof submittedReports[0]>();
+    // Build a Set of "userId|projectName" for O(1) lookup
+    const submittedKeys = new Set<string>();
     for (const report of submittedReports) {
-      const key = `${report.createdBy.toString()}|${report.projectName}`;
-      if (!submittedByUser.has(key)) {
-        submittedByUser.set(key, report);
-      }
+      submittedKeys.add(`${report.createdBy.toString()}|${report.projectName}`);
     }
 
-    const db = await getDb();
-    const projectsCollection = db.collection("projects");
-
-    const projectSummary = cycle.linkedProjects.map(
+    const now = new Date();
+    const perProject = cycle.linkedProjects.map(
       (projectName: string) => {
-        const projectUsers = assignedUsers.filter(
-          (u) =>
-            u.project?.toLowerCase() === projectName.toLowerCase(),
-        );
-        const submitted = projectUsers.filter((u) =>
-          submittedByUser.has(
-            `${u._id.toString()}|${projectName}`,
-          ),
-        );
-        const overdue = projectUsers.filter(
-          (u) =>
-            !submittedByUser.has(
-              `${u._id.toString()}|${projectName}`,
-            ) &&
-            cycle.status === "active" &&
-            new Date() > cycle.endDate,
-        );
+        let totalUsers = 0;
+        let submitted = 0;
+
+        for (const user of assignedUsers) {
+          if (user.project?.toLowerCase() !== projectName.toLowerCase()) continue;
+          totalUsers++;
+          const key = `${user._id.toString()}|${projectName}`;
+          if (submittedKeys.has(key)) {
+            submitted++;
+          }
+        }
+
+        const notSubmitted = totalUsers - submitted;
+        const overdue = cycle.status === "active" && now > cycle.endDate
+          ? notSubmitted
+          : 0;
 
         return {
           projectName,
-          totalUsers: projectUsers.length,
-          submitted: submitted.length,
-          notSubmitted: projectUsers.length - submitted.length,
-          overdue: overdue.length,
+          totalUsers,
+          submitted,
+          notSubmitted,
+          overdue,
           completionRate:
-            projectUsers.length > 0
-              ? Math.round(
-                  (submitted.length / projectUsers.length) * 100,
-                )
+            totalUsers > 0
+              ? Math.round((submitted / totalUsers) * 100)
               : 0,
         };
       },
@@ -120,7 +119,7 @@ export async function GET(
             ? Math.round((totalSubmitted / totalAssigned) * 100)
             : 0,
       },
-      perProject: projectSummary,
+      perProject,
     });
   } catch (err) {
     const mongoError = getMongoRouteErrorResponse(err);

@@ -130,8 +130,10 @@ export default function ReportingCyclesPage() {
   }, []);
 
   useEffect(() => {
-    fetchCycles();
-    fetchProjects();
+    const load = async () => {
+      await Promise.all([fetchCycles(), fetchProjects()]);
+    };
+    void load();
   }, [fetchCycles, fetchProjects]);
 
   useEffect(() => {

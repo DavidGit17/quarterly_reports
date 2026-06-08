@@ -149,6 +149,8 @@ export default function AdminFormBuilderPage() {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const isDirtyRef = useRef(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [hydrating, setHydrating] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const markDirty = () => {
     isDirtyRef.current = true;
@@ -162,7 +164,7 @@ export default function AdminFormBuilderPage() {
 
   const selectedFields: FormFieldConfig[] =
     configs[selectedProject] || EMPTY_FIELDS;
-  const predefinedProjects = useMemo(
+  const predefinedProjects: Set<string> = useMemo(
     () => new Set(COORDINATOR_PROJECT_OPTIONS),
     [],
   );
@@ -212,7 +214,7 @@ export default function AdminFormBuilderPage() {
       }
     };
 
-    void loadFormState();
+    void loadFormState().then(() => setHydrating(false));
   }, []);
 
   useEffect(() => {
@@ -425,6 +427,7 @@ export default function AdminFormBuilderPage() {
   };
 
   const handleSave = async () => {
+    setSaving(true);
     const defaultsToSave = isProjectScopedEdit
       ? initialDefaultFieldsRef.current
       : defaultFields;
@@ -458,8 +461,11 @@ export default function AdminFormBuilderPage() {
     setLastSavedAt(now);
     isDirtyRef.current = false;
     setIsDirty(false);
+    setSaving(false);
     window.location.href = "/dashboard/forms-overview";
   };
+
+
 
   const resetDefaults = async () => {
     const predefined = new Set(COORDINATOR_PROJECT_OPTIONS as unknown as string[]);
@@ -715,6 +721,17 @@ export default function AdminFormBuilderPage() {
 
     return null;
   };
+
+  if (hydrating) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-pulse text-center">
+          <div className="w-48 h-4 bg-slate-200 rounded mx-auto mb-3" />
+          <div className="w-64 h-4 bg-slate-200 rounded mx-auto" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -1346,10 +1363,11 @@ export default function AdminFormBuilderPage() {
           </Link>
           <button
             type="button"
-            onClick={handleSave}
-            className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors"
+            onClick={() => void handleSave()}
+            disabled={saving}
+            className="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Save Form Structure
+            {saving ? "Saving..." : "Save Form Structure"}
           </button>
         </div>
 

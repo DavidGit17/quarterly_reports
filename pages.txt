@@ -1,19 +1,370 @@
-Please update my 'Forgot Password', 'Reset Password', and 'Verify OTP' pages to perfectly match the design system of my Login/Signup page. Apply these precise rules to all three files:
-1. Design Principles (Linear Minimalist - Model 1):
-•	Colors: All navy/blue text (#172B4D, #1768DB) must be replaced with zinc-900 for headings/links and zinc-500 for subtitles.
-•	Containers: Use a clean, sharp card wrapper: w-full max-w-[440px] bg-white rounded-2xl border border-zinc-200/60 shadow-sm p-8 sm:p-12.
-•	Inputs: All input fields must be refined to: w-full h-11 rounded-md border bg-zinc-50/60 px-3.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:bg-white focus:border-zinc-950.
-•	Buttons: All primary buttons must use this exact styling: w-full h-11 rounded-md bg-zinc-950 hover:bg-zinc-800 text-white mt-6 font-semibold text-sm tracking-wide flex items-center justify-center gap-2 transition-all shadow-sm.
-•	Typography: All headings must use text-2xl font-bold tracking-tight text-zinc-900.
-2. Specific Fixes for Each Page:
-•	Forgot Password: Ensure the input fields and button match the new h-11 rounded-md standard. Change the 'Sign in' link color to text-zinc-900.
-•	Reset Password: Ensure the PasswordInput component and email input match the styling above. Fix the 'Invalid Link' state container to match the new card wrapper styling.
-•	Verify OTP:
-•	Input: The 6-digit OTP input must be h-12 rounded-md border bg-zinc-50/60 text-center text-3xl tracking-[0.4em] font-mono.
-•	Progress Bar: Update the bar to be thinner (h-1.5) and change the fill color from blue to bg-zinc-950.
-•	Resend Button: Ensure the resend button follows the same typography (text-sm font-medium text-zinc-900).
-3. General Cleanup:
-•	Remove any remaining hardcoded blue hex codes (like #1768DB or #172B4D).
-•	Ensure all Label or label components are consistently styled with text-sm font-medium text-zinc-900 mb-2 block.
-•	Ensure the spacing between the logo, heading, and form fields is consistent with the Login page (use mb-8 or mb-10 where appropriate).
-Please update all three pages to follow this aesthetic precisely.
+Perform a Complete Frontend Performance, UX Responsiveness, and Perceived Speed Audit of the QRMS application.
+
+IMPORTANT
+
+The application has already completed:
+
+- Authentication
+- RBAC
+- Pagination
+- Rate Limiting
+- Storage Quotas
+- Structured Logging
+- Email Optimization
+- Database Optimization
+- Build Safety
+- Production Hardening
+
+Do NOT perform large refactors.
+
+Do NOT redesign the UI.
+
+Do NOT change business logic.
+
+Focus only on improving:
+
+- Loading speed
+- Perceived performance
+- User responsiveness
+- Data-fetching efficiency
+- Navigation speed
+- Dashboard responsiveness
+- User experience polish
+
+Analyze first.
+
+Explain findings.
+
+Then implement improvements.
+
+--------------------------------------------------
+
+PHASE 1 — FRONTEND DATA LOADING AUDIT
+
+Inspect every major page:
+
+- Dashboard
+- Users
+- Projects
+- Forms
+- Reports
+- Automations
+- Storage Management
+
+For each page report:
+
+- API requests fired
+- Total payload size
+- Duplicate requests
+- Sequential requests
+- Parallel requests
+- Slowest requests
+- Unnecessary requests
+
+Identify bottlenecks.
+
+--------------------------------------------------
+
+PHASE 2 — WATERFALL REQUEST AUDIT
+
+Find patterns like:
+
+Request A
+↓
+Wait
+↓
+Request B
+↓
+Wait
+↓
+Request C
+
+Identify opportunities for:
+
+Promise.all
+
+Parallel fetching
+
+Combined endpoints
+
+Dashboard summary endpoints
+
+Estimate performance gains.
+
+--------------------------------------------------
+
+PHASE 3 — DUPLICATE REQUEST AUDIT
+
+Find:
+
+- Same endpoint requested multiple times
+- Duplicate requests from different components
+- Repeated requests during navigation
+- Repeated requests caused by re-renders
+- Repeated requests caused by effects
+
+Examples:
+
+GET /api/me
+GET /api/me
+GET /api/me
+
+during the same page load.
+
+Provide fixes.
+
+--------------------------------------------------
+
+PHASE 4 — CACHING AUDIT
+
+Inspect all frequently requested data.
+
+Examples:
+
+- Current user
+- User permissions
+- Projects
+- Dashboard summary
+- Roles
+- Settings
+- Storage quotas
+- Form metadata
+
+Determine:
+
+- What should be cached
+- What should not be cached
+- Cache duration
+- Cache invalidation strategy
+
+Recommend and implement where appropriate:
+
+- React Query
+- SWR
+- Next.js caching
+- Server cache
+- Memory cache
+
+Avoid stale data issues.
+
+--------------------------------------------------
+
+PHASE 5 — OPTIMISTIC UPDATE AUDIT
+
+Identify actions where users wait unnecessarily.
+
+Examples:
+
+- Updating storage quotas
+- Updating users
+- Updating projects
+- Updating forms
+- Changing report status
+
+Determine where optimistic updates are safe.
+
+Implement optimistic UI updates where appropriate.
+
+Do NOT use optimistic updates for:
+
+- Authentication
+- Destructive actions
+- Security-sensitive operations
+
+Goal:
+
+Reduce perceived waiting time.
+
+--------------------------------------------------
+
+PHASE 6 — SKELETON LOADER AUDIT
+
+Inspect all loading states.
+
+Verify:
+
+- Skeletons match final layouts
+- Skeletons are consistent
+- Skeletons are not overused
+- Skeletons do not flicker
+- Skeletons disappear smoothly
+
+Identify:
+
+- Missing skeletons
+- Poor skeleton design
+- Excessive loading spinners
+
+Standardize loading experiences.
+
+Reuse existing design system.
+
+--------------------------------------------------
+
+PHASE 7 — TOOLTIP & MICRO-UX AUDIT
+
+Inspect:
+
+- Icon-only actions
+- Status badges
+- Progress indicators
+- Storage usage displays
+- Automation status
+- Report status
+- Admin controls
+
+Identify areas where users may be confused.
+
+Add helpful tooltips where beneficial.
+
+Do not add unnecessary tooltips.
+
+Use existing tooltip components and styling.
+
+--------------------------------------------------
+
+PHASE 8 — PREFETCHING AUDIT
+
+Inspect:
+
+- Sidebar navigation
+- Common admin pages
+- Frequently visited routes
+
+Identify opportunities for:
+
+- Route prefetching
+- Data prefetching
+- Bundle prefetching
+
+Goal:
+
+Reduce time between click and usable page.
+
+--------------------------------------------------
+
+PHASE 9 — DASHBOARD SUMMARY OPTIMIZATION
+
+Inspect dashboards.
+
+Identify places where:
+
+Multiple API requests
+
+can become
+
+Single aggregated API requests.
+
+Example:
+
+Instead of:
+
+GET /api/users/count
+GET /api/projects/count
+GET /api/forms/count
+GET /api/reports/count
+
+Use:
+
+GET /api/dashboard/summary
+
+Return all dashboard metrics in one request.
+
+Implement where beneficial.
+
+--------------------------------------------------
+
+PHASE 10 — NEXT.JS PERFORMANCE AUDIT
+
+Inspect:
+
+- Server Components
+- Client Components
+- Suspense
+- Dynamic imports
+- Route handlers
+
+Identify:
+
+- Components that should be Server Components
+- Unnecessary Client Components
+- Hydration bottlenecks
+- Missing Suspense boundaries
+
+Recommend and implement safe optimizations.
+
+--------------------------------------------------
+
+PHASE 11 — BUNDLE SIZE AUDIT
+
+Analyze:
+
+- Large dependencies
+- Large client bundles
+- Unused imports
+- Heavy libraries
+
+Identify:
+
+- Lazy loading opportunities
+- Dynamic import opportunities
+- Bundle splitting opportunities
+
+Reduce initial page load cost.
+
+--------------------------------------------------
+
+PHASE 12 — PERCEIVED PERFORMANCE AUDIT
+
+Focus specifically on the user experience.
+
+Investigate situations where:
+
+- UI appears immediately
+- Data appears several seconds later
+
+Identify root causes.
+
+Provide fixes.
+
+Goal:
+
+Pages should feel responsive even while data is loading.
+
+--------------------------------------------------
+
+FINAL REPORT
+
+For every page provide:
+
+- Requests Fired
+- Duplicate Requests
+- Waterfall Requests
+- Caching Opportunities
+- Optimistic Update Opportunities
+- Skeleton Improvements
+- Tooltip Improvements
+- Prefetching Opportunities
+- Bundle Improvements
+- Estimated Performance Gain
+
+Classify findings:
+
+Critical
+High
+Medium
+Low
+
+After implementation provide:
+
+1. Files Modified
+2. Improvements Made
+3. Estimated Request Reduction
+4. Estimated Load Time Reduction
+5. Estimated Bundle Reduction
+6. Remaining Bottlenecks
+7. Updated Performance Score
+
+GOAL
+
+Make QRMS feel fast, responsive, and enterprise-grade, even under month-end usage spikes and heavy administrative workloads, while preserving the existing design system, architecture, and business logic.

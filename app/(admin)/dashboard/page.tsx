@@ -22,7 +22,7 @@ export default function DashboardPage() {
         const [reportsResponse, usersResponse, projectsResponse] = await Promise.all([
           fetch("/api/reports?page=1&limit=1", { cache: "no-store" }),
           fetch("/api/admin/users?limit=1", { cache: "no-store" }),
-          fetch("/api/projects", { cache: "no-store" }),
+          fetch("/api/projects?countOnly=true", { cache: "no-store" }),
         ]);
 
         if (reportsResponse.status === 401) {
@@ -47,8 +47,8 @@ export default function DashboardPage() {
         }
 
         if (projectsResponse.ok) {
-          const projectsData = await projectsResponse.json() as { projects?: unknown[] };
-          setTotalProjects(projectsData.projects?.length ?? 0);
+          const projectsData = await projectsResponse.json() as { total?: number };
+          setTotalProjects(projectsData.total ?? 0);
         }
       } catch {
         setErrorMessage("Unable to load dashboard right now.");

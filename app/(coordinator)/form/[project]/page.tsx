@@ -163,6 +163,7 @@ export default function ProjectFormPage() {
 
         const data = (await authRes.json()) as MeResponse;
         const isAdmin = data.user?.role === "admin";
+        const isPreview = new URLSearchParams(window.location.search).get("preview") === "true";
 
         if (data.user?.role !== "coordinator" && !isAdmin) {
           setIsAccessDenied(true);
@@ -172,10 +173,14 @@ export default function ProjectFormPage() {
         }
 
         if (isAdmin) {
-          setIsAccessDenied(true);
-          setErrorMessage("This form is for coordinators only. You are " + data.user?.role + ".");
-          setIsReady(true);
-          return;
+          if (isPreview) {
+            setIsPreviewMode(true);
+          } else {
+            setIsAccessDenied(true);
+            setErrorMessage("This form is for coordinators only. You are " + data.user?.role + ".");
+            setIsReady(true);
+            return;
+          }
         }
 
         if (data.user?.role === "coordinator") {

@@ -1,7 +1,16 @@
 import { ObjectId } from "mongodb";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { requireAdmin } from "@/server/auth/auth";
+import { checkRateLimit } from "@/server/auth/rate-limit";
 import { getDb, getMongoRouteErrorResponse } from "@/server/db/mongodb";
+
+const createProjectSchema = z.object({
+  name: z.string().trim().min(1, "Project name is required."),
+  description: z.string().optional().default(""),
+  languages: z.array(z.string()).optional().default([]),
+  status: z.enum(["active", "inactive", "pending"]).optional().default("active"),
+});
 
 type ProjectStatus = "active" | "inactive" | "pending";
 
@@ -30,18 +39,34 @@ const toProjectResponse = (doc: Partial<ProjectDocument> & { _id: ObjectId }) =>
   createdDate: doc.createdAt ? new Date(doc.createdAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const { error } = await requireAdmin();
     if (error) {
       return NextResponse.json({ message: error.message }, { status: error.status });
     }
 
+    const { searchParams } = new URL(request.url);
+    const countOnly = searchParams.get("countOnly") === "true";
+
+    if (countOnly) {
+      const collection = await getCollection();
+      const total = await collection.countDocuments({});
+      return NextResponse.json({ total });
+    }
+
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
+    const skip = (page - 1) * limit;
+
     const collection = await getCollection();
-    const docs = await collection.find({}).sort({ nameLower: 1 }).toArray();
+    const [docs, total] = await Promise.all([
+      collection.find({}).sort({ nameLower: 1 }).skip(skip).limit(limit).toArray(),
+      collection.countDocuments({}),
+    ]);
     const projects = docs.map(toProjectResponse);
 
-    return NextResponse.json({ projects });
+    return NextResponse.json({ projects, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (err) {
     const mongoError = getMongoRouteErrorResponse(err);
     if (mongoError) {
@@ -58,17 +83,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: error.message }, { status: error.status });
     }
 
-    const body = (await request.json()) as {
-      name?: string;
-      description?: string;
-      languages?: string[];
-      status?: ProjectStatus;
-    };
-
-    const name = body.name?.trim();
-    if (!name) {
-      return NextResponse.json({ message: "Project name is required." }, { status: 400 });
+    const rateLimitResult = await checkRateLimit(request, "create-project");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
+
+    const body = await request.json();
+    const parsed = createProjectSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { message: parsed.error.errors[0].message },
+        { status: 400 },
+      );
+    }
+
+    const { name, description, languages, status } = parsed.data;
 
     const collection = await getCollection();
     const existing = await collection.findOne({ nameLower: name.toLowerCase() });
@@ -79,9 +108,9 @@ export async function POST(request: Request) {
     const doc: ProjectDocument = {
       name,
       nameLower: name.toLowerCase(),
-      description: body.description?.trim() || "",
-      languages: body.languages || [],
-      status: body.status || "active",
+      description,
+      languages,
+      status,
       createdAt: new Date(),
     };
 
@@ -106,6 +135,11 @@ export async function PATCH(request: Request) {
     const { error } = await requireAdmin();
     if (error) {
       return NextResponse.json({ message: error.message }, { status: error.status });
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "update-project");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as {
@@ -173,6 +207,11 @@ export async function DELETE(request: Request) {
     const { error } = await requireAdmin();
     if (error) {
       return NextResponse.json({ message: error.message }, { status: error.status });
+    }
+
+    const rateLimitResult = await checkRateLimit(request, "delete-project");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({ message: "Too many requests. Please try again later." }, { status: 429 });
     }
 
     const body = (await request.json()) as { id?: string };

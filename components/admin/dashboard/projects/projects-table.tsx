@@ -103,6 +103,7 @@ export function ProjectsTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(project)}
+                    title="Edit project"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -110,6 +111,7 @@ export function ProjectsTable({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(project)}
+                    title="Delete project"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

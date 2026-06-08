@@ -34,6 +34,7 @@ export default function RootLayout({
         className={`${inter.variable} ${ibmPlexSans.variable} ${jetBrainsMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        <link rel="preload" href="/brand/QRMS.webp" as="image" />
         {children}
       </body>
     </html>
