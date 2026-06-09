@@ -6,6 +6,12 @@ export type RateLimitConfig = {
 };
 
 const COLLECTION = "rate_limits";
+type RateLimitDocument = {
+  key: string;
+  count: number;
+  createdAt: Date;
+  expiresAt: Date;
+};
 const DEFAULT_CONFIGS: Record<string, RateLimitConfig> = {
   "send-otp": { windowMs: 60 * 1000, maxRequests: 3 },
   "verify-otp": { windowMs: 60 * 1000, maxRequests: 10 },
@@ -42,7 +48,7 @@ const ensureIndexes = async () => {
   indexesEnsured = true;
   try {
     const db = await getDb();
-    const collection = db.collection(COLLECTION);
+    const collection = db.collection<RateLimitDocument>(COLLECTION);
     await collection.createIndex(
       { expiresAt: 1 },
       { expireAfterSeconds: 0 },
@@ -88,7 +94,7 @@ export const checkRateLimit = async (
   await ensureIndexes();
 
   const db = await getDb();
-  const collection = db.collection(COLLECTION);
+  const collection = db.collection<RateLimitDocument>(COLLECTION);
 
   const result = await collection.findOneAndUpdate(
     { key, createdAt: { $gte: windowStart } },
@@ -96,11 +102,11 @@ export const checkRateLimit = async (
     { returnDocument: "after" },
   );
 
-  if (result) {
-    if (result.count > resolved.maxRequests) {
+  if (result.value) {
+    if (result.value.count > resolved.maxRequests) {
       return { allowed: false, remaining: 0 };
     }
-    return { allowed: true, remaining: resolved.maxRequests - result.count };
+    return { allowed: true, remaining: resolved.maxRequests - result.value.count };
   }
 
   const expiresAt = new Date(now.getTime() + resolved.windowMs);

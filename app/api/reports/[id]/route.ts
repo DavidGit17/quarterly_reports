@@ -5,6 +5,8 @@ import { checkRateLimit } from "@/server/auth/rate-limit";
 import {
   getReportsCollection,
   toReportResponse,
+  type DynamicReportField,
+  type ReportDocument,
   type ReportStatus,
 } from "@/server/reports/reports";
 import { getFormDistributionCollection } from "@/server/form-distribution/form-distribution";
@@ -15,11 +17,7 @@ type Params = {
 
 type UpdateReportPayload = {
   status?: ReportStatus;
-  dynamicFields?: Array<{
-    fieldId: string;
-    label: string;
-    value: string | string[];
-  }>;
+  dynamicFields?: DynamicReportField[];
 };
 
 const REPORT_STATUSES: ReportStatus[] = [
@@ -145,7 +143,9 @@ export async function PATCH(request: Request, { params }: Params) {
     }
   }
 
-  const update: Record<string, unknown> = {};
+  const update: Partial<
+    Pick<ReportDocument, "status" | "dynamicFields" | "fields">
+  > = {};
 
   if (payload.status) {
     update.status = payload.status;
@@ -166,7 +166,11 @@ export async function PATCH(request: Request, { params }: Params) {
     { returnDocument: "after" },
   );
 
-  return NextResponse.json({ report: toReportResponse(result!) });
+  if (!result.value) {
+    return NextResponse.json({ message: "Report not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ report: toReportResponse(result.value) });
 }
 
 export async function DELETE(_: Request, { params }: Params) {
