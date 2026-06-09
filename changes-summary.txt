@@ -1,0 +1,34 @@
+Quarterly Reports Change Summary
+
+What I changed:
+
+1. Removed artificial auth delays
+- Login now redirects immediately after success.
+- OTP verification now redirects immediately after success.
+- Password reset now returns to the auth page immediately instead of waiting.
+
+2. Reduced repeated auth/session fetches
+- Added lib/shared/auth-client.ts.
+- This file caches the /api/auth/me response for the current page load.
+- Pages now reuse that cached session result instead of each one fetching it separately.
+
+3. Updated pages to use the shared auth helper
+- Coordinator pages
+- Facilitator pages
+- Project form pages
+- My Reports pages
+- Shared profile page
+- Admin dashboard auth context
+
+4. Fixed a type issue caused by the auth refactor
+- The shared profile page was still referencing an old local SessionUser type.
+- It now imports the shared SessionUser type from lib/shared/auth-client.ts.
+
+5. Verified the app still builds
+- lint ran successfully
+- TypeScript check ran successfully
+- production build completed successfully
+
+Notes:
+- The repo still has some pre-existing lint warnings in unrelated files.
+- Those warnings were not introduced by this change set.

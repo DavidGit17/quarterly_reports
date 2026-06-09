@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Upload, X } from "lucide-react";
+import { getCurrentUser } from "@/lib/shared/auth-client";
 import {
   type FormFieldConfig,
   getFormConfigs,
@@ -12,12 +13,6 @@ import {
 
 type FieldValueMap = Record<string, string>;
 type FileValueMap = Record<string, File[]>;
-
-type MeResponse = {
-  user?: {
-    role: "admin" | "coordinator" | "facilitator";
-  };
-};
 
 type CreateReportResponse = {
   message?: string;
@@ -47,16 +42,13 @@ function SubmitReportContent() {
   useEffect(() => {
     const verifyFacilitator = async () => {
       try {
-        const response = await fetch("/api/auth/me", { cache: "no-store" });
-
-        if (response.status === 401) {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
           router.push("/auth");
           return;
         }
 
-        const data = (await response.json()) as MeResponse;
-
-        if (data.user?.role !== "facilitator") {
+        if (currentUser.role !== "facilitator") {
           router.push("/auth");
           return;
         }

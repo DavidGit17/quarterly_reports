@@ -44,10 +44,6 @@ export default function UnifiedAuthPage() {
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loginSuccess, setLoginSuccess] = useState(false);
-  const [loginProgress, setLoginProgress] = useState(0);
-  const [loginRedirectTo, setLoginRedirectTo] = useState<string | null>(null);
-  const [loginMessage, setLoginMessage] = useState("");
 
   useEffect(() => {
     if (authMode === "signup") {
@@ -60,23 +56,6 @@ export default function UnifiedAuthPage() {
       }
     }
   }, [authMode]);
-
-  useEffect(() => {
-    if (!loginSuccess || !loginRedirectTo) return;
-    const duration = 2800;
-    const interval = 50;
-    const steps = duration / interval;
-    let currentStep = 0;
-    const timer = setInterval(() => {
-      currentStep++;
-      setLoginProgress(Math.min((currentStep / steps) * 100, 100));
-      if (currentStep >= steps) {
-        clearInterval(timer);
-        router.push(loginRedirectTo);
-      }
-    }, interval);
-    return () => clearInterval(timer);
-  }, [loginSuccess, loginRedirectTo, router]);
 
   const toggleAuthMode = (mode: AuthMode) => {
     if (authMode === mode) return;
@@ -142,27 +121,18 @@ export default function UnifiedAuthPage() {
         return;
       }
 
-      let msg = "";
-      let path = "";
       if (data.role === "admin") {
-        msg = "";
-        path = "/dashboard";
+        router.replace("/dashboard");
       } else if (data.role === "coordinator") {
-        msg = "";
-        path = "/";
+        router.replace("/");
       } else if (data.role === "facilitator") {
-        msg = "";
-        path = "/f";
+        router.replace("/f");
       } else if (!data.project) {
         setErrorMessage("Project is not assigned to your account.");
         return;
       } else {
-        msg = "";
-        path = "/";
+        router.replace("/");
       }
-      setLoginMessage(msg);
-      setLoginRedirectTo(path);
-      setLoginSuccess(true);
     } catch {
       setFieldErrors({ username: "Unable to connect. Please try again." });
     } finally {
@@ -243,44 +213,6 @@ export default function UnifiedAuthPage() {
       setIsSubmitting(false);
     }
   };
-
-  if (loginSuccess) {
-    return (
-      <div className="min-h-screen w-full bg-[#F8FAFC] animate-in fade-in duration-700 relative overflow-hidden flex flex-col items-center justify-center">
-        <div className="relative z-10 flex flex-col items-center px-6">
-          {/* Heading and subheading */}
-          <h1 className="text-3xl font-bold text-[#172B4D] text-center">
-            Preparing your workspace
-          </h1>
-          <p className="text-[#5E6C84] mt-2 text-center">
-            Please wait while we verify your access
-          </p>
-          <div className="w-full max-w-[300px] mt-8">
-            <svg viewBox="0 0 400 380" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-              <defs>
-                <style>{`@keyframes ringPulse { 0% { r: 75; opacity: 0.18; } 100% { r: 100; opacity: 0; } } @keyframes ringPulse2 { 0% { r: 80; opacity: 0.12; } 100% { r: 115; opacity: 0; } } .pulse-ring1 { animation: ringPulse 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); transform-origin: 200px 180px; } .pulse-ring2 { animation: ringPulse2 2.5s infinite cubic-bezier(0.24, 0, 0.38, 1); animation-delay: 0.8s; transform-origin: 200px 180px; } @keyframes checkDraw { to { stroke-dashoffset: 0; } } .check-path { stroke-dasharray: 120; stroke-dashoffset: 120; animation: checkDraw 0.8s ease-out 0.2s forwards; }`}</style>
-              </defs>
-              <circle cx="100" cy="80" r="5" fill="#1768DB" opacity="0.35" />
-              <circle cx="310" cy="70" r="3" fill="#1768DB" opacity="0.3" />
-              <circle cx="340" cy="290" r="6" fill="#1768DB" opacity="0.25" />
-              <circle cx="60" cy="300" r="4" fill="#1768DB" opacity="0.3" />
-              <circle cx="200" cy="45" r="3" fill="#1768DB" opacity="0.35" />
-              <circle cx="200" cy="180" r="75" fill="none" stroke="#1768DB" strokeWidth="1.5" opacity="0.18" className="pulse-ring1" />
-              <circle cx="200" cy="180" r="80" fill="none" stroke="#1768DB" strokeWidth="1" opacity="0.12" className="pulse-ring2" />
-              <path d="M200 95 L 270 125 V 180 C 270 225 242 255 200 270 C 158 255 130 225 130 180 V 125 Z" stroke="#1768DB" strokeWidth="2" fill="#F8FAFC" />
-              <path d="M200 118 L 248 134 V 176 C 248 210 228 232 200 242 C 172 232 152 210 152 176 V 134 Z" fill="#F1F2F4" />
-              <path d="M170 188 L 194 212 L 242 158" stroke="#1768DB" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="check-path" />
-            </svg>
-          </div>
-          <div className="w-full max-w-[280px] mt-6">
-            <div className="h-1.5 bg-[#DFE1E6] rounded-full overflow-hidden">
-              <div className="h-full bg-[#1768DB] rounded-full transition-all duration-100 ease-out" style={{ width: `${loginProgress}%` }} />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen w-full bg-[#F8FAFC] flex flex-col select-none">

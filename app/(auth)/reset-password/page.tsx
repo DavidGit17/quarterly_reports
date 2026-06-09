@@ -90,10 +90,7 @@ function ResetPasswordContent() {
       }
 
       setSuccessMessage(data.message || "Password reset successful.");
-
-      setTimeout(() => {
-        router.push("/unified-auth-page");
-      }, 1500);
+      router.replace("/unified-auth-page");
     } catch {
       setErrorMessage("Unable to reset password right now. Please try again.");
     } finally {

@@ -8,12 +8,7 @@ import {
   FORM_SURFACE_CLASS,
   FORM_PRIMARY_BUTTON_CLASS,
 } from "@/lib/shared/form-constants";
-
-type MeResponse = {
-  user?: {
-    role: "admin" | "coordinator";
-  };
-};
+import { getCurrentUser } from "@/lib/shared/auth-client";
 
 export default function SelectPage() {
   const router = useRouter();
@@ -26,16 +21,12 @@ export default function SelectPage() {
   useEffect(() => {
     const verifyCoordinator = async () => {
       try {
-        const response = await fetch("/api/auth/me", { cache: "no-store" });
-
-        if (response.status === 401) {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
           router.push("/auth");
           return;
         }
-
-        const data = (await response.json()) as MeResponse;
-
-        if (data.user?.role === "admin") {
+        if (currentUser.role === "admin") {
           router.push("/dashboard");
           return;
         }

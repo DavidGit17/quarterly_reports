@@ -18,6 +18,7 @@ import {
   toProjectSlug,
   type FormFieldConfig,
 } from "@/lib/shared/form-storage";
+import { getCurrentUser } from "@/lib/shared/auth-client";
 import {
   Select,
   SelectContent,
@@ -30,17 +31,6 @@ type FieldValueMap = Record<string, string>;
 type FileValueMap = Record<string, File[]>;
 type UploadingMap = Record<string, boolean>;
 type UploadProgressMap = Record<string, number>;
-
-type MeResponse = {
-  user?: {
-    id?: string;
-    role: "admin" | "coordinator" | "facilitator";
-    project?: string;
-    username?: string;
-    profileImage?: string;
-  };
-  message?: string;
-};
 
 type CreateReportResponse = {
   message?: string;
@@ -148,44 +138,43 @@ export default function FacilitatorProjectFormPage() {
         setIsAccessDenied(false);
         setIsPreviewMode(false);
 
-        const [authRes, formState, cyclesRes] = await Promise.all([
-          fetch("/api/auth/me", { cache: "no-store" }),
+        const [currentUser, formState, cyclesRes] = await Promise.all([
+          getCurrentUser(),
           getHydratedFormState(),
           fetch("/api/reporting-cycles?status=active"),
         ]);
 
         if (cancelled) return;
 
-        if (authRes.status === 401) {
+        if (!currentUser) {
           router.push("/auth");
           return;
         }
 
-        const data = (await authRes.json()) as MeResponse;
-        const isAdmin = data.user?.role === "admin";
+        const isAdmin = currentUser.role === "admin";
 
-        if (data.user?.role !== "facilitator" && !isAdmin) {
+        if (currentUser.role !== "facilitator" && !isAdmin) {
           setIsAccessDenied(true);
-          setErrorMessage("This form is for facilitators only. You are " + data.user?.role + ".");
+          setErrorMessage("This form is for facilitators only. You are " + currentUser.role + ".");
           setIsReady(true);
           return;
         }
 
         if (isAdmin) {
           setIsAccessDenied(true);
-          setErrorMessage("This form is for facilitators only. You are " + data.user?.role + ".");
+          setErrorMessage("This form is for facilitators only. You are " + currentUser.role + ".");
           setIsReady(true);
           return;
         }
 
-        if (data.user?.role === "facilitator") {
-          const username = data.user.username?.trim();
+        if (currentUser.role === "facilitator") {
+          const username = currentUser.username?.trim();
 
           if (username) {
             setCoordinatorName(username);
           }
 
-          const assignedProject = data.user.project || "";
+          const assignedProject = currentUser.project || "";
 
           if (!assignedProject) {
             router.push("/f");

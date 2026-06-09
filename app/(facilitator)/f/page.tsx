@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CircleUserRound, FileText, ArrowRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { toProjectSlug } from "@/lib/shared/form-storage";
+import { getCurrentUser } from "@/lib/shared/auth-client";
 
 type MeResponse = {
   user?: {
@@ -46,13 +47,12 @@ export default function FacilitatorDashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.status === 401) { router.push("/auth"); return; }
-        const data = (await res.json()) as MeResponse;
-        if (data.user?.role !== "facilitator") { router.push("/dashboard"); return; }
-        setUsername(data.user?.username || "Facilitator");
-        if (data.user?.project) {
-          setFormHref(`/f/form/${toProjectSlug(data.user.project)}`);
+        const currentUser = await getCurrentUser();
+        if (!currentUser) { router.push("/auth"); return; }
+        if (currentUser.role !== "facilitator") { router.push("/dashboard"); return; }
+        setUsername(currentUser.username || "Facilitator");
+        if (currentUser.project) {
+          setFormHref(`/f/form/${toProjectSlug(currentUser.project)}`);
         }
         setIsReady(true);
       } catch { router.push("/auth"); }

@@ -15,6 +15,7 @@ import {
   type FormTitles,
   type FormMeta,
 } from "@/lib/shared/form-storage";
+import { getCurrentUser } from "@/lib/shared/auth-client";
 import { ChevronRight, FileText, Eye } from "lucide-react";
 
 export default function FormsOverviewPage() {
@@ -31,19 +32,12 @@ export default function FormsOverviewPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [authRes] = await Promise.all([
-        fetch("/api/auth/me", { method: "GET" }),
-      ]);
-
-      if (!authRes.ok) {
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
         router.push("/auth");
         return;
       }
-
-      const authData = (await authRes.json()) as {
-        user?: { role: string };
-      };
-      if (authData.user?.role !== "admin") {
+      if (currentUser.role !== "admin") {
         router.push("/dashboard");
         return;
       }

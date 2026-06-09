@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toProjectSlug } from "@/lib/shared/form-storage";
+import { getCurrentUser } from "@/lib/shared/auth-client";
 
 type MeResponse = {
   user?: {
@@ -73,20 +74,19 @@ export default function CoordinatorDashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.status === 401) {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
           router.push("/auth");
           return;
         }
-        const data = (await res.json()) as MeResponse;
-        if (data.user?.role !== "coordinator") {
+        if (currentUser.role !== "coordinator") {
           router.push("/dashboard");
           return;
         }
-        setUsername(data.user?.username || "Coordinator");
-        setProfileImage(data.user?.profileImage || "");
-        if (data.user?.project) {
-          setFormHref(`/form/${toProjectSlug(data.user.project)}`);
+        setUsername(currentUser.username || "Coordinator");
+        setProfileImage(currentUser.profileImage || "");
+        if (currentUser.project) {
+          setFormHref(`/form/${toProjectSlug(currentUser.project)}`);
         }
         setIsReady(true);
       } catch {

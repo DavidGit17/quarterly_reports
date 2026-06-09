@@ -8,12 +8,7 @@ import {
   FORM_SURFACE_CLASS,
   FORM_PRIMARY_BUTTON_CLASS,
 } from "@/lib/shared/form-constants";
-
-type MeResponse = {
-  user?: {
-    role: "admin" | "coordinator" | "facilitator";
-  };
-};
+import { getCurrentUser } from "@/lib/shared/auth-client";
 
 export default function FacilitatorSelectPage() {
   const router = useRouter();
@@ -26,16 +21,13 @@ export default function FacilitatorSelectPage() {
   useEffect(() => {
     const verifyFacilitator = async () => {
       try {
-        const response = await fetch("/api/auth/me", { cache: "no-store" });
-
-        if (response.status === 401) {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
           router.push("/auth");
           return;
         }
 
-        const data = (await response.json()) as MeResponse;
-
-        if (data.user?.role !== "facilitator") {
+        if (currentUser.role !== "facilitator") {
           router.push("/auth");
           return;
         }

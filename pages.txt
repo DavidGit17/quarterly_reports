@@ -1,370 +1,355 @@
-Perform a Complete Frontend Performance, UX Responsiveness, and Perceived Speed Audit of the QRMS application.
+Implement the Frontend Performance Remediation Plan based on the completed performance audit.
 
 IMPORTANT
 
-The application has already completed:
+The audit already identified the root causes of slow page loading.
 
-- Authentication
-- RBAC
-- Pagination
-- Rate Limiting
-- Storage Quotas
-- Structured Logging
-- Email Optimization
-- Database Optimization
-- Build Safety
-- Production Hardening
-
-Do NOT perform large refactors.
+Do NOT perform another audit.
 
 Do NOT redesign the UI.
 
 Do NOT change business logic.
 
-Focus only on improving:
+Do NOT modify permissions, RBAC, authentication rules, or data models.
 
-- Loading speed
-- Perceived performance
-- User responsiveness
-- Data-fetching efficiency
-- Navigation speed
-- Dashboard responsiveness
-- User experience polish
+Focus only on reducing:
 
-Analyze first.
-
-Explain findings.
-
-Then implement improvements.
-
---------------------------------------------------
-
-PHASE 1 — FRONTEND DATA LOADING AUDIT
-
-Inspect every major page:
-
-- Dashboard
-- Users
-- Projects
-- Forms
-- Reports
-- Automations
-- Storage Management
-
-For each page report:
-
-- API requests fired
-- Total payload size
+- Login latency
+- Page transition latency
+- Dashboard loading latency
+- Data population delays
 - Duplicate requests
-- Sequential requests
-- Parallel requests
-- Slowest requests
-- Unnecessary requests
+- Client-side loading delays
 
-Identify bottlenecks.
+Analyze existing implementations first.
 
---------------------------------------------------
-
-PHASE 2 — WATERFALL REQUEST AUDIT
-
-Find patterns like:
-
-Request A
-↓
-Wait
-↓
-Request B
-↓
-Wait
-↓
-Request C
-
-Identify opportunities for:
-
-Promise.all
-
-Parallel fetching
-
-Combined endpoints
-
-Dashboard summary endpoints
-
-Estimate performance gains.
+Then implement improvements safely.
 
 --------------------------------------------------
 
-PHASE 3 — DUPLICATE REQUEST AUDIT
+PHASE 1 — REMOVE ARTIFICIAL DELAYS
 
-Find:
+The audit identified forced delays in:
 
-- Same endpoint requested multiple times
-- Duplicate requests from different components
-- Repeated requests during navigation
-- Repeated requests caused by re-renders
-- Repeated requests caused by effects
+- Login Success Flow
+- OTP Verification Success Flow
+- Reset Password Success Flow
+
+Search for:
+
+setTimeout
+
+setInterval
+
+artificial progress timers
+
+forced redirect delays
+
+minimum loading durations
 
 Examples:
 
-GET /api/me
-GET /api/me
-GET /api/me
+await new Promise(...)
 
-during the same page load.
+setTimeout(...)
 
-Provide fixes.
+animated progress timers
 
---------------------------------------------------
+Current behavior:
 
-PHASE 4 — CACHING AUDIT
+Success
+↓
+Artificial wait
+↓
+Redirect
 
-Inspect all frequently requested data.
+Target behavior:
 
-Examples:
+Success
+↓
+Immediate redirect
 
-- Current user
-- User permissions
-- Projects
-- Dashboard summary
-- Roles
-- Settings
-- Storage quotas
-- Form metadata
+Requirements:
 
-Determine:
+- Keep animations if desired
+- Do not block navigation
+- Allow redirect as soon as backend succeeds
 
-- What should be cached
-- What should not be cached
-- Cache duration
-- Cache invalidation strategy
-
-Recommend and implement where appropriate:
-
-- React Query
-- SWR
-- Next.js caching
-- Server cache
-- Memory cache
-
-Avoid stale data issues.
+Report every removed delay.
 
 --------------------------------------------------
 
-PHASE 5 — OPTIMISTIC UPDATE AUDIT
+PHASE 2 — ELIMINATE REPEATED /api/auth/me REQUESTS
 
-Identify actions where users wait unnecessarily.
+The audit identified repeated authentication lookups.
 
 Examples:
 
-- Updating storage quotas
-- Updating users
-- Updating projects
-- Updating forms
-- Changing report status
+Dashboard
 
-Determine where optimistic updates are safe.
+Forms
 
-Implement optimistic UI updates where appropriate.
+Users
 
-Do NOT use optimistic updates for:
+Storage
 
-- Authentication
-- Destructive actions
-- Security-sensitive operations
+Reports
+
+Coordinator Pages
+
+Profile
+
+Requirements:
+
+Identify every page requesting:
+
+GET /api/auth/me
+
+Determine whether the user is already available through:
+
+- Auth Context
+- Session Provider
+- Existing state
+
+Refactor to eliminate duplicate auth requests.
 
 Goal:
 
-Reduce perceived waiting time.
+User information should be fetched once and reused.
+
+Do not change authentication behavior.
 
 --------------------------------------------------
 
-PHASE 6 — SKELETON LOADER AUDIT
+PHASE 3 — DASHBOARD LOADING OPTIMIZATION
 
-Inspect all loading states.
+The dashboard currently waits for multiple requests before rendering content.
 
-Verify:
+Inspect:
 
-- Skeletons match final layouts
-- Skeletons are consistent
-- Skeletons are not overused
-- Skeletons do not flicker
-- Skeletons disappear smoothly
+Admin Dashboard
+
+Coordinator Dashboard
+
+Storage Dashboard
+
+Reports Dashboard
+
+Requirements:
 
 Identify:
 
-- Missing skeletons
-- Poor skeleton design
-- Excessive loading spinners
+- Blocking requests
+- Duplicate requests
+- Unnecessary requests
 
-Standardize loading experiences.
-
-Reuse existing design system.
-
---------------------------------------------------
-
-PHASE 7 — TOOLTIP & MICRO-UX AUDIT
-
-Inspect:
-
-- Icon-only actions
-- Status badges
-- Progress indicators
-- Storage usage displays
-- Automation status
-- Report status
-- Admin controls
-
-Identify areas where users may be confused.
-
-Add helpful tooltips where beneficial.
-
-Do not add unnecessary tooltips.
-
-Use existing tooltip components and styling.
-
---------------------------------------------------
-
-PHASE 8 — PREFETCHING AUDIT
-
-Inspect:
-
-- Sidebar navigation
-- Common admin pages
-- Frequently visited routes
-
-Identify opportunities for:
-
-- Route prefetching
-- Data prefetching
-- Bundle prefetching
-
-Goal:
-
-Reduce time between click and usable page.
-
---------------------------------------------------
-
-PHASE 9 — DASHBOARD SUMMARY OPTIMIZATION
-
-Inspect dashboards.
-
-Identify places where:
-
-Multiple API requests
-
-can become
-
-Single aggregated API requests.
+Create aggregated endpoints where beneficial.
 
 Example:
 
 Instead of:
 
+GET /api/reports/count
 GET /api/users/count
 GET /api/projects/count
-GET /api/forms/count
-GET /api/reports/count
 
 Use:
 
 GET /api/dashboard/summary
 
-Return all dashboard metrics in one request.
-
-Implement where beneficial.
+Reduce total dashboard requests.
 
 --------------------------------------------------
 
-PHASE 10 — NEXT.JS PERFORMANCE AUDIT
+PHASE 4 — SERVER COMPONENT CONVERSION
 
 Inspect:
 
-- Server Components
-- Client Components
-- Suspense
-- Dynamic imports
-- Route handlers
+Dashboard Pages
 
-Identify:
+Projects
 
-- Components that should be Server Components
-- Unnecessary Client Components
-- Hydration bottlenecks
-- Missing Suspense boundaries
+Users
 
-Recommend and implement safe optimizations.
+Storage
 
---------------------------------------------------
+Reports
 
-PHASE 11 — BUNDLE SIZE AUDIT
+Forms
 
-Analyze:
+Identify pages currently using:
 
-- Large dependencies
-- Large client bundles
-- Unused imports
-- Heavy libraries
+useEffect
+fetch
+client-side data loading
 
-Identify:
+Determine which pages can safely become:
 
-- Lazy loading opportunities
-- Dynamic import opportunities
-- Bundle splitting opportunities
+Server Components
 
-Reduce initial page load cost.
-
---------------------------------------------------
-
-PHASE 12 — PERCEIVED PERFORMANCE AUDIT
-
-Focus specifically on the user experience.
-
-Investigate situations where:
-
-- UI appears immediately
-- Data appears several seconds later
-
-Identify root causes.
-
-Provide fixes.
+Move initial data loading to the server whenever possible.
 
 Goal:
 
-Pages should feel responsive even while data is loading.
+Data should be available during initial render.
+
+Avoid loading empty shells that wait for client fetches.
+
+Do not break interactivity.
+
+Keep interactive sections as client components where necessary.
 
 --------------------------------------------------
 
-FINAL REPORT
+PHASE 5 — REMOVE CLIENT-FETCH SHELLS
 
-For every page provide:
+The audit identified pages that:
 
-- Requests Fired
-- Duplicate Requests
-- Waterfall Requests
-- Caching Opportunities
-- Optimistic Update Opportunities
-- Skeleton Improvements
-- Tooltip Improvements
-- Prefetching Opportunities
-- Bundle Improvements
-- Estimated Performance Gain
+Render
+↓
+Mount
+↓
+Fetch
+↓
+Render Data
 
-Classify findings:
+Requirements:
 
-Critical
-High
-Medium
-Low
+Identify these pages.
+
+Move data loading earlier in the render pipeline.
+
+Reduce:
+
+- empty states
+- delayed tables
+- delayed cards
+- delayed metrics
+
+Goal:
+
+Users should see useful content immediately.
+
+--------------------------------------------------
+
+PHASE 6 — INVESTIGATE HEAVY DATA LOADERS
+
+The audit identified:
+
+getHydratedFormState()
+
+as potentially expensive.
+
+Analyze:
+
+- Execution time
+- Data size
+- Memory usage
+- Transformations
+
+Determine:
+
+- Why it is slow
+- Whether data can be split
+- Whether data can be lazy-loaded
+
+Optimize safely.
+
+--------------------------------------------------
+
+PHASE 7 — REQUEST DEDUPLICATION
+
+Inspect all pages.
+
+Find:
+
+- duplicate fetches
+- repeated user requests
+- repeated project requests
+- repeated permission requests
+
+Prevent duplicate network activity.
+
+Goal:
+
+One request per resource whenever possible.
+
+--------------------------------------------------
+
+PHASE 8 — PAGE TRANSITION PERFORMANCE
+
+Analyze navigation between:
+
+Dashboard → Users
+
+Dashboard → Projects
+
+Dashboard → Reports
+
+Dashboard → Storage
+
+Dashboard → Forms
+
+Requirements:
+
+Reduce:
+
+- unnecessary loading states
+- unnecessary refetches
+- unnecessary auth checks
+
+Use prefetching where beneficial.
+
+Improve perceived navigation speed.
+
+--------------------------------------------------
+
+PHASE 9 — CACHING IMPLEMENTATION
+
+Implement caching where appropriate.
+
+Examples:
+
+Current User
+
+Permissions
+
+Projects List
+
+Dashboard Summary
+
+Roles
+
+Settings
+
+Requirements:
+
+Avoid stale data.
+
+Use existing project architecture.
+
+Do not introduce heavy dependencies unless justified.
+
+Document cache strategy.
+
+--------------------------------------------------
+
+PHASE 10 — PERFORMANCE REPORT
 
 After implementation provide:
 
 1. Files Modified
-2. Improvements Made
-3. Estimated Request Reduction
-4. Estimated Load Time Reduction
-5. Estimated Bundle Reduction
-6. Remaining Bottlenecks
-7. Updated Performance Score
+2. Requests Removed
+3. Duplicate Requests Eliminated
+4. Artificial Delays Removed
+5. Server Components Added
+6. Estimated Dashboard Improvement
+7. Estimated Login Improvement
+8. Estimated Navigation Improvement
+9. Remaining Bottlenecks
 
-GOAL
+Provide before-and-after comparisons.
 
-Make QRMS feel fast, responsive, and enterprise-grade, even under month-end usage spikes and heavy administrative workloads, while preserving the existing design system, architecture, and business logic.
+Focus on measurable improvements rather than theoretical recommendations.
+
+At the end give a report on what you did inside a .txt Files

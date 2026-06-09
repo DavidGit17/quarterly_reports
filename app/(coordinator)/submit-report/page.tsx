@@ -9,15 +9,10 @@ import {
   getFormConfigs,
   getProjectConfig,
 } from "@/lib/shared/form-storage";
+import { getCurrentUser } from "@/lib/shared/auth-client";
 
 type FieldValueMap = Record<string, string>;
 type FileValueMap = Record<string, File[]>;
-
-type MeResponse = {
-  user?: {
-    role: "admin" | "coordinator";
-  };
-};
 
 type CreateReportResponse = {
   message?: string;
@@ -47,16 +42,12 @@ function SubmitReportContent() {
   useEffect(() => {
     const verifyCoordinator = async () => {
       try {
-        const response = await fetch("/api/auth/me", { cache: "no-store" });
-
-        if (response.status === 401) {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
           router.push("/auth");
           return;
         }
-
-        const data = (await response.json()) as MeResponse;
-
-        if (data.user?.role !== "coordinator") {
+        if (currentUser.role !== "coordinator") {
           router.push("/dashboard");
           return;
         }

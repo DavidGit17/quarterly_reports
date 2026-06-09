@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDateTime, toProjectSlug } from "@/lib/shared/form-storage";
+import { getCurrentUser } from "@/lib/shared/auth-client";
 
 type ReportSubmission = {
   id: string;
@@ -34,6 +35,7 @@ type MeResponse = {
 export default function MyReportsPage() {
   const router = useRouter();
   const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [reports, setReports] = useState<ReportSubmission[]>([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, totalPages: 0 });
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,28 +45,23 @@ export default function MyReportsPage() {
 
   const loadReports = useCallback(async () => {
     try {
-      const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
-
-      if (!meResponse.ok) {
+      const currentUser = await getCurrentUser();
+      if (!currentUser) {
         router.push("/auth");
         return;
       }
-
-      const meData = (await meResponse.json()) as MeResponse;
-
-      if (meData.user?.role !== "coordinator") {
+      if (currentUser.role !== "coordinator") {
         router.push("/dashboard");
         return;
       }
-
-      if (meData.user.project) {
-        setFormHref(`/form/${toProjectSlug(meData.user.project)}`);
+      if (currentUser.project) {
+        setFormHref(`/form/${toProjectSlug(currentUser.project)}`);
       }
 
       const params = new URLSearchParams();
       params.set("page", String(currentPage));
       params.set("limit", "50");
-      if (searchValue) params.set("search", searchValue);
+      if (debouncedSearch) params.set("search", debouncedSearch);
 
       const response = await fetch(`/api/my-reports?${params.toString()}`, { cache: "no-store" });
 
@@ -92,16 +89,20 @@ export default function MyReportsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, searchValue, router]);
+  }, [currentPage, debouncedSearch, router]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchValue]);
 
   useEffect(() => {
     setIsLoading(true);
     void loadReports();
   }, [loadReports]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchValue]);
 
   if (isLoading) {
     return (

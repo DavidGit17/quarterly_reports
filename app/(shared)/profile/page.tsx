@@ -14,18 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toProjectSlug } from "@/lib/shared/form-storage";
+import { getCurrentUser, type SessionUser } from "@/lib/shared/auth-client";
 import { ArrowLeft, Camera, UserCircle2 } from "lucide-react";
 
 type UserRole = "admin" | "coordinator" | "facilitator";
-
-type SessionUser = {
-  id: string;
-  username: string;
-  email: string;
-  role: UserRole;
-  project?: string;
-  profileImage?: string;
-};
 
 const createImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
@@ -95,22 +87,15 @@ function ProfileContent() {
   useEffect(() => {
     const loadSessionUser = async () => {
       try {
-        const response = await fetch("/api/auth/me", { cache: "no-store" });
+        const currentUser = await getCurrentUser();
 
-        if (!response.ok) {
+        if (!currentUser) {
           router.push("/auth");
           return;
         }
 
-        const data = (await response.json()) as { user?: SessionUser };
-
-        if (!data.user) {
-          router.push("/auth");
-          return;
-        }
-
-        setSessionUser(data.user);
-        setProfileImagePreview(data.user.profileImage || "");
+        setSessionUser(currentUser);
+        setProfileImagePreview(currentUser.profileImage || "");
       } catch {
         setErrorMessage("Unable to load profile.");
       } finally {

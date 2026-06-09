@@ -1,15 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-
-type SessionUser = {
-  id: string;
-  username: string;
-  email: string;
-  role: "admin" | "coordinator";
-  project?: string;
-  profileImage?: string;
-};
+import { getCurrentUser, type SessionUser } from "@/lib/shared/auth-client";
 
 type AuthContextValue = {
   user: SessionUser | null;
@@ -31,11 +23,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
-        if (res.ok) {
-          const data = (await res.json()) as { user?: SessionUser };
-          if (data.user) setUser(data.user);
-        }
+        const currentUser = await getCurrentUser();
+        if (currentUser) setUser(currentUser);
       } catch {
         setError("Failed to load user");
       } finally {
