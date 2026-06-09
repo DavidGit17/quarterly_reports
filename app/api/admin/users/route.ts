@@ -42,7 +42,12 @@ export async function GET(request: Request) {
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(MAX_USERS_LIMIT, Math.max(1, parseInt(searchParams.get("limit") || String(DEFAULT_USERS_LIMIT), 10)));
 
-    const query: Filter<UserDocument> = {};
+    const query: Filter<UserDocument> & {
+      $or?: Array<{
+        username?: { $regex: string; $options: string };
+        email?: { $regex: string; $options: string };
+      }>;
+    } = {};
     if (
       roleFilter &&
       ["coordinator", "facilitator", "admin"].includes(roleFilter)

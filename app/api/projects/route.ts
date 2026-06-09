@@ -162,7 +162,9 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ message: "Invalid project id." }, { status: 400 });
     }
 
-    const setFields: Record<string, unknown> = {};
+    const setFields: Partial<
+      Pick<ProjectDocument, "name" | "nameLower" | "description" | "languages" | "status">
+    > = {};
     if (fields.name !== undefined) {
       setFields.name = fields.name.trim();
       setFields.nameLower = fields.name.trim().toLowerCase();
@@ -188,11 +190,11 @@ export async function PATCH(request: Request) {
       { returnDocument: "after" },
     );
 
-    if (!result) {
+    if (!result.value) {
       return NextResponse.json({ message: "Project not found." }, { status: 404 });
     }
 
-    return NextResponse.json({ project: toProjectResponse(result), message: "Project updated." });
+    return NextResponse.json({ project: toProjectResponse(result.value), message: "Project updated." });
   } catch (err) {
     const mongoError = getMongoRouteErrorResponse(err);
     if (mongoError) {

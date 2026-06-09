@@ -231,7 +231,12 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const setFields: Record<string, unknown> = {};
+    const setFields: Partial<
+      Pick<
+        ReportingCycleDocument,
+        "name" | "startDate" | "endDate" | "linkedProjects" | "targetRoles" | "reminderSchedule" | "status"
+      >
+    > = {};
     if (fields.name !== undefined) {
       setFields.name = fields.name.trim();
     }
@@ -309,7 +314,7 @@ export async function PATCH(request: Request) {
       { returnDocument: "after" },
     );
 
-    if (!result) {
+    if (!result.value) {
       return NextResponse.json(
         { message: "Reporting cycle not found." },
         { status: 404 },
@@ -317,7 +322,7 @@ export async function PATCH(request: Request) {
     }
 
     return NextResponse.json({
-      cycle: toCycleResponse(result),
+      cycle: toCycleResponse(result.value),
       message: "Reporting cycle updated.",
     });
   } catch (err) {

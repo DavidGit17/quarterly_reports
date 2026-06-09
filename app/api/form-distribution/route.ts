@@ -191,7 +191,7 @@ export async function PATCH(request: Request) {
       name?: string;
       projects?: string[];
       forms?: string[];
-      recipients?: string;
+      recipients?: DistributionRuleDocument["recipients"];
       specificUsers?: string[];
       scheduleType?: ScheduleType;
       scheduleConfig?: ScheduleConfig;
@@ -222,7 +222,26 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const setFields: Record<string, unknown> = {};
+    const setFields: Partial<
+      Pick<
+        DistributionRuleDocument,
+        | "name"
+        | "projects"
+        | "forms"
+        | "recipients"
+        | "specificUsers"
+        | "scheduleType"
+        | "scheduleConfig"
+        | "emailSubject"
+        | "customMessage"
+        | "invitationMessage"
+        | "allowEdits"
+        | "deadline"
+        | "expirationDate"
+        | "status"
+        | "nextSendAt"
+      >
+    > = {};
     if (fields.name !== undefined) setFields.name = fields.name.trim();
     if (fields.projects !== undefined) setFields.projects = fields.projects;
     if (fields.forms !== undefined) setFields.forms = fields.forms;
@@ -257,20 +276,20 @@ export async function PATCH(request: Request) {
       { returnDocument: "after" },
     );
 
-    if (!result) {
+    if (!result.value) {
       return NextResponse.json(
         { message: "Distribution rule not found." },
         { status: 404 },
       );
     }
 
-    const updatedStatus = fields.status ?? result.status;
+    const updatedStatus = fields.status ?? result.value.status;
     if (updatedStatus === "active") {
-      await scheduleRuleEmails(result);
+      await scheduleRuleEmails(result.value);
     }
 
     return NextResponse.json({
-      rule: toRuleResponse(result),
+      rule: toRuleResponse(result.value),
       message: "Distribution rule updated.",
     });
   } catch (err) {

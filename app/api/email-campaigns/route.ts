@@ -289,7 +289,7 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const setFields: Record<string, unknown> = {};
+    const setFields: Partial<Pick<EmailCampaignDocument, "name" | "scheduledAt" | "status">> = {};
     if (fields.name !== undefined) {
       setFields.name = fields.name.trim();
     }
@@ -321,7 +321,7 @@ export async function PATCH(request: Request) {
       { returnDocument: "after" },
     );
 
-    if (!result) {
+    if (!result.value) {
       return NextResponse.json(
         { message: "Campaign not found." },
         { status: 404 },
@@ -329,7 +329,7 @@ export async function PATCH(request: Request) {
     }
 
     return NextResponse.json({
-      campaign: toCampaignResponse(result),
+      campaign: toCampaignResponse(result.value),
       message: "Campaign updated.",
     });
   } catch (err) {
