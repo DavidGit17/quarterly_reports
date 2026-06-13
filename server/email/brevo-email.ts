@@ -182,7 +182,7 @@ export const sendWelcomeEmail = async (
           Your account has been successfully created. You can now log in and start managing your quarterly reports.
         </p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${appUrl}/login" 
+          <a href="${appUrl}/unified-auth-page" 
              style="background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
             Go to Dashboard
           </a>
