@@ -11,6 +11,7 @@ import {
   Search,
   LogOut,
   User,
+  KeyRound,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toProjectSlug } from "@/lib/shared/form-storage";
@@ -57,7 +58,6 @@ export default function CoordinatorDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchValue, setSearchValue] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -197,6 +197,14 @@ export default function CoordinatorDashboard() {
                     <User className="h-4 w-4 text-[#5e6a6e]" />
                     Profile
                   </Link>
+                  <Link
+                    href="/profile#password"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#1a1c1e] hover:bg-slate-50 transition-colors"
+                  >
+                    <KeyRound className="h-4 w-4 text-[#5e6a6e]" />
+                    Reset Password
+                  </Link>
                   <button
                     type="button"
                     onClick={async () => {
@@ -262,10 +270,6 @@ export default function CoordinatorDashboard() {
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-10 bg-slate-100 rounded-lg" />
               ))}
-            </div>
-          ) : errorMessage ? (
-            <div className="p-6 text-center text-sm text-red-600">
-              {errorMessage}
             </div>
           ) : reports.length === 0 ? (
             <div className="p-12 text-center">

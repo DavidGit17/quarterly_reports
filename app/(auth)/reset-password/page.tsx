@@ -3,7 +3,6 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 
@@ -30,7 +29,7 @@ function ResetPasswordContent() {
 
   const getFieldClassName = (hasError: boolean) => {
     const baseClasses =
-      "w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
+      "w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none selection:bg-[#1768DB] selection:text-white";
     return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"}`;
   };
 
@@ -197,12 +196,9 @@ function ResetPasswordContent() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2 group"
+              className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2"
             >
               {isSubmitting ? "Resetting..." : "Reset Password"}
-              {!isSubmitting && (
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-              )}
             </Button>
 
             {errorMessage && (

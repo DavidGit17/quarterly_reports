@@ -1357,7 +1357,7 @@ export default function AdminFormBuilderPage() {
         <div className="mt-10 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
           <Link
             href="/dashboard/forms-overview"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 rounded-2xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50 transition-colors"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm font-semibold hover:bg-slate-50 transition-colors"
           >
             Cancel
           </Link>
@@ -1399,23 +1399,11 @@ export default function AdminFormBuilderPage() {
           </div>
         )}
 
-        {/* Add Field Button — inline on mobile, fixed on desktop */}
-        <div className="border-t border-slate-200 pt-6 md:border-t-0 md:pt-0">
-          <button
-            type="button"
-            onClick={addNewField}
-            className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 md:py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 active:bg-slate-700"
-          >
-            <Plus className="h-4 w-4" />
-            Add Field
-          </button>
-        </div>
-
         {/* Desktop floating Add Field FAB */}
         <button
           type="button"
           onClick={addNewField}
-          className="hidden md:inline-flex items-center gap-2 fixed bottom-6 right-6 z-40 rounded-xl bg-slate-900 text-white px-4 py-3 shadow-lg hover:bg-slate-800 transition-colors"
+          className="inline-flex items-center gap-2 fixed bottom-6 right-6 z-40 rounded-xl bg-slate-900 text-white px-4 py-3 shadow-lg hover:bg-slate-800 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Add Field

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type ForgotPasswordResponse = {
@@ -25,7 +24,7 @@ export default function ForgotPasswordPage() {
 
   const getFieldClassName = (hasError: boolean) => {
     const baseClasses =
-      "w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
+      "w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none selection:bg-[#1768DB] selection:text-white";
     return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"}`;
   };
 
@@ -95,7 +94,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen w-full bg-[#F8FAFC] flex flex-col select-none">
 
-      <div className="flex-1 flex flex-col sm:items-center sm:justify-center pt-2 sm:p-6 lg:p-8">
+      <div className="flex-1 flex flex-col items-center sm:justify-center pt-16 sm:pt-0 p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10">
 
             <div className="flex flex-col items-center mb-10">
@@ -160,12 +159,9 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2 group"
+              className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2"
             >
               {isSubmitting ? "Sending..." : "Send Reset Link"}
-              {!isSubmitting && (
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-              )}
             </Button>
 
             {errorMessage && (

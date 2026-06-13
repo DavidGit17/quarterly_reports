@@ -7,6 +7,7 @@ import Cropper, { type Area } from "react-easy-crop";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input-shadcn";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Dialog,
   DialogContent,
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { toProjectSlug } from "@/lib/shared/form-storage";
 import { getCurrentUser, type SessionUser } from "@/lib/shared/auth-client";
-import { ArrowLeft, Camera, UserCircle2 } from "lucide-react";
+import { ArrowLeft, Camera, KeyRound, UserCircle2 } from "lucide-react";
 
 type UserRole = "admin" | "coordinator" | "facilitator";
 
@@ -83,6 +84,13 @@ function ProfileContent() {
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isSavingImage, setIsSavingImage] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState<"profile" | "password">("profile");
 
   useEffect(() => {
     const loadSessionUser = async () => {
@@ -278,6 +286,58 @@ function ProfileContent() {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (!currentPassword) {
+      setPasswordError("Current password is required.");
+      return;
+    }
+
+    if (!newPassword) {
+      setPasswordError("New password is required.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError("New password must be at least 6 characters.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New password and confirm password do not match.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const response = await fetch("/api/auth/change-password", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setPasswordError(data.message || "Failed to change password.");
+        return;
+      }
+
+      setPasswordSuccess(data.message || "Password changed successfully.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch {
+      setPasswordError("Unable to change password right now. Please try again.");
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   if (!isHydrated) {
     return (
       <div className="min-h-screen">
@@ -325,17 +385,27 @@ function ProfileContent() {
               </p>
 
               <nav className="space-y-1">
-                <Link
-                  href="/profile"
-                  className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium shadow-sm ${c.border} ${c.sidebarNavBg} ${c.sidebarHeading}`}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("profile")}
+                  className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium shadow-sm text-left ${activeTab === "profile" ? "border-[#1768DB] bg-[#1768DB]/5 text-[#1768DB]" : `${c.border} ${c.sidebarNavBg} ${c.sidebarHeading}`}`}
                 >
-                  <UserCircle2 className={`h-4 w-4 ${c.navIcon}`} />
+                  <UserCircle2 className={`h-4 w-4 ${activeTab === "profile" ? "text-[#1768DB]" : c.navIcon}`} />
                   Profile
-                </Link>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("password")}
+                  className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium shadow-sm text-left ${activeTab === "password" ? "border-[#1768DB] bg-[#1768DB]/5 text-[#1768DB]" : `${c.border} ${c.sidebarNavBg} ${c.sidebarHeading}`}`}
+                >
+                  <KeyRound className={`h-4 w-4 ${activeTab === "password" ? "text-[#1768DB]" : c.navIcon}`} />
+                  Change Password
+                </button>
               </nav>
             </aside>
 
             <main>
+              {activeTab === "profile" && (
               <div className="mx-auto max-w-2xl px-6 py-8">
                 <div className="mb-6">
                   <h2
@@ -467,6 +537,98 @@ function ProfileContent() {
                   </button>
                 </div>
               </div>
+            )}
+            {activeTab === "password" && (
+              <div className="mx-auto max-w-2xl px-6 py-8">
+                <div className="mb-6">
+                  <h2
+                    className={`font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] ${c.sidebarHeading}`}
+                  >
+                    Change Password
+                  </h2>
+                  <p className={`mt-1 text-sm ${c.muted}`}>
+                    Update your password to keep your account secure.
+                  </p>
+                </div>
+
+                <div
+                  className={`rounded-2xl border shadow-sm ${c.border} ${c.cardBg}`}
+                >
+                  <form noValidate onSubmit={handleChangePassword} className="space-y-4 p-4">
+                    <div>
+                      <label htmlFor="current-password" className="block text-sm font-medium text-[#172B4D] mb-1.5">
+                        Current Password
+                      </label>
+                      <PasswordInput
+                        id="current-password"
+                        autoComplete="current-password"
+                        value={currentPassword}
+                        onChange={(e) => {
+                          setCurrentPassword(e.target.value);
+                          if (passwordError) setPasswordError("");
+                        }}
+                        className="w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none selection:bg-[#1768DB] selection:text-white border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"
+                        placeholder="Enter current password"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="new-password" className="block text-sm font-medium text-[#172B4D] mb-1.5">
+                        New Password
+                      </label>
+                      <PasswordInput
+                        id="new-password"
+                        autoComplete="new-password"
+                        value={newPassword}
+                        onChange={(e) => {
+                          setNewPassword(e.target.value);
+                          if (passwordError) setPasswordError("");
+                        }}
+                        className="w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none selection:bg-[#1768DB] selection:text-white border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"
+                        placeholder="Enter new password"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="confirm-password" className="block text-sm font-medium text-[#172B4D] mb-1.5">
+                        Confirm Password
+                      </label>
+                      <PasswordInput
+                        id="confirm-password"
+                        autoComplete="new-password"
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          if (passwordError) setPasswordError("");
+                        }}
+                        className="w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none selection:bg-[#1768DB] selection:text-white border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+
+                    {passwordError && (
+                      <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20 animate-in fade-in">
+                        <p className="text-sm text-destructive text-center font-medium">{passwordError}</p>
+                      </div>
+                    )}
+
+                    {passwordSuccess && (
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 animate-in fade-in">
+                        <p className="text-sm text-emerald-700 text-center font-medium">{passwordSuccess}</p>
+                      </div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      disabled={isChangingPassword}
+                      className={`w-full h-11 rounded-lg font-bold text-base transition-all shadow-md mt-2 text-white ${c.btnPrimary}`}
+                    >
+                      {isChangingPassword ? "Changing Password..." : "Change Password"}
+                    </Button>
+                  </form>
+                </div>
+              </div>
+          )}
             </main>
           </div>
         </div>

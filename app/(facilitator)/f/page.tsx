@@ -42,7 +42,6 @@ export default function FacilitatorDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [searchValue, setSearchValue] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -164,8 +163,6 @@ export default function FacilitatorDashboard() {
                 <div key={i} className="h-10 bg-slate-100 rounded-lg" />
               ))}
             </div>
-          ) : errorMessage ? (
-            <div className="p-6 text-center text-sm text-red-600">{errorMessage}</div>
           ) : reports.length === 0 ? (
             <div className="p-12 text-center">
               <p className="text-sm text-[#5e6a6e] mb-3">No reports found{searchValue ? " matching your search" : ""}.</p>

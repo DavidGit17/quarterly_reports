@@ -66,7 +66,7 @@ export default function UnifiedAuthPage() {
 
   const getFieldClassName = (hasError: boolean) => {
     const baseClasses =
-      "w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none";
+      "w-full h-11 rounded-lg border bg-white px-4 text-base text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none selection:bg-[#1768DB] selection:text-white";
     return `${baseClasses} ${hasError ? "border-destructive focus:border-destructive animate-shake" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"}`;
   };
 
@@ -98,7 +98,18 @@ export default function UnifiedAuthPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      const data = (await response.json()) as LoginResponse;
+
+      let data: LoginResponse;
+      try {
+        data = (await response.json()) as LoginResponse;
+      } catch {
+        if (response.status === 500) {
+          setErrorMessage("Server error. Please try again later.");
+        } else {
+          setErrorMessage("Unable to connect. Please try again.");
+        }
+        return;
+      }
 
       if (!response.ok || !data.role) {
         const apiMsg = data.message || "Login failed.";
@@ -268,10 +279,10 @@ export default function UnifiedAuthPage() {
                     <Link href="/forgot-password" className="text-sm font-medium text-[#1768DB] hover:underline transition-colors">Forgot password?</Link>
                   </div>
                   <Button type="submit" disabled={isSubmitting}
-                    className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2"
+                    className="group w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? "Signing In..." : "Login"}
-                    
+                    {isSubmitting ? "Signing In..." : "Sign In"}
+                    {!isSubmitting && <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />}
                   </Button>
                 </form>
                 {errorMessage && (
@@ -307,11 +318,14 @@ export default function UnifiedAuthPage() {
               <div key="signup" className="w-full animate-in fade-in duration-300 ease-out">
                 <form noValidate onSubmit={handleSignup} className="space-y-4 sm:space-y-5">
                   <div>
+                    <label htmlFor="signup-username" className="block text-sm font-medium text-[#172B4D] mb-1.5">
+                      Username
+                    </label>
                     <input
                       id="signup-username" type="text" value={username}
                       onChange={(e) => { setUsername(e.target.value); if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined }); }}
                       className={getFieldClassName(!!fieldErrors.username)}
-                      placeholder="Username"
+                      placeholder="Enter your username"
                     />
                     {fieldErrors.username ? (
                       <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.username}</p>
@@ -320,20 +334,26 @@ export default function UnifiedAuthPage() {
                     )}
                   </div>
                   <div>
+                    <label htmlFor="signup-email" className="block text-sm font-medium text-[#172B4D] mb-1.5">
+                      Email Address
+                    </label>
                     <input
                       id="signup-email" type="email" value={email}
                       onChange={(e) => { setEmail(e.target.value); if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: undefined }); }}
                       className={getFieldClassName(!!fieldErrors.email)}
-                      placeholder="Email Address"
+                      placeholder="Enter your email"
                     />
                     {fieldErrors.email && <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.email}</p>}
                   </div>
                   <div>
+                    <label htmlFor="signup-password" className="block text-sm font-medium text-[#172B4D] mb-1.5">
+                      Password
+                    </label>
                     <PasswordInput
                       id="signup-password" value={password}
                       onChange={(e) => { setPassword(e.target.value); if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined }); }}
                       className={getFieldClassName(!!fieldErrors.password)}
-                      placeholder="Password"
+                      placeholder="Create a password"
                     />
                     {fieldErrors.password && <p className="text-sm font-medium text-destructive mt-1.5">{fieldErrors.password}</p>}
                   </div>
@@ -376,7 +396,7 @@ export default function UnifiedAuthPage() {
                   <Button type="submit" disabled={isSubmitting}
                     className="group w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? "Creating Account..." : "Sign Up"}
+                    {isSubmitting ? "Creating Account..." : "Create Account"}
                     {!isSubmitting && <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />}
                   </Button>
                 </form>

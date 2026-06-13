@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Label } from "@/components/ui/label";
+import { ArrowRight } from "lucide-react";
 
 type VerifyOTPResponse = {
   message?: string;
@@ -33,12 +33,17 @@ function VerifyOTPContent() {
   const [resendCountdown, setResendCountdown] = useState(0);
   const [successMessage, setSuccessMessage] = useState("");
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (!email) {
       router.push("/auth");
     }
   }, [email, router]);
+
+  useEffect(() => {
+    if (email) inputRefs.current[0]?.focus();
+  }, [email]);
 
   useEffect(() => {
     if (resendCountdown > 0) {
@@ -135,9 +140,38 @@ function VerifyOTPContent() {
     }
   };
 
-  const handleOTPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
-    setOtp(value);
+  const handleBoxChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(0, 1);
+    if (!digit) return;
+
+    const chars = otp.split("");
+    chars[index] = digit;
+    setOtp(chars.join(""));
+
+    if (index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  const handleBoxKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      const chars = otp.split("");
+      if (chars[index]) {
+        chars[index] = "";
+        setOtp(chars.join(""));
+      } else if (index > 0) {
+        chars[index - 1] = "";
+        setOtp(chars.join(""));
+        inputRefs.current[index - 1]?.focus();
+      }
+    }
+  };
+
+  const handleBoxPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    setOtp(pasted);
+    const focusIndex = Math.min(pasted.length, 5);
+    inputRefs.current[focusIndex]?.focus();
   };
 
   if (!email) {
@@ -145,7 +179,7 @@ function VerifyOTPContent() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
+    <div className="min-h-screen w-full flex flex-col items-center sm:justify-center pt-16 sm:pt-0 p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
 
       <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10 relative flex flex-col animate-in fade-in zoom-in-95 duration-500">
 
@@ -163,25 +197,28 @@ function VerifyOTPContent() {
 
         <form onSubmit={handleVerifyOTP} className="space-y-4 sm:space-y-5">
           <div>
-            <Label
-              htmlFor="otp"
-              className="text-sm font-medium text-[#172B4D] mb-1.5 block"
-            >
+            <p className="text-sm font-medium text-[#172B4D] mb-1.5">
               Verification Code
-            </Label>
-            <input
-              id="otp"
-              type="text"
-              inputMode="numeric"
-              value={otp}
-              onChange={handleOTPChange}
-              placeholder="000000"
-              className={`w-full h-11 rounded-lg border bg-white text-center px-0 text-3xl tracking-[0.3em] font-mono text-[#172B4D] placeholder:text-[#5E6C84] transition-all focus:outline-none ${
-                  errorMessage ? "border-destructive focus:border-destructive" : "border-[#DFE1E6] hover:border-[#C1C7D0] focus:border-[#1768DB]"
-              }`}
-              required
-              maxLength={6}
-            />
+            </p>
+            <div className="flex gap-2 sm:gap-3 justify-center">
+              {Array.from({ length: 6 }, (_, i) => (
+                <input
+                  key={i}
+                  ref={(el) => { inputRefs.current[i] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={otp[i] || ""}
+                  onChange={(e) => handleBoxChange(i, e.target.value)}
+                  onKeyDown={(e) => handleBoxKeyDown(i, e)}
+                  onPaste={i === 0 ? handleBoxPaste : undefined}
+                  className={`w-11 h-12 sm:w-12 sm:h-14 rounded-xl border bg-white text-center text-xl sm:text-2xl font-bold text-[#172B4D] transition-all focus:outline-none focus:ring-1 focus:ring-[#1768DB] focus:border-[#1768DB] ${
+                    otp[i] ? "border-[#1768DB]" : errorMessage ? "border-destructive" : "border-[#DFE1E6] hover:border-[#C1C7D0]"
+                  }`}
+                  aria-label={`Digit ${i + 1}`}
+                />
+              ))}
+            </div>
             {errorMessage ? (
               <p className="text-sm font-medium text-destructive mt-2 animate-in fade-in text-center">
                 {errorMessage}
@@ -196,9 +233,10 @@ function VerifyOTPContent() {
           <button
             type="submit"
             disabled={isSubmitting || otp.length !== 6}
-            className="w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 disabled:opacity-60"
+            className="group w-full h-11 rounded-lg font-bold text-base bg-[#1768DB] hover:bg-[#1558BC] text-white transition-all shadow-md mt-2 disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            {isSubmitting ? "Verifying..." : "Verify Email"}
+            {isSubmitting ? "Verifying..." : "Verify Code"}
+            {!isSubmitting && <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />}
           </button>
         </form>
 
@@ -234,7 +272,7 @@ export default function VerifyOTPPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
+        <div className="min-h-screen w-full flex flex-col items-center sm:justify-center pt-16 sm:pt-0 p-4 sm:p-6 lg:p-8 bg-[#F8FAFC]">
           <div className="w-full max-w-[380px] mx-auto sm:max-w-[440px] sm:bg-white sm:rounded-2xl sm:border sm:border-[#DFE1E6] sm:shadow-[0_2px_8px_rgba(0,0,0,0.08)] px-6 sm:p-10 flex flex-col space-y-6 animate-pulse">
             <div className="space-y-3">
               <div className="h-8 w-1/2 bg-[#DFE1E6]/60 rounded-md" />

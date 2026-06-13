@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, Bell, LogOut, Check, Trash2, Eye } from "lucide-react";
+import { Menu, Bell, LogOut, Check, Trash2, Eye, KeyRound } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { formatIsoDateTime } from "@/lib/shared/date-format";
 import { useAuth } from "./auth-context";
 import { dedupedFetch, invalidateCache } from "@/lib/shared/fetch-cache";
+import { HelpPanel } from "./help-panel";
 
 interface HeaderProps {
   onMobileMenuClick?: () => void;
@@ -347,6 +348,9 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
             </PopoverContent>
           </Popover>
 
+          {/* Help & Support */}
+          <HelpPanel />
+
           {/* Profile dropdown */}
           {user && (
             <DropdownMenu>
@@ -380,6 +384,15 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
                   className="px-3 py-2.5 cursor-pointer font-ui text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100"
                 >
                   <Link href="/profile">My Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="px-3 py-2.5 cursor-pointer font-ui text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100"
+                >
+                  <Link href="/profile#password">
+                    <KeyRound className="w-4 h-4 mr-2" />
+                    Reset Password
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

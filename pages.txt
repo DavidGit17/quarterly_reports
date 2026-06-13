@@ -1,355 +1,226 @@
-Implement the Frontend Performance Remediation Plan based on the completed performance audit.
+Replace the current Help (?) menu implementation with a QRMS-specific enterprise Help & Support panel.
 
 IMPORTANT
 
-The audit already identified the root causes of slow page loading.
+This is an internal enterprise application.
 
-Do NOT perform another audit.
+Do NOT copy Atlassian’s entire help menu.
 
-Do NOT redesign the UI.
+Do NOT include:
 
-Do NOT change business logic.
+* Community Forum
+* Public Support Articles
+* Terms of Use
+* Privacy Policy
+* External Community Links
 
-Do NOT modify permissions, RBAC, authentication rules, or data models.
+The Help menu should be tailored specifically for QRMS users.
 
-Focus only on reducing:
+⸻
 
-- Login latency
-- Page transition latency
-- Dashboard loading latency
-- Data population delays
-- Duplicate requests
-- Client-side loading delays
+ENTRY POINT
 
-Analyze existing implementations first.
+Use the existing Question Mark (?) icon in the top-right navigation bar.
 
-Then implement improvements safely.
+Keep the existing interaction pattern.
 
---------------------------------------------------
+Clicking the icon should open a right-side drawer/panel.
 
-PHASE 1 — REMOVE ARTIFICIAL DELAYS
+Reuse existing drawer styling and animations if available.
 
-The audit identified forced delays in:
+⸻
 
-- Login Success Flow
-- OTP Verification Success Flow
-- Reset Password Success Flow
+PANEL TITLE
 
-Search for:
+Help & Support
 
-setTimeout
+Optional subtitle:
 
-setInterval
+Get help, report issues, and stay informed about QRMS updates.
 
-artificial progress timers
+⸻
 
-forced redirect delays
+MENU ITEMS
 
-minimum loading durations
+Display the following actions:
 
-Examples:
+1. Contact Support
 
-await new Promise(...)
+Description:
 
-setTimeout(...)
+Get assistance with account access, reports, forms, permissions, and system issues.
 
-animated progress timers
+Future behavior:
 
-Current behavior:
+* Open support email
+* Open helpdesk
+* Open Teams channel
+* Open ticket system
 
-Success
-↓
-Artificial wait
-↓
-Redirect
+For now:
 
-Target behavior:
+* Placeholder action
+* Add TODO comment
 
-Success
-↓
-Immediate redirect
+⸻
 
-Requirements:
+2. Documentation
 
-- Keep animations if desired
-- Do not block navigation
-- Allow redirect as soon as backend succeeds
+Description:
 
-Report every removed delay.
+View QRMS user guides and documentation.
 
---------------------------------------------------
+Future behavior:
 
-PHASE 2 — ELIMINATE REPEATED /api/auth/me REQUESTS
+* Open internal documentation portal
+* Open user guides
+* Open training resources
 
-The audit identified repeated authentication lookups.
+For now:
 
-Examples:
+* Placeholder action
+* Add TODO comment
 
-Dashboard
+⸻
 
-Forms
+3. Report an Issue
 
-Users
+Description:
 
-Storage
+Report bugs, unexpected behavior, or technical problems.
 
-Reports
+Future behavior:
 
-Coordinator Pages
+* Open bug reporting form
+* Create support ticket
+* Send issue report
 
-Profile
+For now:
 
-Requirements:
+* Placeholder action
+* Add TODO comment
 
-Identify every page requesting:
+⸻
 
-GET /api/auth/me
+4. Give Feedback
 
-Determine whether the user is already available through:
+Description:
 
-- Auth Context
-- Session Provider
-- Existing state
+Suggest improvements and new features.
 
-Refactor to eliminate duplicate auth requests.
+Future behavior:
 
-Goal:
+* Feature request form
+* Feedback collection portal
+* Product improvement workflow
 
-User information should be fetched once and reused.
+For now:
 
-Do not change authentication behavior.
+* Placeholder action
+* Add TODO comment
 
---------------------------------------------------
+⸻
 
-PHASE 3 — DASHBOARD LOADING OPTIMIZATION
+5. Release Notes
 
-The dashboard currently waits for multiple requests before rendering content.
+Description:
 
-Inspect:
+View recent system updates and improvements.
 
-Admin Dashboard
+Future behavior:
 
-Coordinator Dashboard
+* Open release notes page
+* Show latest changes
+* Show version history
 
-Storage Dashboard
+For now:
 
-Reports Dashboard
+* Placeholder action
+* Add TODO comment
 
-Requirements:
+⸻
 
-Identify:
+UI REQUIREMENTS
 
-- Blocking requests
-- Duplicate requests
-- Unnecessary requests
+Use existing QRMS design system.
 
-Create aggregated endpoints where beneficial.
+Reuse:
 
-Example:
+* Existing icons
+* Existing typography
+* Existing spacing
+* Existing colors
+* Existing hover states
 
-Instead of:
+Do NOT introduce:
 
-GET /api/reports/count
-GET /api/users/count
-GET /api/projects/count
+* New color palettes
+* New visual styles
+* New design systems
 
-Use:
+The panel should feel like a native part of QRMS.
 
-GET /api/dashboard/summary
+⸻
 
-Reduce total dashboard requests.
+LAYOUT
 
---------------------------------------------------
+Recommended structure:
 
-PHASE 4 — SERVER COMPONENT CONVERSION
+Help & Support
 
-Inspect:
+[ Contact Support ]
+Assistance with reports, forms, permissions, and account issues.
 
-Dashboard Pages
+[ Documentation ]
+User guides and training resources.
 
-Projects
+[ Report an Issue ]
+Report bugs and technical problems.
 
-Users
+[ Give Feedback ]
+Suggest improvements and new features.
 
-Storage
+[ Release Notes ]
+View recent updates and improvements.
 
-Reports
+⸻
 
-Forms
+FUTURE EXTENSIBILITY
 
-Identify pages currently using:
+Design the component so additional items can be added later.
 
-useEffect
-fetch
-client-side data loading
+Use a configurable menu structure rather than hardcoded repeated blocks.
 
-Determine which pages can safely become:
+Example future additions:
 
-Server Components
+* System Status
+* Training Videos
+* FAQ
+* Contact Administrator
 
-Move initial data loading to the server whenever possible.
+⸻
 
-Goal:
+FOOTER CLEANUP
 
-Data should be available during initial render.
+Remove any global footer implementation related to:
 
-Avoid loading empty shells that wait for client fetches.
+Quarterly Reports Management System
 
-Do not break interactivity.
+Version
 
-Keep interactive sections as client components where necessary.
+Support
 
---------------------------------------------------
+The Help & Support panel becomes the primary support entry point.
 
-PHASE 5 — REMOVE CLIENT-FETCH SHELLS
+⸻
 
-The audit identified pages that:
-
-Render
-↓
-Mount
-↓
-Fetch
-↓
-Render Data
-
-Requirements:
-
-Identify these pages.
-
-Move data loading earlier in the render pipeline.
-
-Reduce:
-
-- empty states
-- delayed tables
-- delayed cards
-- delayed metrics
-
-Goal:
-
-Users should see useful content immediately.
-
---------------------------------------------------
-
-PHASE 6 — INVESTIGATE HEAVY DATA LOADERS
-
-The audit identified:
-
-getHydratedFormState()
-
-as potentially expensive.
-
-Analyze:
-
-- Execution time
-- Data size
-- Memory usage
-- Transformations
-
-Determine:
-
-- Why it is slow
-- Whether data can be split
-- Whether data can be lazy-loaded
-
-Optimize safely.
-
---------------------------------------------------
-
-PHASE 7 — REQUEST DEDUPLICATION
-
-Inspect all pages.
-
-Find:
-
-- duplicate fetches
-- repeated user requests
-- repeated project requests
-- repeated permission requests
-
-Prevent duplicate network activity.
-
-Goal:
-
-One request per resource whenever possible.
-
---------------------------------------------------
-
-PHASE 8 — PAGE TRANSITION PERFORMANCE
-
-Analyze navigation between:
-
-Dashboard → Users
-
-Dashboard → Projects
-
-Dashboard → Reports
-
-Dashboard → Storage
-
-Dashboard → Forms
-
-Requirements:
-
-Reduce:
-
-- unnecessary loading states
-- unnecessary refetches
-- unnecessary auth checks
-
-Use prefetching where beneficial.
-
-Improve perceived navigation speed.
-
---------------------------------------------------
-
-PHASE 9 — CACHING IMPLEMENTATION
-
-Implement caching where appropriate.
-
-Examples:
-
-Current User
-
-Permissions
-
-Projects List
-
-Dashboard Summary
-
-Roles
-
-Settings
-
-Requirements:
-
-Avoid stale data.
-
-Use existing project architecture.
-
-Do not introduce heavy dependencies unless justified.
-
-Document cache strategy.
-
---------------------------------------------------
-
-PHASE 10 — PERFORMANCE REPORT
+IMPLEMENTATION REPORT
 
 After implementation provide:
 
 1. Files Modified
-2. Requests Removed
-3. Duplicate Requests Eliminated
-4. Artificial Delays Removed
-5. Server Components Added
-6. Estimated Dashboard Improvement
-7. Estimated Login Improvement
-8. Estimated Navigation Improvement
-9. Remaining Bottlenecks
-
-Provide before-and-after comparisons.
-
-Focus on measurable improvements rather than theoretical recommendations.
-
-At the end give a report on what you did inside a .txt Files
+2. Help Panel Component Location
+3. Navigation Integration Location
+4. Menu Configuration Structure
+5. Future Extension Points
+6. Placeholder Actions Added
