@@ -988,13 +988,13 @@ export default function ProjectFormPage() {
 
 function ProfileDropdown() {
   const [open, setOpen] = useState(false);
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
 
   const cancelClose = () => {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = undefined;
+      closeTimeoutRef.current = null;
     }
   };
 

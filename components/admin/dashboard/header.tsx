@@ -86,12 +86,12 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
   const { user } = useAuth();
 
   const [profileOpen, setProfileOpen] = useState(false);
-  const profileCloseTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const profileCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const cancelProfileClose = () => {
     if (profileCloseTimeoutRef.current) {
       clearTimeout(profileCloseTimeoutRef.current);
-      profileCloseTimeoutRef.current = undefined;
+      profileCloseTimeoutRef.current = null;
     }
   };
 
