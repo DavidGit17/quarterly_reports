@@ -1,0 +1,557 @@
+RESPONSIBILITY AUDIT: Form Layout, Scrolling Behavior, and Gradient Analysis
+================================================================================
+Date: 2026-06-14
+Files Analyzed:
+  - app/(coordinator)/form/[project]/page.tsx
+  - app/(facilitator)/f/form/[project]/page.tsx
+  - app/(coordinator)/layout.tsx
+  - app/(facilitator)/layout.tsx
+  - app/layout.tsx
+  - app/globals.css
+
+
+SECTION 1: CURRENT LAYOUT HIERARCHY
+================================================================================
+
+The full nesting for both coordinator and facilitator form pages:
+
+html
+└── body  (font-sans antialiased)
+    └── [Route Group Layout Div]  (min-h-screen + gradient background)
+        ├── Preview Mode Banner             (conditional, only admin preview)
+        ├── Form Header Surface
+        │   ├── Back button + nav links
+        │   ├── Project name / quarter / year heading
+        │   ├── Greeting text
+        │   └── Required field notice
+        │
+        ├── form element
+        │   ├── Error message banner         (conditional)
+        │   ├── Form Fields Surface
+        │   │   ├── Quarter display (read-only)
+        │   │   ├── Empty state message      (conditional: fields.length === 0)
+        │   │   └── Fields map (field.type → matching input component)
+        │   │       ├── text (with date heuristic)
+        │   │       ├── number
+        │   │       ├── textarea
+        │   │       ├── choice (Select dropdown)
+        │   │       ├── date
+        │   │       ├── rating
+        │   │       ├── file (with progress bar: overflow-hidden)
+        │   │       └── fallback (unknown type)
+        │   └── Submit button                (hidden in preview mode)
+        │
+        └── Submit Success Popup             (fixed overlay, z-50)
+
+Layout Provider Breakdown:
+
+  app/layout.tsx (Root)
+    ├── <html>
+    ├── <body>  (no height/overflow constraints)
+    │   └── {children}
+    └──
+
+  app/(coordinator)/layout.tsx
+    ├── <div className="min-h-screen bg-luxury-glass">
+    │   (gradient: radial mesh of teal/blue/green at circle positions)
+    │   └── {children}
+    └──
+
+  app/(facilitator)/layout.tsx
+    ├── <div className="min-h-screen" style={{ background: "..." }}>
+    │   (gradient: inline radial + linear gradient, blue/teal/green tones)
+    │   └── {children}
+    └──
+
+  Form Page (both coordinator and facilitator)
+    ├── <div className="min-h-screen">
+    ├── <div className="max-w-4xl mx-auto px-4 py-10">
+    │   (all content)
+    └──
+
+KEY OBSERVATION: The page has THREE nested `min-h-screen` containers:
+  1. Route group layout div (coordinator or facilitator)
+  2. Form page outer div (line 544 in coordinator, line 540 in facilitator)
+  3. (implied: body also has min-h from Tailwind preflight)
+
+None of these use overflow properties. The page relies entirely on
+natural body scrolling.
+
+
+SECTION 2: CURRENT SCROLL HIERARCHY
+================================================================================
+
+Scrolling Element:      <body> (default document scrolling)
+Overflow Properties:    NONE on any layout or form page containers
+                        (confirmed via grep: no overflow-y, overflow-auto,
+                         overflow-scroll, or overflow-hidden on page wrappers)
+
+Height Constraints:
+  - app/layout.tsx:      NONE (body has no height class)
+  - coordinator layout:  min-h-screen (on gradient wrapper)
+  - facilitator layout:  min-h-screen (on gradient wrapper)
+  - form page:           min-h-screen (on outer page div)
+
+  Since all containers use min-h-screen (not h-screen), they all grow
+  with content. No container ever clips or restricts the scroll area.
+
+Scroll Flow:
+  User scrolls → <body> scrolls → all nested min-h-screen divs track
+  the scroll position naturally. Everything moves together.
+
+No custom scroll areas exist. No sticky positioning is used.
+
+
+SECTION 3: GRADIENT ROOT CAUSE
+================================================================================
+
+3a. Where the gradient is applied
+
+  Coordinator layout:
+    <div className="min-h-screen bg-luxury-glass">
+    └── .bg-luxury-glass defined in app/globals.css:351-371
+
+    .bg-luxury-glass {
+      background-color: #ffffff;
+      background-image:
+        radial-gradient(circle at top left, rgba(182,240,217,0.35) 0%, transparent 40%),
+        radial-gradient(circle at top right, rgba(178,236,232,0.3) 0%, transparent 40%),
+        radial-gradient(circle at center top, rgba(163,219,255,0.25) 0%, transparent 45%);
+    }
+
+  Facilitator layout:
+    <div className="min-h-screen" style={{ background: "..." }}>
+    └── Inline style with:
+        radial-gradient(circle at top left, #DFF7E8 0%, transparent 45%),
+        radial-gradient(circle at center, #CFF6F2 0%, transparent 55%),
+        radial-gradient(circle at bottom left, #BFE8FF 0%, transparent 50%),
+        linear-gradient(135deg, #EAFDFF 0%, #D8F7FF 45%, #F8FEFF 100%)
+
+3b. Why the gradient appears to stretch
+
+  Both gradients are applied to a <div> that uses min-h-screen.
+  min-h-screen means: "at minimum, 100% of viewport height, but can
+  grow taller to fit content."
+
+  As the user fills in a long form, the page content grows. The
+  min-h-screen div expands to contain it. The CSS gradient background
+  on that div stretches to cover the entire expanded area.
+
+  This creates the visual effect that the gradient "stretches" down
+  the page indefinitely. In CSS, a background-image on a container
+  is always sized relative to that container (not the viewport), so
+  the radial gradients that were designed to cluster at the top
+  become diluted and faded as the container grows.
+
+3c. Whether the gradient is tied to page height
+
+  YES — the gradient is directly tied to the height of the route
+  group layout div. When the form page (child) exceeds the viewport,
+  the layout div expands, and the gradient stretches with it.
+
+  The gradient has no fixed attachment (no background-attachment: fixed),
+  so it scrolls with the content. The gradient position (circle at top
+  left, circle at center top) also scrolls upward and out of view as
+  the user scrolls down.
+
+3d. Which element owns the gradient
+
+  Coordinator:  Route group layout <div>  (owns bg-luxury-glass)
+  Facilitator:  Route group layout <div>  (owns inline style)
+
+  Neither the <body> nor the form page <div> own the gradient.
+
+3e. How this differs from Microsoft Forms
+
+  Microsoft Forms uses a FIXED gradient area:
+    - The gradient/hero section is constrained to a fixed height
+      (typically ~260px-340px) at the top of the page
+    - It does NOT stretch when the form content grows
+    - The form content scrolls beneath/over it
+    - A sticky compact header replaces the hero on scroll
+
+  QRMS uses an EXPANDING gradient area:
+    - The gradient is on the entire page wrapper
+    - It grows with every field the user fills in
+    - The gradient stretches and fades on long forms
+    - No part of the UI is fixed or sticky
+
+
+SECTION 4: HEADER ANALYSIS
+================================================================================
+
+4a. Does a sticky header already exist?
+
+  NO. The form page has no sticky or fixed positioning anywhere.
+
+4b. Current header structure
+
+  The "header" in the form page is the content inside the first
+  FORM_SURFACE_CLASS card (lines 560-608):
+
+    ┌─────────────────────────────────────────────────┐
+    │  ← Back to Dashboard          View Reports  👤  │
+    │                                                 │
+    │  Project Name Q1 2026 Reports                   │
+    │  Quarterly Reports                              │
+    │                                                 │
+    │  Hi, CoordinatorName. When you submit...         │
+    │                                                 │
+    │  * Required                                     │
+    └─────────────────────────────────────────────────┘
+
+  This is a static card within the normal page flow. It scrolls
+  away completely when the user scrolls down.
+
+4c. Which sections should become sticky (per Microsoft Forms pattern)
+
+  In a Microsoft Forms-style layout:
+    - STICKY/COMPACT: Project name + breadcrumb/back navigation
+      (the gradient hero compacts into a slim header bar)
+    - SCROLLABLE: The field-level content below
+
+4d. Current layout support for sticky header
+
+  Currently NOT supported because:
+    1. The header is inside the normal flow, not in a fixed/sticky
+       container
+    2. The gradient wrapper also scrolls away (not fixed)
+    3. There is no viewport-splitting layout (no h-screen, no grid,
+       no flex that separates header from content)
+    4. Adding position: sticky to the form header card would require
+       restructuring — it's currently inside the scrollable flow
+
+
+SECTION 5: MICROSOFT FORMS COMPARISON
+================================================================================
+
+5a. What Microsoft Forms does differently
+
+  Microsoft Forms layout architecture:
+    ┌─────────────────────────────────────────┐
+    │  FIXED VIEWPORT SHELL                    │
+    │  ┌─────────────────────────────────────┐ │
+    │  │  GRADIENT HERO (fixed height)       │ │  ← background-attachment: fixed
+    │  │  Title, description                 │ │     or separate fixed element
+    │  └─────────────────────────────────────┘ │
+    │  ┌─────────────────────────────────────┐ │
+    │  │  STICKY COMPACT HEADER              │ │  ← position: sticky top-0
+    │  │  ← Back  Progress bar  Title        │ │     appears when hero scrolls up
+    │  └─────────────────────────────────────┘ │
+    │  ┌─────────────────────────────────────┐ │
+    │  │  SCROLLABLE FORM CONTENT            │ │  ← overflow-y: auto
+    │  │  ┌─ Field card 1 ─────────────────┐ │ │
+    │  │  │  Question text                  │ │ │
+    │  │  │  [input]                        │ │ │
+    │  │  └────────────────────────────────┘ │ │
+    │  │  ┌─ Field card 2 ─────────────────┐ │ │
+    │  │  │  Question text                  │ │ │
+    │  │  │  [input]                        │ │ │
+    │  │  └────────────────────────────────┘ │ │
+    │  │  ...                                │ │
+    │  └─────────────────────────────────────┘ │
+    └─────────────────────────────────────────┘
+
+  Key architectural differences:
+    1. Microsoft Forms uses background-attachment: fixed or a separate
+       fixed-position element for the gradient, so it stays in place
+       during scroll.
+    2. Microsoft Forms constrains the form content to an overflow
+       container, NOT the body.
+    3. Microsoft Forms has a sticky compact header that appears when
+       the hero section scrolls up (using Intersection Observer or
+       scroll event).
+    4. Microsoft Forms has a FIXED viewport shell that never scrolls
+       (the shell itself is h-screen / 100vh), and only the form
+       content area scrolls inside it.
+
+5b. What prevents identical behavior in QRMS
+
+  Obstacle 1: Gradient on expanding container
+    The gradient is on the route group layout <div>, which is also
+    the only scroll container. The gradient has no fixed attachment.
+    To get Microsoft Forms behavior, the gradient must be decoupled
+    from the content container.
+
+  Obstacle 2: No fixed viewport shell
+    The page relies on <body> scrolling. There is no 100vh container
+    that splits into fixed + scrollable regions. All content scrolls
+    as one unit.
+
+  Obstacle 3: Header inside scroll flow
+    The form header card is a normal-flow element. Making it sticky
+    requires pulling it out of the scrollable area or using sticky
+    positioning with careful z-index management.
+
+  Obstacle 4: Two route group layouts
+    The coordinator and facilitator layouts both apply the gradient.
+    Any change must be made in both places (or extracted to a shared
+    component). The gradient definitions themselves are different
+    (one uses bg-luxury-glass class, the other uses inline style).
+
+
+SECTION 6: FEASIBILITY ASSESSMENT
+================================================================================
+
+Can the current layout support the following WITHOUT introducing
+double scrollbars, nested scroll issues, mobile issues, or
+accessibility issues?
+
+6a. Fixed gradient area
+
+  FEASIBLE — with these constraints:
+    The gradient area must be a fixed-height element placed BEFORE
+    the scrollable content. It should NOT be the route group layout
+    wrapper (since that must remain the scroll parent).
+
+    Approach: Add a fixed-height gradient hero section at the top
+    of the form page itself (inside the page component), outside
+    the scrollable form area. Use a negative margin to overlap the
+    hero with the scrollable content (the Microsoft Forms "cards
+    sliding over the hero" effect).
+
+    No double scrollbar risk if body scrolling is preserved.
+
+6b. Sticky compact header
+
+  FEASIBLE — using position: sticky at the top of the scrollable
+  area. The sticky header would be visible as the hero scrolls up.
+
+  Risk: z-index stacking with the gradient hero and form cards.
+  Must ensure the sticky header sits above form cards but below
+  modals/popups.
+
+6c. Scrollable form container
+
+  FEASIBLE — the existing body-scrolling approach works. No need to
+  introduce a separate overflow container. Microsoft Forms uses an
+  overflow container, but body scrolling achieves the same effect
+  with better mobile compatibility.
+
+  Alternative: wrapping form content in an overflow-y container
+  would work but risks double scrollbar issues on mobile (inner
+  scroll + body scroll). Recommend keeping body scrolling.
+
+6d. Microsoft Forms style layout (all three combined)
+
+  FEASIBLE — but requires changes to both form pages and both
+  route layouts. The specific approach matters for avoiding issues.
+
+  What works:
+    - Body scrolling (preserve existing behavior)
+    - Fixed-height gradient hero at page top (new element)
+    - Negative margin to overlap hero with form content
+    - Sticky compact header on the form content
+
+  What to avoid:
+    - DO NOT add overflow-y to the form wrapper (causes double
+      scrollbar on mobile Safari)
+    - DO NOT change body/html height constraints
+    - DO NOT use h-screen on the form wrapper (breaks scroll)
+    - DO NOT use background-attachment: fixed on mobile (known
+      Safari bug: janky, expensive repaints)
+    - DO NOT add nested scrollable regions
+
+
+SECTION 7: RISKS
+================================================================================
+
+7a. Fixed gradient section
+
+  RISK: LOW
+  ────────────────────────────────────────────────────────────────────
+  - Fixed-height hero with negative margin is a well-established
+    pattern (used by Microsoft Forms, Typeform, Google Forms).
+  - No scroll behavior changes needed.
+  - Must ensure the gradient colors match the existing
+    bg-luxury-glass / facilitator inline gradient.
+  - On very short viewports (mobile landscape), the fixed-height
+    hero may consume too much space. Recommend using a smaller
+    height on small screens (responsive: h-40 sm:h-56 or similar).
+
+7b. Sticky header
+
+  RISK: LOW-MEDIUM
+  ────────────────────────────────────────────────────────────────────
+  - position: sticky is well-supported (Edge 16+, Safari 13+).
+  - Must handle z-index stacking (hero background → sticky header →
+    form cards → submit success popup).
+  - The current form header card contains navigation links,
+    project info, greeting, and required notice. A compact sticky
+    header should show only the essentials (back nav + title).
+  - The full greeting text would hide behind the sticky header
+    as the user scrolls — this matches Microsoft Forms behavior.
+
+7c. Scrollable form container
+
+  RISK: LOW
+  ────────────────────────────────────────────────────────────────────
+  - Body scrolling is already the current behavior. No change needed.
+  - Do NOT introduce a secondary scroll container. Keep the form
+    in natural body flow.
+
+7d. Microsoft Forms style layout (combined)
+
+  RISK: MEDIUM
+  ────────────────────────────────────────────────────────────────────
+  - Requires coordinated changes across 4 files:
+    1. Coordinator layout (remove gradient from wrapper)
+    2. Facilitator layout (remove gradient from wrapper)
+    3. Coordinator form page (add hero + sticky header)
+    4. Facilitator form page (add hero + sticky header)
+  - Risk of visual regression during the transition period
+    (partial deployment / dev mode iteration).
+  - Gradient definitions differ between coordinator and facilitator;
+    both hero sections must preserve their respective brand colors.
+  - Mitigation: implement on one role first, verify, then replicate.
+
+
+SECTION 8: RECOMMENDED IMPLEMENTATION
+================================================================================
+
+Recommended approach: Hero-overlap with body scrolling + sticky header
+
+This is the approach that best matches Microsoft Forms behavior while
+working within QRMS's existing architecture.
+
+8a. Architecture
+
+  ┌─────────────────────────────────────────┐
+  │  FIXED-HEIGHT GRADIENT HERO              │  ← new element, position: relative
+  │  (min-h-[260px] - 300px, gradient)       │     before form content
+  │  Back button + Project title             │     z-index: 0
+  └┬────────────────────────────────────────┘
+   │  (negative margin overlap)
+  ┌┴─────────────────────────────────────────┐
+  │  STICKY COMPACT HEADER                   │  ← position: sticky top-0 z-10
+  │  ← Back  │  "Project Name Q1 Reports"    │     inside scrollable area
+  └┬────────────────────────────────────────┘
+   │
+  ┌┴─────────────────────────────────────────┐
+  │  FORM CONTENT (body scroll)              │  ← natural flow, no overflow
+  │  ┌─ Quarter display ───────────────────┐ │
+  │  └─────────────────────────────────────┘ │
+  │  ┌─ Field 1 ───────────────────────────┐ │
+  │  │  Question label                      │ │
+  │  │  [input]                             │ │
+  │  └─────────────────────────────────────┘ │
+  │  ┌─ Field 2 ───────────────────────────┐ │
+  │  │  Question label                      │ │
+  │  │  [input]                             │ │
+  │  └─────────────────────────────────────┘ │
+  │  ...                                     │
+  └─────────────────────────────────────────┘
+
+8b. Key implementation details
+
+  1. Move gradient from route group layout <div> into a new hero
+     section component within the form page itself.
+
+  2. The route group layout div becomes a plain background container
+     (bg-white or bg-[#f8f9fa]).
+
+  3. The hero section:
+     - Fixed height: min-h-[260px] sm:min-h-[300px]
+     - Uses the same gradient definition as currently in the layout
+       (bg-luxury-glass for coordinator, inline style for facilitator)
+     - Contains: project title, quarter/year subtitle
+     - z-index: 0 (behind sticky header and form cards)
+
+  4. The form content wrapper:
+     - Negative margin: -mt-16 sm:-mt-20 (overlaps hero bottom)
+     - Contains the sticky compact header + field cards
+     - Relative z-index: 1 (sits above hero)
+
+  5. Sticky compact header:
+     - position: sticky top-0 z-10
+     - Shows back button + compact title
+     - bg-white/backdrop-blur for readability over gradient
+     - Border-bottom on scroll (use scroll-aware class or
+       shadow that appears on sticky activation)
+
+  6. No changes to:
+     - Body scrolling (preserve)
+     - Form submission logic
+     - Field components
+     - Auth/authorization logic
+
+8c. Required file changes
+
+  Files to modify:
+    1. app/(coordinator)/layout.tsx
+       - Remove bg-luxury-glass, use plain background
+    2. app/(facilitator)/layout.tsx
+       - Remove inline gradient style, use plain background
+    3. app/(coordinator)/form/[project]/page.tsx
+       - Add gradient hero section before form content
+       - Add sticky compact header inside form area
+       - Wrap form content with negative margin
+    4. app/(facilitator)/f/form/[project]/page.tsx
+       - Same changes as coordinator
+    5. app/globals.css (optional)
+       - Could extract hero gradient class(es) for reuse
+
+  New files to create:
+    1. features/forms/components/form-hero.tsx (shared hero section)
+    2. features/forms/components/sticky-header.tsx (compact header)
+
+8d. Mobile behavior
+
+  - Hero height reduces on mobile (min-h-[180px] sm:min-h-[260px])
+  - Negative margin adjusts proportionally
+  - Sticky header works on mobile Safari (position: sticky support
+    since iOS 13)
+  - Body scrolling avoids the double-scrollbar issue that plagues
+    nested overflow containers on iOS
+
+8e. What this approach does NOT do
+
+  - Does NOT change the scroll container (no overflow-y added)
+  - Does NOT introduce background-attachment: fixed (avoids
+    Safari repaint jank)
+  - Does NOT require Intersection Observer or scroll listeners
+    (the sticky header is pure CSS)
+  - Does NOT change form submit, field rendering, auth, or
+    data fetching logic
+  - Does NOT introduce double scrollbars
+
+
+SECTION 9: ESTIMATED FILES REQUIRING CHANGES
+================================================================================
+
+File                                          Change Type        Est. Churn
+────────────────────────────────────────────  ─────────────────  ──────────
+app/(coordinator)/layout.tsx                  Modify (gradient)  2 lines
+app/(facilitator)/layout.tsx                  Modify (gradient)  2 lines
+app/(coordinator)/form/[project]/page.tsx     Restructure        ~50 lines
+app/(facilitator)/f/form/[project]/page.tsx   Restructure        ~50 lines
+features/forms/components/form-hero.tsx       New file           ~30 lines
+features/forms/components/sticky-header.tsx   New file           ~40 lines
+app/globals.css                               Optional add       ~10 lines
+────────────────────────────────────────────  ─────────────────  ──────────
+Total                                                             ~184 lines
+
+Note: If the responsibility audit (file 1) extraction is also performed,
+the form page restructuring would be integrated into the same refactor
+effort, reducing total churn across both initiatives.
+
+
+FILES WITH NO CHANGES REQUIRED
+================================================================================
+
+These files are NOT affected by this layout change:
+
+  - app/layout.tsx                        (root layout, no gradient)
+  - app/globals.css                       (no changes to .bg-luxury-glass needed)
+  - lib/shared/form-storage.ts            (no layout dependencies)
+  - lib/shared/auth-client.ts             (no layout dependencies)
+  - components/ui/*                       (no changes needed)
+  - components/admin/dashboard/*          (admin has separate layout system)
+  - Any API routes                        (no layout dependencies)
+  - Any hooks                             (no layout dependencies)
+  - Any field components                  (no layout dependencies)
+  - Submit logic                          (no layout dependencies)
+  ----------------------------------------------------------------------
+
+END OF REPORT
+================================================================================

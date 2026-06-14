@@ -1,0 +1,124 @@
+quarterly-reports/
+├── app/
+│   ├── layout.tsx                           # Root layout (fonts, metadata)
+│   ├── globals.css
+│   ├── auth/page.tsx                        # Auth redirect
+│   │
+│   ├── (auth)/                              # Auth pages
+│   │   ├── unified-auth-page/page.tsx       # Sign in / Sign up
+│   │   ├── forgot-password/page.tsx
+│   │   ├── reset-password/page.tsx
+│   │   ├── verify-otp/page.tsx
+│   │   └── security/page.tsx
+│   │
+│   ├── (admin)/                             # Admin routes
+│   │   ├── dashboard/
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx                     # Dashboard home
+│   │   │   ├── loading.tsx
+│   │   │   ├── reports/page.tsx
+│   │   │   ├── forms-overview/page.tsx
+│   │   │   ├── form-distribution/page.tsx
+│   │   │   ├── form-distribution/history/page.tsx
+│   │   │   ├── projects/page.tsx
+│   │   │   ├── users/page.tsx
+│   │   │   ├── storage/page.tsx
+│   │   │   ├── settings/page.tsx
+│   │   │   ├── email-campaigns/page.tsx
+│   │   │   ├── reporting-cycles/page.tsx
+│   │   │   └── notifications/page.tsx
+│   │   ├── form-builder/page.tsx
+│   │   └── admin/
+│   │       ├── form-builder/page.tsx        # Legacy redirect
+│   │       └── forms-overview/page.tsx
+│   │
+│   ├── (coordinator)/                       # Coordinator routes
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── my-reports/page.tsx
+│   │   ├── submit-report/page.tsx
+│   │   ├── select/page.tsx
+│   │   ├── form/[project]/page.tsx
+│   │   └── report/[id]/page.tsx
+│   │
+│   ├── (facilitator)/                       # Facilitator routes
+│   │   ├── layout.tsx
+│   │   └── f/
+│   │       ├── page.tsx
+│   │       ├── my-reports/page.tsx
+│   │       ├── submit-report/page.tsx
+│   │       ├── select/page.tsx
+│   │       ├── form/[project]/page.tsx
+│   │       └── report/[id]/page.tsx
+│   │
+│   ├── (shared)/profile/page.tsx            # Shared profile page
+│   │
+│   └── api/                                 # 33 API route files
+│       ├── auth/    (login, logout, signup, me, refresh, verify-otp,
+│       │             send-otp, forgot-password, reset-password, change-password)
+│       ├── reports/ (list, get by id)
+│       ├── projects/
+│       ├── my-reports/
+│       ├── admin/   (users, notifications, storage, send-history)
+│       ├── form-distribution/ (main, debug, send-now, force-unlock, resolve-rid)
+│       ├── form-configs/
+│       ├── email-campaigns/
+│       ├── reporting-cycles/
+│       ├── automation/ (schedule, stop)
+│       ├── upload/
+│       └── warmup/
+│
+├── components/
+│   ├── ui/                                  # ~70 shadcn-style UI components
+│   ├── admin/dashboard/
+│   │   ├── layout.tsx                       # Dashboard shell (sidebar + header)
+│   │   ├── header.tsx
+│   │   ├── sidebar.tsx
+│   │   ├── help-panel.tsx
+│   │   ├── auth-context.tsx
+│   │   ├── page-header.tsx
+│   │   ├── toolbar.tsx
+│   │   ├── status-badge.tsx
+│   │   ├── form-builder-fab.tsx
+│   │   ├── mock-data.ts
+│   │   ├── reports/   (table, summary, live-activity)
+│   │   ├── projects/  (table, summary, form/delete dialogs)
+│   │   ├── coordinators/ (table, form/delete dialogs)
+│   │   ├── facilitators/
+│   │   └── settings/  (account, security, notifications, data tabs)
+│   └── shared/theme-provider.tsx
+│
+├── server/                                  # Server-side modules
+│   ├── db/           (mongodb.ts, indexes.ts)
+│   ├── auth/         (jwt.ts, auth.ts, rate-limit.ts)
+│   ├── email/        (brevo-email.ts, campaign-email.ts)
+│   ├── forms/        (form-configs-db.ts)
+│   ├── reports/      (reports.ts)
+│   ├── form-distribution/ (form-distribution.ts, execution-engine.ts, send-history.ts)
+│   ├── notifications/
+│   ├── agenda/       (config.ts, worker.ts)
+│   ├── storage/      (quota.ts)
+│   ├── email-campaigns/
+│   ├── reporting-cycles/
+│   └── logging/
+│
+├── lib/
+│   ├── shared/  (utils.ts, form-storage.ts, auth-client.ts, fetch-cache.ts, etc.)
+│   └── export/  (reports-export.ts)
+│
+├── hooks/shared/    (use-mobile.ts, use-toast.ts)
+├── scripts/seed-mock.ts
+├── styles/
+├── public/brand/    (QRMS.webp, logo.svg, etc.)
+├── .md/             (audit/remediation docs)
+│
+├── netlify.toml
+├── next.config.mjs
+├── tailwind.config.js
+├── postcss.config.mjs
+├── eslint.config.mjs
+├── tsconfig.json
+├── package.json
+├── instrumentation.ts                      # Agenda scheduler startup
+├── dev.mjs                                 # Custom dev server with .env watching
+├── pages.txt                               # Help panel spec

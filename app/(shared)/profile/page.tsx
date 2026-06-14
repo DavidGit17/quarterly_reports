@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toProjectSlug } from "@/lib/shared/form-storage";
-import { getCurrentUser, type SessionUser } from "@/lib/shared/auth-client";
+import { getCurrentUser, clearCurrentUserCache, type SessionUser } from "@/lib/shared/auth-client";
 import { ArrowLeft, Camera, KeyRound, UserCircle2 } from "lucide-react";
 
 type UserRole = "admin" | "coordinator" | "facilitator";
@@ -352,11 +352,12 @@ function ProfileContent() {
   }
 
   const handleLogout = async () => {
+    clearCurrentUserCache();
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/auth");
   };
 
-  const dashboardHref = role === "facilitator" ? "/f" : "/";
+  const dashboardHref = role === "admin" ? "/dashboard" : role === "facilitator" ? "/f" : "/";
 
   return (
     <div className="min-h-screen" style={{ background: c.background }}>

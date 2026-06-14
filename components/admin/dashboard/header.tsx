@@ -1,15 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Menu, Bell, LogOut, Check, Trash2, Eye, KeyRound } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
@@ -19,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatIsoDateTime } from "@/lib/shared/date-format";
 import { useAuth } from "./auth-context";
+import { clearCurrentUserCache } from "@/lib/shared/auth-client";
 import { dedupedFetch, invalidateCache } from "@/lib/shared/fetch-cache";
 import { HelpPanel } from "./help-panel";
 
@@ -90,6 +84,23 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileCloseTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const cancelProfileClose = () => {
+    if (profileCloseTimeoutRef.current) {
+      clearTimeout(profileCloseTimeoutRef.current);
+      profileCloseTimeoutRef.current = undefined;
+    }
+  };
+
+  const scheduleProfileClose = () => {
+    cancelProfileClose();
+    profileCloseTimeoutRef.current = setTimeout(() => {
+      setProfileOpen(false);
+    }, 200);
+  };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -353,60 +364,74 @@ export function Header({ onMobileMenuClick }: HeaderProps) {
 
           {/* Profile dropdown */}
           {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-1 hover:bg-slate-100 rounded-xl transition-colors" aria-label="User menu" title="User menu">
-                  <Avatar className="w-8 h-8 border border-slate-200">
-                    {user.profileImage ? (
-                      <AvatarImage
-                        src={user.profileImage}
-                        alt={user.username}
-                      />
-                    ) : null}
-                    <AvatarFallback className="bg-slate-100 font-ui text-sm font-semibold text-slate-600">
-                      {getUserInitials(user.username)}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-2xl">
-                <div className="px-3 py-3 bg-slate-50 rounded-t-2xl">
-                  <p className="font-ui text-sm font-semibold text-slate-900">
-                    {user.username}
-                  </p>
-                  <p className="font-ui text-xs text-slate-500 mt-0.5">
-                    {user.email}
-                  </p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  asChild
-                  className="px-3 py-2.5 cursor-pointer font-ui text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100"
+            <div
+              className="relative"
+              onMouseEnter={() => { cancelProfileClose(); setProfileOpen(true); }}
+              onMouseLeave={scheduleProfileClose}
+            >
+              <button
+                className="p-1 hover:bg-slate-100 rounded-xl transition-colors"
+                aria-label="User menu"
+                title="User menu"
+              >
+                <Avatar className="w-8 h-8 border border-slate-200">
+                  {user.profileImage ? (
+                    <AvatarImage
+                      src={user.profileImage}
+                      alt={user.username}
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-slate-100 font-ui text-sm font-semibold text-slate-600">
+                    {getUserInitials(user.username)}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+              {profileOpen && (
+                <div
+                  className="absolute right-0 top-full mt-1.5 w-56 rounded-2xl border border-slate-200 bg-white shadow-lg z-50 overflow-hidden"
+                  onMouseEnter={cancelProfileClose}
+                  onMouseLeave={scheduleProfileClose}
                 >
-                  <Link href="/profile">My Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  asChild
-                  className="px-3 py-2.5 cursor-pointer font-ui text-sm text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:bg-slate-100 data-[highlighted]:bg-slate-100"
-                >
-                  <Link href="/profile#password">
+                  <div className="px-3 py-3 bg-slate-50">
+                    <p className="font-ui text-sm font-semibold text-slate-900">
+                      {user.username}
+                    </p>
+                    <p className="font-ui text-xs text-slate-500 mt-0.5">
+                      {user.email}
+                    </p>
+                  </div>
+                  <div className="h-px bg-slate-200" />
+                  <Link
+                    href="/profile"
+                    className="flex items-center px-3 py-2.5 font-ui text-sm text-slate-700 hover:bg-slate-100 transition-colors"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    My Profile
+                  </Link>
+                  <Link
+                    href="/profile#password"
+                    className="flex items-center px-3 py-2.5 font-ui text-sm text-slate-700 hover:bg-slate-100 transition-colors"
+                    onClick={() => setProfileOpen(false)}
+                  >
                     <KeyRound className="w-4 h-4 mr-2" />
                     Reset Password
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="px-3 py-2.5 cursor-pointer text-red-600 font-ui text-sm hover:text-red-700 hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50"
-                  onClick={async () => {
-                    await fetch("/api/auth/logout", { method: "POST" });
-                    router.push("/auth");
-                  }}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <div className="h-px bg-slate-200" />
+                  <button
+                    onClick={async () => {
+                      setProfileOpen(false);
+                      clearCurrentUserCache();
+                      await fetch("/api/auth/logout", { method: "POST" });
+                      router.push("/auth");
+                    }}
+                    className="flex w-full items-center px-3 py-2.5 font-ui text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

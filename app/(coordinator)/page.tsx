@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toProjectSlug } from "@/lib/shared/form-storage";
-import { getCurrentUser } from "@/lib/shared/auth-client";
+import { getCurrentUser, clearCurrentUserCache } from "@/lib/shared/auth-client";
 
 type MeResponse = {
   user?: {
@@ -208,6 +208,7 @@ export default function CoordinatorDashboard() {
                   <button
                     type="button"
                     onClick={async () => {
+                      clearCurrentUserCache();
                       await fetch("/api/auth/logout", { method: "POST" });
                       router.push("/auth");
                     }}

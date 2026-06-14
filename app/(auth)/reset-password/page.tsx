@@ -11,8 +11,8 @@ type ResetPasswordResponse = {
 };
 
 type FormErrors = {
-  email?: string;
   password?: string;
+  confirmPassword?: string;
 };
 
 function ResetPasswordContent() {
@@ -20,8 +20,8 @@ function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
 
-  const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -42,15 +42,18 @@ function ResetPasswordContent() {
     let hasError = false;
     const newErrors: FormErrors = {};
 
-    if (!email.trim()) {
-      newErrors.email = "Email is required.";
-      hasError = true;
-    }
     if (!newPassword) {
-      newErrors.password = "Password is required.";
+      newErrors.password = "New password is required.";
       hasError = true;
     } else if (newPassword.length < 6) {
       newErrors.password = "Password must be at least 6 characters.";
+      hasError = true;
+    }
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your new password.";
+      hasError = true;
+    } else if (newPassword !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match.";
       hasError = true;
     }
 
@@ -70,17 +73,14 @@ function ResetPasswordContent() {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, token, newPassword }),
+        body: JSON.stringify({ token, newPassword }),
       });
 
       const data = (await response.json().catch(() => ({}))) as ResetPasswordResponse;
 
       if (!response.ok) {
         const apiMsg = data.message || "Password reset failed.";
-        const lowerMsg = apiMsg.toLowerCase();
-        if (lowerMsg.includes("email")) {
-          setFieldErrors({ email: apiMsg });
-        } else if (lowerMsg.includes("password")) {
+        if (apiMsg.toLowerCase().includes("password")) {
           setFieldErrors({ password: apiMsg });
         } else {
           setErrorMessage(apiMsg);
@@ -143,33 +143,11 @@ function ResetPasswordContent() {
               Reset Password
             </h2>
             <p className="text-sm text-[#5E6C84] mt-2 max-w-[320px] mx-auto leading-relaxed">
-              Enter your email and new password
+              Enter your new password
             </p>
           </div>
 
           <form noValidate onSubmit={handleReset} className="space-y-4 sm:space-y-5">
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-[#172B4D] mb-1.5">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: undefined });
-                }}
-                className={getFieldClassName(!!fieldErrors.email)}
-                placeholder="Enter your email"
-              />
-              {fieldErrors.email && (
-                <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">
-                  {fieldErrors.email}
-                </p>
-              )}
-            </div>
 
             <div>
               <label htmlFor="new-password" className="block text-sm font-medium text-[#172B4D] mb-1.5">
@@ -189,6 +167,28 @@ function ResetPasswordContent() {
               {fieldErrors.password && (
                 <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">
                   {fieldErrors.password}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-[#172B4D] mb-1.5">
+                Confirm Password
+              </label>
+              <PasswordInput
+                id="confirm-password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (fieldErrors.confirmPassword) setFieldErrors({ ...fieldErrors, confirmPassword: undefined });
+                }}
+                className={getFieldClassName(!!fieldErrors.confirmPassword)}
+                placeholder="Confirm your new password"
+              />
+              {fieldErrors.confirmPassword && (
+                <p className="text-sm font-medium text-destructive mt-1.5 animate-in fade-in">
+                  {fieldErrors.confirmPassword}
                 </p>
               )}
             </div>

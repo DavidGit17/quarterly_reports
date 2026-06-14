@@ -1,0 +1,1000 @@
+RESPONSIBILITY AUDIT: app/(coordinator)/form/[project]/page.tsx
+================================================================================
+Date: 2026-06-14
+Total File Size: 996 lines / ~31 KB
+Comparison: app/(facilitator)/f/form/[project]/page.tsx (988 lines, ~95% identical)
+
+
+SECTION 1: TOTAL FILE SIZE ASSESSMENT
+================================================================================
+
+Category                          Lines    Percentage
+--------------------------------  ------   ----------
+JSX (3 return blocks)             ~500     50%
+Type definitions                  8        <1%
+Styling constants                 22       2%
+Utility functions                 25       3%
+State declarations (18 vars)      20       2%
+Refs (6 refs)                     14       1%
+useEffect: mount + auth + config  118      12%
+useEffect: field initialization   50       5%
+useEffect: cleanup (timers)       10       1%
+Event handlers (text, date)       6        <1%
+File upload handlers              76       8%
+Submit handler                    62       6%
+Navigate handler                  6        <1%
+Current year init                 7        <1%
+Imports block                     28       3%
+
+
+SECTION 2: COMPLETE RESPONSIBILITY MAP
+================================================================================
+
+Each responsibility is classified into one of:
+  1. Page Layout
+  2. UI Component
+  3. Business Logic
+  4. Data Fetching
+  5. Authentication
+  6. Authorization / RBAC
+  7. Form State Management
+  8. File Upload Logic
+  9. Validation
+  10. API Communication
+  11. Utility Function
+  12. Shared Logic
+
+
+ITEM 1: Type Definitions
+────────────────────────────────────────────────────────────────────────────────
+Lines:          30-37 (8 lines)
+Category:       Shared Logic
+Exports:        FieldValueMap, FileValueMap, UploadingMap, UploadProgressMap,
+                CreateReportResponse
+Should remain:  NO
+Should extract: YES → features/forms/types.ts
+Risk:           None — pure type aliases, no runtime dependencies
+Duplication:    Duplicated verbatim in facilitator form page
+
+
+ITEM 2: getQuarterLabel
+────────────────────────────────────────────────────────────────────────────────
+Lines:          39-40 (2 lines)
+Category:       Utility Function
+Body:           `${startMonth} - ${endMonth}`
+Should remain:  NO
+Should extract: YES → features/forms/utils/date-utils.ts
+Risk:           None — pure function, no dependencies
+Duplication:    Duplicated in facilitator form page
+
+
+ITEM 3: fileAcceptTypes
+────────────────────────────────────────────────────────────────────────────────
+Lines:          41-42 (2 lines)
+Category:       Shared Logic
+Body:           ".doc,.docx,...,image/*,video/*,audio/*"
+Should remain:  NO
+Should extract: YES → features/forms/constants/file-config.ts
+Risk:           None — pure string constant
+Duplication:    Duplicated in facilitator form page
+
+
+ITEM 4: Styling Constants (10 variables)
+────────────────────────────────────────────────────────────────────────────────
+Lines:          43-64 (22 lines)
+Category:       UI Component
+Variables:
+  - FORM_FIELD_CLASS (line 43)
+  - FORM_DATE_FIELD_CLASS (line 45)
+  - FORM_CUSTOM_SELECT_TRIGGER_CLASS (line 46)
+  - FORM_CUSTOM_SELECT_CONTENT_CLASS (line 48)
+  - FORM_CUSTOM_SELECT_ITEM_CLASS (line 50)
+  - FORM_SURFACE_CLASS (line 52)
+  - FORM_LABEL_CLASS (line 53)
+  - FORM_REQUIRED_CLASS (line 54)
+  - FORM_META_CLASS (line 55)
+  - FORM_LINK_CLASS (line 56)
+  - FORM_ICON_BUTTON_CLASS (line 58)
+  - FORM_SECONDARY_ACTION_CLASS (line 60)
+  - FORM_PRIMARY_BUTTON_CLASS (line 62)
+Should remain:  NO
+Should extract: YES → features/forms/constants/styles.ts
+Risk:           None — pure string constants
+Duplication:    Duplicated in facilitator form page (one minor diff:
+                FORM_PRIMARY_BUTTON_CLASS focus ring color differs:
+                coordinator uses #004446, facilitator uses #cee9db)
+
+
+ITEM 5: formatDateInput
+────────────────────────────────────────────────────────────────────────────────
+Lines:          66-78 (13 lines)
+Category:       Utility Function
+Body:           Strips non-digits, formats as dd/mm/yyyy with auto-slash
+                insertion (2-digit month, 4-digit year)
+Should remain:  NO
+Should extract: YES → features/forms/utils/date-utils.ts
+Risk:           None — pure function
+Duplication:    Duplicated in facilitator form page
+
+
+ITEM 6: toDisplayDate
+────────────────────────────────────────────────────────────────────────────────
+Lines:          80-89 (10 lines)
+Category:       Utility Function
+Body:           Converts ISO "YYYY-MM-DD" to display "DD/MM/YYYY"
+Should remain:  NO
+Should extract: YES → features/forms/utils/date-utils.ts
+Risk:           None — pure function
+Duplication:    Duplicated in facilitator form page
+
+
+ITEM 7: isDateField
+────────────────────────────────────────────────────────────────────────────────
+Lines:          91 (1 line)
+Category:       Utility Function
+Body:           /\\bdate\\b/i.test(field.label)
+Should remain:  NO
+Should extract: YES → features/forms/utils/date-utils.ts
+Risk:           None — pure function
+Duplication:    Duplicated in facilitator form page
+
+
+ITEM 8: Router / Params Setup
+────────────────────────────────────────────────────────────────────────────────
+Lines:          94-97 (4 lines)
+Category:       Page Layout
+Body:           const router, params, projectSlug extraction
+Should remain:  YES — page-level routing concern
+Should extract: NO
+Risk:           N/A
+Duplication:    Similar pattern in facilitator form page (same code)
+
+
+ITEM 9: State Declarations (18 variables)
+────────────────────────────────────────────────────────────────────────────────
+Lines:          98-117 (20 lines)
+Category:       Form State Management
+Variables:
+  - fields, quarter, projectName, coordinatorName
+  - formValues, fileValues, uploadingFiles, uploadProgress, pendingFiles
+  - hoveredRatingField, hoveredRatingValue, showSubmitPopup
+  - isSubmitting, isReady, errorMessage, isAccessDenied, isPreviewMode
+  - selectedLanguage, activeCycleId
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-state.ts
+Risk:           Medium — these are tightly coupled across 3 different useEffect
+                blocks and 6 handler functions
+Duplication:    Duplicated in facilitator form page (same variables, distinct
+                default value for coordinatorName)
+
+
+ITEM 10: Refs (6 refs)
+────────────────────────────────────────────────────────────────────────────────
+Lines:          119-132 (14 lines)
+Category:       Form State Management
+Refs:
+  - formRef (HTMLFormElement)
+  - fileInputRefs (Record<string, HTMLInputElement | null>)
+  - nativeDateInputRefs (Record<string, HTMLInputElement | null>)
+  - submitRedirectTimerRef (setTimeout)
+  - uploadTimersRef (Record<string, setTimeout>)
+  - uploadIntervalsRef (Record<string, setInterval>)
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-state.ts
+Risk:           Medium — refs are passed to child components; extraction
+                requires forwarding via props or useImperativeHandle
+
+
+ITEM 11: Mount Effect — Authentication (getCurrentUser)
+────────────────────────────────────────────────────────────────────────────────
+Lines:          134-152 (subset of mount effect)
+Category:       Authentication
+Body:           Calls getCurrentUser(), redirects to /auth if null
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-auth.ts
+Risk:           Medium — tightly interleaved with config loading in same
+                useEffect. Must be split before extraction.
+
+
+ITEM 12: Mount Effect — Admin/Coordinator Role Check
+────────────────────────────────────────────────────────────────────────────────
+Lines:          154-195 (42 lines, subset of mount effect)
+Category:       Authorization / RBAC
+Body:           Checks currentUser.role === "coordinator" || isAdmin with
+                preview mode logic. Verifies project assignment matches
+                projectSlug. Sets isAccessDenied for mismatches.
+Dependencies:   projectSlug param, currentUser from auth
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-auth.ts
+                (accept allowedRole="coordinator", allowAdminPreview=true)
+Risk:           Medium — tightly interleaved with config loading
+Note:           This is the PRIMARY difference from the facilitator page.
+                Facilitator page blocks all admins (no preview) and checks
+                role === "facilitator". Extraction must parameterize the
+                allowed role and admin preview flag.
+
+
+ITEM 13: Mount Effect — Form Config Data Fetching
+────────────────────────────────────────────────────────────────────────────────
+Lines:          197-242 (46 lines, subset of mount effect)
+Category:       Data Fetching + Business Logic
+Body:
+  - Destructures formConfigs / quarterConfigs from getHydratedFormState()
+  - Fetches /api/reporting-cycles?status=active
+  - Resolves projectName from slug via getProjectNameFromSlug()
+  - Filters out system fields (region-name, team-size, main-project-update)
+  - Renumbers field labels sequentially (1., 2., 3., ...)
+  - Strips old numbering from labels via regex
+  - Derives quarter label from config (or defaults to Jan-Mar)
+  - Sets fields, quarter, isReady state
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-config.ts
+Risk:           Medium — tightly interleaved with auth in same useEffect.
+                Must be extracted after auth is separated.
+
+
+ITEM 14: Mount Effect — Error Catch-All
+────────────────────────────────────────────────────────────────────────────────
+Lines:          244-246 (3 lines)
+Category:       Business Logic
+Body:           catch { setErrorMessage("Unable to verify your account.") }
+Should remain:  NO
+Should extract: YES → into use-form-auth.ts or use-form-config.ts (needs
+                disambiguation — which error owns errorMessage?)
+Risk:           Low — just an error message string
+
+
+ITEM 15: Field Initialization Effect
+────────────────────────────────────────────────────────────────────────────────
+Lines:          253-302 (50 lines)
+Category:       Form State Management
+Body:           5 setState calls that initialize formValues, fileValues,
+                uploadingFiles, uploadProgress, pendingFiles from current
+                fields array. Uses prev => next pattern to preserve existing
+                values across field config changes (e.g., reordering).
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-state.ts
+Risk:           Medium — the prev => next merge semantics must be preserved
+                exactly. Any deviation could cause form field data loss when
+                config changes during an active session.
+
+
+ITEM 16: Cleanup Effect
+────────────────────────────────────────────────────────────────────────────────
+Lines:          304-313 (10 lines)
+Category:       Form State Management
+Body:           Clears all upload timers and intervals on unmount
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-state.ts
+                (or into use-file-upload.ts)
+Risk:           Low — standard cleanup pattern
+
+
+ITEM 17: handleTextChange
+────────────────────────────────────────────────────────────────────────────────
+Lines:          315-317 (3 lines)
+Category:       Form State Management
+Body:           setFormValues((prev) => ({ ...prev, [fieldId]: value }))
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-state.ts
+Risk:           None — trivial state update
+
+
+ITEM 18: handleDateChange
+────────────────────────────────────────────────────────────────────────────────
+Lines:          319-321 (3 lines)
+Category:       Form State Management
+Body:           setFormValues with formatDateInput applied
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-state.ts
+Risk:           None — simple wrapper
+
+
+ITEM 19: openDatePicker
+────────────────────────────────────────────────────────────────────────────────
+Lines:          323-336 (14 lines)
+Category:       UI Component (DOM interaction utility)
+Body:           Accesses native hidden date input via ref, calls
+                inputElement.showPicker() with focus() fallback
+Should remain:  NO
+Should extract: YES → features/forms/utils/date-utils.ts
+Risk:           Low — pure DOM utility, needs ref passed in as parameter
+
+
+ITEM 20: syncFileInput
+────────────────────────────────────────────────────────────────────────────────
+Lines:          338-349 (12 lines)
+Category:       File Upload Logic
+Body:           Uses DataTransfer API to sync File[] array back onto a
+                hidden <input type="file"> element's FileList
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-file-upload.ts
+Risk:           Low — self-contained DOM manipulation helper
+
+
+ITEM 21: handleFileChange
+────────────────────────────────────────────────────────────────────────────────
+Lines:          351-389 (39 lines)
+Category:       File Upload Logic
+Body:           Limits to 10 files, clears existing timers/intervals,
+                sets pendingFiles, starts progress simulation via setInterval
+                (8-18% increments every 500ms, capped at 90%), then completes
+                after 2-3 seconds via setTimeout (sets 100%, moves pending
+                to uploaded, syncs file input)
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-file-upload.ts
+Risk:           Low — self-contained logic with timer management
+
+
+ITEM 22: removeUploadedFile
+────────────────────────────────────────────────────────────────────────────────
+Lines:          391-400 (10 lines)
+Category:       File Upload Logic
+Body:           Filters file out of fileValues[fieldId], syncs file input
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-file-upload.ts
+Risk:           Low — simple array filter
+
+
+ITEM 23: clearUploadedFiles
+────────────────────────────────────────────────────────────────────────────────
+Lines:          402-416 (15 lines)
+Category:       File Upload Logic
+Body:           Clears timers, intervals, fileValues, pendingFiles,
+                uploadingFiles, uploadProgress for a field; syncs empty
+                file list to input
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-file-upload.ts
+Risk:           Low — self-contained cleanup
+
+
+ITEM 24: handleSubmit
+────────────────────────────────────────────────────────────────────────────────
+Lines:          418-479 (62 lines)
+Category:       API Communication
+Body:           Builds dynamicFields array with label/type/value for each
+                field. Serializes file fields as filename arrays. POSTs to
+                /api/reports with projectName, quarter, fields, dynamicFields,
+                cycleId. Shows success popup, auto-redirects after 1.8s.
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-submit.ts
+Risk:           Low — self-contained with clear inputs/outputs
+Note:           Facilitator page has identical logic except router.push("/f")
+                vs router.push("/"). Must accept redirect path as parameter.
+
+
+ITEM 25: handleGoToDashboard
+────────────────────────────────────────────────────────────────────────────────
+Lines:          481-486 (6 lines)
+Category:       Page Layout
+Body:           Clears redirect timer, navigates to "/"
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-submit.ts
+                (as part of the submit hook's return value)
+Risk:           None
+
+
+ITEM 26: currentYear State + Effect
+────────────────────────────────────────────────────────────────────────────────
+Lines:          488-494 (7 lines)
+Category:       Form State Management
+Body:           useState initialized to new Date().getFullYear() with a
+                redundant useEffect that sets it again
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-state.ts
+Risk:           None — the useState initializer is sufficient; the useEffect
+                is redundant and can be dropped
+
+
+ITEM 27: quarterRange Derived Value
+────────────────────────────────────────────────────────────────────────────────
+Lines:          496 (1 line)
+Category:       Form State Management
+Body:           const quarterRange = quarter || "January - March"
+Should remain:  NO
+Should extract: YES → features/forms/hooks/use-form-state.ts (as a
+                useMemo or inline in hook return)
+Risk:           None
+
+
+ITEM 28: Loading Skeleton UI
+────────────────────────────────────────────────────────────────────────────────
+Lines:          498-521 (24 lines)
+Category:       UI Component
+Body:           Animated pulse skeleton mimicking form structure:
+                header surface, field surfaces with placeholder bars
+Should remain:  NO
+Should extract: YES → features/forms/components/form-skeleton.tsx
+Risk:           None — pure JSX, no props
+
+
+ITEM 29: Access Denied View
+────────────────────────────────────────────────────────────────────────────────
+Lines:          523-541 (19 lines)
+Category:       UI Component
+Body:           Centered card with "Access Denied" heading, explanation
+                text, and "Return to Login" link
+Should remain:  NO
+Should extract: YES → shared/components/access-denied.tsx
+Risk:           None — pure JSX, no props (or minimal props for message)
+Note:           Facilitator page has identical component. Shared component
+                eliminates duplication.
+
+
+ITEM 30: Preview Mode Banner
+────────────────────────────────────────────────────────────────────────────────
+Lines:          546-558 (13 lines)
+Category:       UI Component
+Body:           Yellow-ish alert with Eye icon, "Preview Mode" title,
+                "You are logged in as a different role..." description
+Should remain:  NO
+Should extract: YES → features/forms/components/preview-banner.tsx
+Risk:           None — 1 prop (isPreviewMode)
+Note:           Facilitator page has similar banner but admin is always
+                blocked, so this banner never shows there. Safe to keep
+                in shared or feature-specific components.
+
+
+ITEM 31: Form Header
+────────────────────────────────────────────────────────────────────────────────
+Lines:          559-608 (50 lines)
+Category:       Page Layout + UI Component
+Body:
+  - Back button (conditional: preview → /dashboard/forms-overview,
+    normal → /)
+  - View Reports link + Profile icon (hidden in preview mode)
+  - Project name + year heading
+  - "Quarterly Reports" subheading
+  - Greeting: "Hi, {name}. When you submit..."
+  - Required field notice with asterisk
+Should remain:  NO
+Should extract: YES → features/forms/components/form-header.tsx
+Risk:           Low — 5-6 props; conditional routing paths differ between
+                coordinator and facilitator (accept onBack prop)
+Duplication:    Similar structure in facilitator page (different back route
+                and view-reports href)
+
+
+ITEM 32: Error Message Banner
+────────────────────────────────────────────────────────────────────────────────
+Lines:          621-627 (7 lines)
+Category:       UI Component
+Body:           Red-tinted border with error message text
+Should remain:  NO
+Should extract: YES → features/forms/components/error-banner.tsx
+Risk:           None — 1 prop (message)
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 33: Quarter Display
+────────────────────────────────────────────────────────────────────────────────
+Lines:          629-635 (7 lines)
+Category:       UI Component
+Body:           "Quarter" label with rendered quarterRange in a disabled-
+                style input box
+Should remain:  NO
+Should extract: YES → features/forms/components/quarter-display.tsx
+Risk:           None — 1 prop (quarterRange)
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 34: Empty State
+────────────────────────────────────────────────────────────────────────────────
+Lines:          637-643 (7 lines)
+Category:       UI Component
+Body:           "No form is configured for this project yet..."
+Should remain:  NO
+Should extract: YES → features/forms/components/empty-fields-state.tsx
+Risk:           None — pure JSX, no props
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 35: Text Field (with auto date detection)
+────────────────────────────────────────────────────────────────────────────────
+Lines:          655-703 (49 lines)
+Category:       UI Component
+Body:           If isDateField(field) → renders date-style masked text
+                input + hidden native date input + calendar button.
+                Otherwise → renders plain text input.
+Should remain:  NO
+Should extract: YES → features/forms/components/text-field.tsx
+Risk:           Low — props: field, value, onChange, onDateChange,
+                dateInputRef, onOpenCalendar
+Note:           This is a bifurcated component: it handles both text and
+                date-like-text fields internally. The extraction should
+                preserve this internal branching to avoid leaking the
+                isDateField heuristic to parent components.
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 36: Choice / Dropdown Field
+────────────────────────────────────────────────────────────────────────────────
+Lines:          705-733 (29 lines)
+Category:       UI Component
+Body:           Radix Select with custom-styled trigger, content, items
+                mapped from field.choices
+Should remain:  NO
+Should extract: YES → features/forms/components/choice-field.tsx
+Risk:           Low — props: field, value, onChange
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 37: Standalone Date Field
+────────────────────────────────────────────────────────────────────────────────
+Lines:          736-773 (38 lines)
+Category:       UI Component
+Body:           Date-specific text input (dd/mm/yyyy format) + hidden
+                native date picker + calendar button. Same structure as
+                the date branch inside text field but triggered by
+                field.type === "date" instead of heuristic.
+Should remain:  NO
+Should extract: YES → features/forms/components/date-field.tsx
+Risk:           Low — props: field, value, onChange, dateInputRef,
+                onOpenCalendar
+Note:           Shares ~90% of JSX structure with the date branch of
+                text-field.tsx. Could potentially share a sub-component
+                or be refactored later to reduce duplication.
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 38: Fallback / Unknown Field Type
+────────────────────────────────────────────────────────────────────────────────
+Lines:          775-793 (19 lines)
+Category:       UI Component
+Body:           Catches any field.type that doesn't match known types,
+                renders a plain text input
+Should remain:  NO
+Should extract: YES → features/forms/components/fallback-field.tsx
+Risk:           None — props: field, value, onChange
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 39: Number Field
+────────────────────────────────────────────────────────────────────────────────
+Lines:          795-806 (12 lines)
+Category:       UI Component
+Body:           <input type="number"> with no-number-spinner class
+Should remain:  NO
+Should extract: YES → features/forms/components/number-field.tsx
+Risk:           None — props: field, value, onChange
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 40: Textarea Field
+────────────────────────────────────────────────────────────────────────────────
+Lines:          808-818 (11 lines)
+Category:       UI Component
+Body:           <textarea> with min-h-32 and resize-y
+Should remain:  NO
+Should extract: YES → features/forms/components/textarea-field.tsx
+Risk:           None — props: field, value, onChange
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 41: Rating Field
+────────────────────────────────────────────────────────────────────────────────
+Lines:          820-864 (45 lines)
+Category:       UI Component
+Body:           Renders N star buttons (field.ratingLevels || 5). Has
+                internal hover state (hoveredRatingField, hoveredRatingValue)
+                to show highlight on mouseenter before click. Shows
+                "{value}/{max}" label when a rating is selected.
+Should remain:  NO
+Should extract: YES → features/forms/components/rating-field.tsx
+Risk:           Low — props: field, value, onChange. Internal hover state
+                is fully self-contained within the component.
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 42: File Upload Field
+────────────────────────────────────────────────────────────────────────────────
+Lines:          866-955 (90 lines)
+Category:       UI Component + File Upload Logic
+Body:           Upload button → hidden file input → file type info →
+                uploading state (progress bar with cancel) → uploaded
+                files list with delete buttons. Interacts with 5 different
+                state arrays and 3 handlers.
+Should remain:  NO
+Should extract: YES → features/forms/components/file-upload-field.tsx
+Risk:           Low — best extracted as a controlled component where all
+                5 state arrays + 3 handlers are passed as grouped props
+                (e.g., fileUploadProps object). Internal presentation logic
+                is fully self-contained.
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 43: Submit Button
+────────────────────────────────────────────────────────────────────────────────
+Lines:          960-970 (11 lines)
+Category:       UI Component
+Body:           <button type="submit"> with disabled state when fields
+                empty or submitting. Shows "Submitting..." text.
+Should remain:  NO
+Should extract: YES → features/forms/components/submit-button.tsx
+Risk:           None — props: disabled, isSubmitting
+Duplication:    Duplicated in facilitator page
+Note:           The wrapper <div className="flex flex-col sm:flex-row gap-4
+                pt-8"> should remain in page.tsx as layout concern, or
+                be included in the component.
+
+
+ITEM 44: Submit Success Popup
+────────────────────────────────────────────────────────────────────────────────
+Lines:          974-992 (19 lines)
+Category:       UI Component
+Body:           Fixed overlay modal with "Report submitted successfully"
+                heading, "Redirecting to dashboard..." text, and "Go to
+                Dashboard" button
+Should remain:  NO
+Should extract: YES → features/forms/components/submit-success-popup.tsx
+Risk:           None — props: show, onGoToDashboard
+Duplication:    Similar in facilitator page (different dashboard route)
+
+
+ITEM 45: Field Mapping Loop (top-level render)
+────────────────────────────────────────────────────────────────────────────────
+Lines:          644-957 (314 lines, encompassing all field type branches)
+Category:       Page Layout
+Body:           fields.map(field => ...) with <label> and 8 conditional
+                field type branches
+Should remain:  PARTIALLY — the map loop structure stays in page.tsx
+Should extract: PARTIALLY — create a <FieldRenderer> component that imports
+                individual field components and delegates by field.type.
+Risk:           Low — the mapping loop becomes ~15 lines with FieldRenderer
+Duplication:    Duplicated in facilitator page
+
+
+ITEM 46: <form> element + onInvalid handler
+────────────────────────────────────────────────────────────────────────────────
+Lines:          610-619 (10 lines)
+Category:       Page Layout
+Body:           <form ref={formRef} onSubmit={handleSubmit}
+                onInvalid={() => formRef.current?.scrollIntoView(...)}>
+Should remain:  YES — page-level form container
+Should extract: NO
+Risk:           N/A
+
+
+ITEM 47: Outer Layout Containers
+────────────────────────────────────────────────────────────────────────────────
+Lines:          543-545 (3 lines opening) + 993-995 (3 lines closing)
+Category:       Page Layout
+Body:           <div className="min-h-screen"> > <div className="max-w-4xl
+                mx-auto px-4 py-10">
+Should remain:  YES — page-level layout shell
+Should extract: NO
+Risk:           N/A
+
+
+ITEM 48: Imports Block
+────────────────────────────────────────────────────────────────────────────────
+Lines:          1-28 (28 lines)
+Category:       Setup
+Body:           React, Next.js, lucide-react, lib functions, UI select
+Should remain:  PARTIALLY — imports for page-level concerns (Next.js hooks)
+Should extract: PARTIALLY — component imports move to their respective files
+Risk:           None — mechanical refactoring
+After extract:  ~12 lines (React, Next.js hooks, 4-5 custom hooks,
+                ~15 UI components)
+
+
+SECTION 3: RESPONSIBILITIES THAT SHOULD REMAIN IN page.tsx
+================================================================================
+
+Responsibility                            Est. Lines   Reason
+────────────────────────────────────────  ───────────  ────────────────────────
+"use client" + imports                    ~12           Setup
+useParams / useRouter / projectSlug       ~4            Page-level routing
+Custom hook composition (5 hooks)         ~15           Wire state + handlers
+Outer layout containers                   ~6            Page layout shell
+<form> element + onInvalid                ~10           Page-level form wrapper
+Loading spinner conditional render        ~3            Page-level conditional
+Access denied conditional render          ~3            Page-level conditional
+Main render: compose components           ~30           Composition root
+  (FormHeader + FieldRenderer +
+   SubmitButton + SubmitSuccessPopup)
+
+TOTAL REMAINING                           ~74 lines
+
+Reduction: 996 → ~74 lines (92.6%)
+
+
+SECTION 4: RESPONSIBILITIES THAT SHOULD BE EXTRACTED
+================================================================================
+
+A. CONSTANTS (zero risk)
+────────────────────────────────────────────────────────────────────────────────
+Item                     Lines   Destination
+───────────────────────  ──────  ────────────────────────────────────────
+FORM_*_CLASS (13 vars)   22      features/forms/constants/styles.ts
+fileAcceptTypes          2       features/forms/constants/file-config.ts
+
+B. TYPES (zero risk)
+────────────────────────────────────────────────────────────────────────────────
+Item                     Lines   Destination
+───────────────────────  ──────  ────────────────────────────────────────
+FieldValueMap etc.       8       features/forms/types.ts
+
+C. UTILITY FUNCTIONS (zero risk)
+────────────────────────────────────────────────────────────────────────────────
+Item                     Lines   Destination
+───────────────────────  ──────  ────────────────────────────────────────
+formatDateInput          13      features/forms/utils/date-utils.ts
+toDisplayDate            10      features/forms/utils/date-utils.ts
+isDateField              1       features/forms/utils/date-utils.ts
+getQuarterLabel          2       features/forms/utils/date-utils.ts
+openDatePicker           14      features/forms/utils/date-utils.ts
+
+D. FORM STATE HOOK (medium risk)
+────────────────────────────────────────────────────────────────────────────────
+Item                              Lines   Destination
+────────────────────────────────  ──────  ────────────────────────────────────────
+18 state declarations             20      features/forms/hooks/use-form-state.ts
+6 refs                            14      features/forms/hooks/use-form-state.ts
+Field init effect                 50      features/forms/hooks/use-form-state.ts
+Cleanup effect                    10      features/forms/hooks/use-form-state.ts
+handleTextChange / handleDateChange 6     features/forms/hooks/use-form-state.ts
+currentYear + quarterRange        8       features/forms/hooks/use-form-state.ts
+
+E. AUTH + RBAC HOOK (medium risk)
+────────────────────────────────────────────────────────────────────────────────
+Item                              Lines   Destination
+────────────────────────────────  ──────  ────────────────────────────────────────
+getCurrentUser + null check       20      features/forms/hooks/use-form-auth.ts
+Role check + admin preview        22      features/forms/hooks/use-form-auth.ts
+Project assignment validation     13      features/forms/hooks/use-form-auth.ts
+Error catch-all                   3       features/forms/hooks/use-form-auth.ts
+
+F. FORM CONFIG HOOK (medium risk)
+────────────────────────────────────────────────────────────────────────────────
+Item                              Lines   Destination
+────────────────────────────────  ──────  ────────────────────────────────────────
+getHydratedFormState call         3       features/forms/hooks/use-form-config.ts
+/api/reporting-cycles fetch       8       features/forms/hooks/use-form-config.ts
+Project slug resolution           6       features/forms/hooks/use-form-config.ts
+Field filtering + renumbering     22      features/forms/hooks/use-form-config.ts
+Quarter label derivation          10      features/forms/hooks/use-form-config.ts
+
+G. FILE UPLOAD HOOK (low risk)
+────────────────────────────────────────────────────────────────────────────────
+Item                              Lines   Destination
+────────────────────────────────  ──────  ────────────────────────────────────────
+syncFileInput                     12      features/forms/hooks/use-file-upload.ts
+handleFileChange (progress sim)   39      features/forms/hooks/use-file-upload.ts
+removeUploadedFile                10      features/forms/hooks/use-file-upload.ts
+clearUploadedFiles                15      features/forms/hooks/use-file-upload.ts
+
+H. SUBMIT HOOK (low risk)
+────────────────────────────────────────────────────────────────────────────────
+Item                              Lines   Destination
+────────────────────────────────  ──────  ────────────────────────────────────────
+handleSubmit (POST /api/reports)  62      features/forms/hooks/use-form-submit.ts
+handleGoToDashboard               6       features/forms/hooks/use-form-submit.ts
+
+I. UI COMPONENTS (none to low risk)
+────────────────────────────────────────────────────────────────────────────────
+Component                         Lines   Destination
+────────────────────────────────  ──────  ────────────────────────────────────────
+Loading skeleton                  24      features/forms/components/form-skeleton.tsx
+Access denied view                19      shared/components/access-denied.tsx
+Preview mode banner               13      features/forms/components/preview-banner.tsx
+Form header                       50      features/forms/components/form-header.tsx
+Error banner                      7       features/forms/components/error-banner.tsx
+Quarter display                   7       features/forms/components/quarter-display.tsx
+Empty state ("no fields")         7       features/forms/components/empty-fields-state.tsx
+Text field (with date detection)  49      features/forms/components/text-field.tsx
+Choice dropdown                   29      features/forms/components/choice-field.tsx
+Standalone date field             38      features/forms/components/date-field.tsx
+Fallback field                    19      features/forms/components/fallback-field.tsx
+Number field                      12      features/forms/components/number-field.tsx
+Textarea field                    11      features/forms/components/textarea-field.tsx
+Rating field (with hover)         45      features/forms/components/rating-field.tsx
+File upload field (90 lines)      90      features/forms/components/file-upload-field.tsx
+Submit button                     11      features/forms/components/submit-button.tsx
+Submit success popup              19      features/forms/components/submit-success-popup.tsx
+Field renderer (router)           15      features/forms/components/field-renderer.tsx
+
+
+SECTION 5: PROPOSED FOLDER STRUCTURE
+================================================================================
+
+features/
+└── forms/
+    ├── types.ts
+    │   FieldValueMap, FileValueMap, UploadingMap, UploadProgressMap,
+    │   CreateReportResponse
+    │
+    ├── constants/
+    │   ├── styles.ts
+    │   │   FORM_FIELD_CLASS, FORM_DATE_FIELD_CLASS, FORM_SURFACE_CLASS,
+    │   │   FORM_LABEL_CLASS, FORM_REQUIRED_CLASS, FORM_META_CLASS,
+    │   │   FORM_LINK_CLASS, FORM_ICON_BUTTON_CLASS,
+    │   │   FORM_SECONDARY_ACTION_CLASS, FORM_PRIMARY_BUTTON_CLASS,
+    │   │   FORM_CUSTOM_SELECT_TRIGGER_CLASS,
+    │   │   FORM_CUSTOM_SELECT_CONTENT_CLASS,
+    │   │   FORM_CUSTOM_SELECT_ITEM_CLASS
+    │   │
+    │   └── file-config.ts
+    │       fileAcceptTypes
+    │
+    ├── utils/
+    │   └── date-utils.ts
+    │       formatDateInput, toDisplayDate, isDateField, getQuarterLabel,
+    │       openDatePicker
+    │
+    ├── hooks/
+    │   ├── use-form-auth.ts
+    │   │   getCurrentUser, role check, admin preview, project assignment
+    │   │
+    │   ├── use-form-config.ts
+    │   │   getHydratedFormState, /api/reporting-cycles fetch,
+    │   │   field filter/renumber, quarter label derivation
+    │   │
+    │   ├── use-form-state.ts
+    │   │   18 state variables, 6 refs, field init effect, cleanup,
+    │   │   handleTextChange, handleDateChange, currentYear, quarterRange
+    │   │
+    │   ├── use-file-upload.ts
+    │   │   syncFileInput, handleFileChange, removeUploadedFile,
+    │   │   clearUploadedFiles, timer/interval management
+    │   │
+    │   └── use-form-submit.ts
+    │       handleSubmit, handleGoToDashboard, POST /api/reports,
+    │       auto-redirect timer, submit success popup state
+    │
+    ├── api/
+    │   └── submit-report.ts          (optional — currently inline in hook)
+    │
+    └── components/
+        ├── form-header.tsx
+        ├── form-skeleton.tsx
+        ├── preview-banner.tsx
+        ├── error-banner.tsx
+        ├── quarter-display.tsx
+        ├── empty-fields-state.tsx
+        ├── submit-button.tsx
+        ├── submit-success-popup.tsx
+        ├── field-renderer.tsx       (router: delegates by field.type)
+        ├── text-field.tsx           (text + auto date detection)
+        ├── number-field.tsx
+        ├── textarea-field.tsx
+        ├── choice-field.tsx
+        ├── date-field.tsx
+        ├── rating-field.tsx
+        ├── file-upload-field.tsx
+        └── fallback-field.tsx       (unknown type fallback)
+
+shared/
+└── components/
+    └── access-denied.tsx            (shared by coordinator + facilitator)
+
+
+SECTION 6: DUPLICATION ANALYSIS (Coordinator vs Facilitator)
+================================================================================
+
+Both pages are ~95% identical. Differences:
+
+1.  Component name:
+    - Coordinator: ProjectFormPage (line 93)
+    - Facilitator: FacilitatorProjectFormPage (line 94)
+
+2.  Default name:
+    - Coordinator: "Coordinator" (line 101)
+    - Facilitator: "Facilitator" (line 102)
+
+3.  Role check:
+    - Coordinator: currentUser.role !== "coordinator" (line 157)
+    - Facilitator: currentUser.role !== "facilitator" (line 156)
+
+4.  Admin preview logic:
+    - Coordinator: allows admin with ?preview=true, shows PreviewBanner
+    - Facilitator: blocks ALL admins (no preview mode)
+
+5.  Dashboard redirect:
+    - Coordinator: "/" (line 472, 485)
+    - Facilitator: "/f" (line 467, 480)
+
+6.  View Reports link:
+    - Coordinator: "/my-reports" (line 577)
+    - Facilitator: "/f/my-reports" (line 574)
+
+7.  Back button default:
+    - Coordinator: "/" (line 565)
+    - Facilitator: "/f" (line 564)
+
+8.  Preview banner text:
+    - Coordinator: "logged in as a different role" (line 554)
+    - Facilitator: "viewing this form as an admin" (line 548)
+
+9.  FORM_PRIMARY_BUTTON_CLASS focus ring:
+    - Coordinator: focus:ring-[#004446] (line 64)
+    - Facilitator: focus:ring-[#cee9db] (line 65)
+
+10. Rating field focus ring:
+    - Coordinator: focus:ring-[#004446] (line 846)
+    - Facilitator: focus:ring-[#004446]/30 (line 838)
+
+Total duplicated payload: 996 + 988 = 1,984 lines
+Unique code: ~50 lines per page = ~100 lines
+Duplication ratio: 95%
+
+
+SECTION 7: ESTIMATED REDUCTION IN PAGE SIZE
+================================================================================
+
+Scenario: Both pages extracted to share the same forms feature module.
+
+                         Before    After    Reduction
+                        --------  -------  ----------
+Coordinator page.tsx    996       ~74      92.6%
+Facilitator page.tsx    988       ~74      92.6%
+Combined total          1,984     ~148     92.5%
+
+Eliminates ~1,836 lines of direct duplication.
+
+
+SECTION 8: RISK ASSESSMENT
+================================================================================
+
+Extraction Target              Risk    Rationale
+─────────────────────────────  ──────  ────────────────────────────────────────
+Constants  → constants/       None    Pure string exports, no deps
+Types      → types.ts         None    Pure type exports, no runtime code
+Utilities  → date-utils.ts    None    Pure functions, no React deps
+Form skeleton                 None    Pure JSX, no props
+Access denied                 None    Pure JSX, no props
+Preview banner                None    1 prop (isPreviewMode)
+Error banner                  None    1 prop (message)
+Quarter display               None    1 prop (quarterRange)
+Empty state                   None    Pure JSX, no props
+Submit button                 None    2 props (disabled, isSubmitting)
+Submit success popup          None    2 props (show, onGoToDashboard)
+Form header                   Low     5-6 props, conditional routing
+Text field                    Low     Props: field, value, onChange, etc.
+Number field                  Low     3 props (field, value, onChange)
+Textarea field                Low     3 props (field, value, onChange)
+Choice field                  Low     3 props (field, value, onChange)
+Date field                    Low     5 props (field, value, onChange, ...)
+Rating field                  Low     Self-contained: field, value, onChange
+File upload field             Low     5 state arrays + 3 handlers as props
+Fallback field                Low     3 props (field, value, onChange)
+Field renderer                Low     Router: 1 field * all possible handlers
+use-file-upload hook          Low     Self-contained timer logic
+use-form-submit hook          Low     Clear inputs/outputs, no state overlap
+use-form-state hook           Medium  6 interdependent effects, merge semantics
+use-form-auth hook            Medium  Interleaved with config in same useEffect
+use-form-config hook          Medium  Interleaved with auth in same useEffect
+
+OVERALL RISK: MEDIUM
+
+The two mount-effect hooks (auth + config) are currently interleaved in a
+single useEffect (lines 134-251). They must be cleanly separated before
+extraction. This is the highest-risk and highest-value extraction target.
+
+Everything else (75% of the file) is low-risk or zero-risk and can be
+independently extracted without touching other responsibilities.
+
+
+EXTRACTION ORDER RECOMMENDATION
+================================================================================
+
+Phase 1 (zero risk, can parallelize):
+  ─ constants/styles.ts
+  ─ constants/file-config.ts
+  ─ types.ts
+  ─ utils/date-utils.ts
+  ─ components/ (all ~16 pure UI components)
+
+Phase 2 (low risk):
+  ─ hooks/use-file-upload.ts
+  ─ hooks/use-form-submit.ts
+
+Phase 3 (medium risk — requires careful splitting of mount effect):
+  ─ hooks/use-form-auth.ts     (extract from lines 134-195)
+  ─ hooks/use-form-config.ts   (extract from lines 197-251)
+  ─ hooks/use-form-state.ts    (extract remaining state + effects)
+
+Phase 4 (apply to both pages):
+  ─ Rewrite coordinator page.tsx (~74 lines, composes hooks + components)
+  ─ Rewrite facilitator page.tsx (~74 lines, same with role config)
+────────────────────────────────────────────────────────────────────────────────

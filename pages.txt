@@ -1,226 +1,80 @@
-Replace the current Help (?) menu implementation with a QRMS-specific enterprise Help & Support panel.
+Use the findings from responsibility-audit-form-layout-scroll.txt.
 
-IMPORTANT
+Proceed with implementation.
 
-This is an internal enterprise application.
+Requirements:
 
-Do NOT copy Atlassian’s entire help menu.
-
-Do NOT include:
-
-* Community Forum
-* Public Support Articles
-* Terms of Use
-* Privacy Policy
-* External Community Links
-
-The Help menu should be tailored specifically for QRMS users.
-
-⸻
-
-ENTRY POINT
-
-Use the existing Question Mark (?) icon in the top-right navigation bar.
-
-Keep the existing interaction pattern.
-
-Clicking the icon should open a right-side drawer/panel.
-
-Reuse existing drawer styling and animations if available.
-
-⸻
-
-PANEL TITLE
-
-Help & Support
-
-Optional subtitle:
-
-Get help, report issues, and stay informed about QRMS updates.
-
-⸻
-
-MENU ITEMS
-
-Display the following actions:
-
-1. Contact Support
-
-Description:
-
-Get assistance with account access, reports, forms, permissions, and system issues.
-
-Future behavior:
-
-* Open support email
-* Open helpdesk
-* Open Teams channel
-* Open ticket system
-
-For now:
-
-* Placeholder action
-* Add TODO comment
-
-⸻
-
-2. Documentation
-
-Description:
-
-View QRMS user guides and documentation.
-
-Future behavior:
-
-* Open internal documentation portal
-* Open user guides
-* Open training resources
-
-For now:
-
-* Placeholder action
-* Add TODO comment
-
-⸻
-
-3. Report an Issue
-
-Description:
-
-Report bugs, unexpected behavior, or technical problems.
-
-Future behavior:
-
-* Open bug reporting form
-* Create support ticket
-* Send issue report
-
-For now:
-
-* Placeholder action
-* Add TODO comment
-
-⸻
-
-4. Give Feedback
-
-Description:
-
-Suggest improvements and new features.
-
-Future behavior:
-
-* Feature request form
-* Feedback collection portal
-* Product improvement workflow
-
-For now:
-
-* Placeholder action
-* Add TODO comment
-
-⸻
-
-5. Release Notes
-
-Description:
-
-View recent system updates and improvements.
-
-Future behavior:
-
-* Open release notes page
-* Show latest changes
-* Show version history
-
-For now:
-
-* Placeholder action
-* Add TODO comment
-
-⸻
-
-UI REQUIREMENTS
-
-Use existing QRMS design system.
-
-Reuse:
-
-* Existing icons
-* Existing typography
-* Existing spacing
-* Existing colors
-* Existing hover states
+1. Keep body scrolling.
 
 Do NOT introduce:
 
-* New color palettes
-* New visual styles
-* New design systems
+* overflow-y-auto containers
+* nested scrolling regions
+* h-screen form wrappers
+* background-attachment: fixed
 
-The panel should feel like a native part of QRMS.
+2. Remove the gradient from:
 
-⸻
+* app/(coordinator)/layout.tsx
+* app/(facilitator)/layout.tsx
 
-LAYOUT
+Replace with a neutral page background.
 
-Recommended structure:
+3. Add a fixed-height gradient hero section directly inside the form pages.
 
-Help & Support
+Use the existing QRMS Microsoft-inspired gradients.
 
-[ Contact Support ]
-Assistance with reports, forms, permissions, and account issues.
+Recommended height:
 
-[ Documentation ]
-User guides and training resources.
+Desktop:
+260px–300px
 
-[ Report an Issue ]
-Report bugs and technical problems.
+Mobile:
+180px–220px
 
-[ Give Feedback ]
-Suggest improvements and new features.
+4. The hero section should contain:
 
-[ Release Notes ]
-View recent updates and improvements.
+* Project Name
+* Quarterly Reports
+* Quarter / Year
+* Greeting
 
-⸻
+5. Add a compact sticky header.
 
-FUTURE EXTENSIBILITY
+Show only:
 
-Design the component so additional items can be added later.
+* Back button
+* Project Name
 
-Use a configurable menu structure rather than hardcoded repeated blocks.
+Keep it minimal.
 
-Example future additions:
+Do not include greeting text or metadata.
 
-* System Status
-* Training Videos
-* FAQ
-* Contact Administrator
+6. Keep body scrolling.
 
-⸻
+The hero section should scroll away naturally.
 
-FOOTER CLEANUP
+The sticky header should remain visible.
 
-Remove any global footer implementation related to:
+7. Use negative margin overlap so the form content slightly overlaps the hero section.
 
-Quarterly Reports Management System
+Microsoft Forms style.
 
-Version
+8. Do not modify:
 
-Support
+* form logic
+* uploads
+* validation
+* API calls
+* RBAC
+* submit flow
 
-The Help & Support panel becomes the primary support entry point.
+9. Implement on coordinator form first.
 
-⸻
+After completion provide:
 
-IMPLEMENTATION REPORT
-
-After implementation provide:
-
-1. Files Modified
-2. Help Panel Component Location
-3. Navigation Integration Location
-4. Menu Configuration Structure
-5. Future Extension Points
-6. Placeholder Actions Added
+* Files modified
+* Layout hierarchy after implementation
+* Sticky header behavior
+* Mobile behavior
+* Screenshots or description of visual changes

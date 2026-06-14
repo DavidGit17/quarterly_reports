@@ -8,6 +8,7 @@ import {
   CalendarDays,
   CircleUserRound,
   Eye,
+  LogOut,
   Star,
   Upload,
   X,
@@ -18,7 +19,7 @@ import {
   toProjectSlug,
   type FormFieldConfig,
 } from "@/lib/shared/form-storage";
-import { getCurrentUser } from "@/lib/shared/auth-client";
+import { getCurrentUser, clearCurrentUserCache } from "@/lib/shared/auth-client";
 import {
   Select,
   SelectContent,
@@ -541,9 +542,30 @@ export default function ProjectFormPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        {isPreviewMode && (
+    <div className="fixed inset-0 bg-luxury-glass flex flex-col overflow-hidden">
+      <div className="sticky top-0 z-10 backdrop-blur-md flex-shrink-0 px-4 sm:px-6">
+        <div className="flex items-center justify-between py-3">
+          <button
+            type="button"
+            onClick={() =>
+              isPreviewMode
+                ? router.push("/dashboard/forms-overview")
+                : router.push("/")
+            }
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700 transition-colors hover:text-[#4b6358]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {isPreviewMode ? "Back" : "Back to Dashboard"}
+          </button>
+          {!isPreviewMode && (
+            <ProfileDropdown />
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-10">
+          {isPreviewMode && (
           <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 flex items-center gap-3">
             <Eye className="h-5 w-5 text-slate-600 shrink-0" />
             <div>
@@ -558,38 +580,6 @@ export default function ProjectFormPage() {
         )}
 
         <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
-          <div className="flex items-center justify-between mb-6">
-            <button
-              type="button"
-              onClick={() =>
-                isPreviewMode
-                  ? router.push("/dashboard/forms-overview")
-                  : router.push("/")
-              }
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {isPreviewMode ? "Back" : "Back to Dashboard"}
-            </button>
-            {!isPreviewMode && (
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/my-reports"
-                  className="text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-                >
-                  View Reports
-                </Link>
-                <Link
-                  href="/profile"
-                  className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-                  aria-label="Go to profile"
-                  title="Profile"
-                >
-                  <CircleUserRound className="h-6 w-6" />
-                </Link>
-              </div>
-            )}
-          </div>
           <h2 className="mb-2 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] sm:text-[30px] sm:leading-10 sm:tracking-[-0.02em]">
             {projectName} {quarterRange} {currentYear} Reports
           </h2>
@@ -990,7 +980,70 @@ export default function ProjectFormPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+function ProfileDropdown() {
+  const [open, setOpen] = useState(false);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const router = useRouter();
+
+  const cancelClose = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = undefined;
+    }
+  };
+
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimeoutRef.current = setTimeout(() => setOpen(false), 200);
+  };
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => { cancelClose(); setOpen(true); }}
+      onMouseLeave={scheduleClose}
+    >
+      <button
+        className="inline-flex items-center text-slate-700 transition-colors hover:text-[#4b6358]"
+        aria-label="User menu"
+        title="Profile"
+      >
+        <CircleUserRound className="h-6 w-6" />
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1.5 w-48 rounded-2xl border border-slate-200 bg-white shadow-lg z-50 py-1 overflow-hidden"
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
+        >
+          <Link
+            href="/profile"
+            className="flex items-center px-3 py-2.5 text-sm font-ui text-slate-700 hover:bg-slate-100 transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            My Profile
+          </Link>
+          <div className="h-px bg-slate-200" />
+          <button
+            onClick={async () => {
+              setOpen(false);
+              clearCurrentUserCache();
+              await fetch("/api/auth/logout", { method: "POST" });
+              router.push("/auth");
+            }}
+            className="flex w-full items-center px-3 py-2.5 text-sm font-ui text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </button>
+        </div>
+      )}
     </div>
   );
 }

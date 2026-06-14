@@ -7,7 +7,6 @@ import { getMongoRouteErrorResponse } from "@/server/db/mongodb";
 import { checkRateLimit } from "@/server/auth/rate-limit";
 
 type ResetPasswordPayload = {
-  email?: string;
   token?: string;
   newPassword?: string;
 };
@@ -23,13 +22,12 @@ export async function POST(request: Request) {
     }
 
     const payload = (await request.json()) as ResetPasswordPayload;
-    const email = payload.email?.trim().toLowerCase() || "";
     const token = payload.token?.trim() || "";
     const newPassword = payload.newPassword || "";
 
-    if (!email || !token || !newPassword) {
+    if (!token || !newPassword) {
       return NextResponse.json(
-        { message: "Email, token, and new password are required." },
+        { message: "Token and new password are required." },
         { status: 400 },
       );
     }
@@ -46,7 +44,6 @@ export async function POST(request: Request) {
 
     const tokenHash = createHash("sha256").update(token).digest("hex");
     const tokenRecord = await tokensCollection.findOne({
-      email,
       tokenHash,
       used: false,
       expiresAt: { $gt: new Date() },

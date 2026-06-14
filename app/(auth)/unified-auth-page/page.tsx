@@ -8,6 +8,7 @@ import {
   getFormConfigs,
 } from "@/lib/shared/form-storage";
 import { useToast } from "@/hooks/shared/use-toast";
+import { clearCurrentUserCache } from "@/lib/shared/auth-client";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Info, ArrowRight, User, Folder } from "lucide-react";
@@ -133,15 +134,19 @@ export default function UnifiedAuthPage() {
       }
 
       if (data.role === "admin") {
+        clearCurrentUserCache();
         router.replace("/dashboard");
       } else if (data.role === "coordinator") {
+        clearCurrentUserCache();
         router.replace("/");
       } else if (data.role === "facilitator") {
+        clearCurrentUserCache();
         router.replace("/f");
       } else if (!data.project) {
         setErrorMessage("Project is not assigned to your account.");
         return;
       } else {
+        clearCurrentUserCache();
         router.replace("/");
       }
     } catch {
