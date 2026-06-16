@@ -134,7 +134,7 @@ export default function FacilitatorDashboard() {
   return (
     <div className="min-h-screen">
       {/* Navbar */}
-      <div className="sticky top-0 z-50 bg-[#F0F4F8]/80 backdrop-blur-xl border-b border-slate-200/30">
+      <div className="sticky top-0 z-50 bg-[#F0F4F8]/60 backdrop-blur-2xl border-b border-slate-200/20">
         <div className="px-4 sm:px-6 h-14 flex items-center justify-between relative">
           <Link href="/f" className="absolute left-1/2 -translate-x-1/2 sm:static sm:left-auto sm:translate-x-0 sm:mr-auto">
             <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-6 sm:h-7 w-auto" />

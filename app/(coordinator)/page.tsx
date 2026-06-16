@@ -161,10 +161,10 @@ export default function CoordinatorDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-zinc-900 selection:bg-zinc-200 bg-luxury-glass">
+    <div className="min-h-screen  text-zinc-900 selection:bg-zinc-200 bg-luxury-glass-1">
       
       {/* 1. Global Nav & Page Header */}
-      <nav className="sticky top-0 z-50 h-14 sm:h-16 bg-teal-50 border-b border-zinc-200/30 px-4 sm:px-6 flex items-center justify-center relative">
+      <nav className="sticky top-0 z-50 h-14 sm:h-16 bg-white backdrop-blur-2xl border-b border-zinc-200/20 px-4 sm:px-6 flex items-center justify-center relative">
         <Link href="/" className="absolute left-1/2 -translate-x-1/2 sm:static sm:left-auto sm:translate-x-0 sm:mr-auto">
           <img src="/brand/QRMS.webp" alt="Quarterly Reports" className="h-6 sm:h-7 w-auto" />
         </Link>
@@ -262,7 +262,7 @@ export default function CoordinatorDashboard() {
         </div>
 
         {/* 3. Unified Card Geometry - Assigned Reports */}
-        <div className="w-full bg-white rounded-xl border border-zinc-200/60 shadow-sm p-6 sm:p-8">
+        <div className="w-full bg-white  rounded-xl border border-zinc-200/60 shadow-sm p-6 sm:p-8">
           {formHref ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
@@ -299,7 +299,7 @@ export default function CoordinatorDashboard() {
                 <FileText className="h-6 w-6 text-zinc-400" />
               </div>
               <p className="text-base font-semibold text-zinc-900">No active report requests</p>
-              <p className="text-sm font-medium text-zinc-500 mt-1">New reporting cycles will appear here automatically.</p>
+              <p className="text-sm font-medium text-zinc-500 mt-1 text-center">New reporting cycles will appear here automatically.</p>
             </div>
           )}
         </div>

@@ -359,6 +359,15 @@
   }
 }
 
+.bg-luxury-glass-1 {
+  background:
+    radial-gradient(at 10% 10%, rgb(219, 234, 254) 0px, transparent 50%),
+    radial-gradient(at 85% 15%, rgb(191, 219, 254) 0px, transparent 50%),
+    radial-gradient(at 15% 85%, rgb(224, 242, 254) 0px, transparent 50%),
+    radial-gradient(at 85% 90%, rgb(219, 234, 254) 0px, transparent 50%),
+    rgb(255, 255, 255);
+}
+
 .bg-luxury-glass-s {
   background: rgb(176, 224, 230);
   background: linear-gradient(
