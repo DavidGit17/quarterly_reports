@@ -1,0 +1,717 @@
+COORDINATOR AND FACILITATOR FEATURE AUDIT
+===========================================
+
+Generated: 2026-06-14
+Method: Full codebase analysis (pages, components, layouts, API routes, shared libs)
+
+================================================================================
+1. COORDINATOR FEATURES
+================================================================================
+
+1.1 Pages Accessible
+--------------------
+Route          | Path                                | Purpose
+---------------|-------------------------------------|-------------------------------------------
+/              | app/(coordinator)/page.tsx           | Coordinator dashboard (landing)
+/my-reports    | app/(coordinator)/my-reports/page.tsx| Full submitted reports list
+/submit-report | app/(coordinator)/submit-report/page.tsx| Legacy report submission (manual entry)
+/select        | app/(coordinator)/select/page.tsx    | Project + quarter selection (legacy)
+/form/[project]| app/(coordinator)/form/[project]/page.tsx| Dynamic project-specific form
+/report/[id]   | app/(coordinator)/report/[id]/page.tsx| Single report detail view
+/profile       | app/(shared)/profile/page.tsx        | Profile management (shared)
+/auth          | app/(auth)/unified-auth-page/page.tsx| Login / signup
+
+1.2 Navigation Items
+--------------------
+Source          | Item                | Destination        | Type
+----------------|---------------------|--------------------|---------
+Dashboard       | "View Reports"      | /my-reports        | Link
+Dashboard       | Avatar (initials)   | Profile dropdown   | Button
+Dashboard       | Profile             | /profile           | Link (dropdown)
+Dashboard       | Reset Password      | /profile#password  | Link (dropdown)
+Dashboard       | Logout              | /auth              | Button (dropdown)
+Dashboard       | "New Report" card   | /form/{slug} or /select | Link (card)
+My Reports      | "+ New Report"      | /form/{slug}       | Link
+My Reports      | "Back"              | router.back()      | Button
+My Reports      | "View" (per row)    | /report/{id}       | Button
+Form            | "Back to Dashboard" | /                  | Button
+Form            | Profile icon        | Profile dropdown   | Hover dropdown
+Form            | My Profile          | /profile           | Link (dropdown)
+Form            | Logout              | /auth              | Button (dropdown)
+Report Detail   | "Back"              | router.back()      | Button
+Report Detail   | "Close"             | router.back()      | Button
+Profile         | "Back to Dashboard" | /                  | Button
+Profile         | "Go to Assigned Form"| /form/{slug}      | Link
+Profile         | "View My Reports"   | /my-reports        | Link
+Profile         | "Logout"            | /auth              | Button
+Profile         | "Change Password"   | submits to API     | Submit button
+
+1.3 Dashboard Widgets
+---------------------
+- Welcome heading with coordinator name
+- "Quarterly Reports Dashboard" subtitle
+- "View Reports" link (top right)
+- Profile avatar with dropdown (top right)
+- "New Report" card (FileText icon + arrow, green-themed)
+- "My Reports" section heading
+- Report count ("X reports")
+- Search input (placeholder: "Search by quarter...")
+- Report table (columns: Project, Quarter, Date, Time)
+- "View" link per report row
+- Pagination (Previous/Next with "Page X of Y")
+- Empty state: "Submit your first report" link
+- 5 skeleton rows during loading
+
+1.4 Profile Features
+--------------------
+- Avatar with initials or uploaded image
+- Click avatar or "Edit Profile" to open image crop modal
+- Upload new image (max 10MB, crop with react-easy-crop, zoom 1-3x)
+- Remove image
+- View email, role, project (read-only)
+- "Go to Assigned Form" quick action
+- "View My Reports" quick action
+- "Logout" button
+- Two sidebar tabs: Profile, Change Password
+- Change Password: Current, New, Confirm inputs + submit
+
+1.5 Report-Related Features
+---------------------------
+- Submit report via dynamic form (/form/[project])
+- Submit report via legacy form (/submit-report?project=X&quarter=Y)
+- View submitted report details (/report/[id])
+- View all reports with search and pagination (/my-reports)
+- Search reports by quarter keyword
+- Paginated results (10 per page on dashboard, 50 on /my-reports)
+- Report metadata: Project, Quarter, Submitted By, Date/Time
+- Dynamic field values displayed in report detail
+
+1.6 Form-Related Features
+--------------------------
+- Dynamic form rendered from field configs (up to 27 fields)
+- Field types: text, number, textarea, choice (dropdown), date, rating (stars), file upload
+- Required field validation
+- File upload with progress bar (simulated), max 10 files, 1GB each
+- Supported file types: Word, Excel, PPT, PDF, Image, Video, Audio
+- Date input with dd/mm/yyyy mask and calendar picker
+- Star rating (1-5 configurable) with hover preview
+- Choice dropdown (Radix Select)
+- Submit with success popup modal
+- Auto-redirect to dashboard after 1.8s
+- Preview mode for admin (read-only, ?preview=true)
+- Access denied for wrong project assignment
+- Access denied for non-coordinator roles (except admin preview)
+- 3 fields filtered out: region-name, team-size, main-project-update
+- Field IDs renumbered sequentially (strips numeric prefixes)
+
+1.7 Account Management Features
+-------------------------------
+- View profile (username, email, role, project)
+- Upload/crop profile image
+- Change password
+- Logout (clears session cache, POSTs to /api/auth/logout)
+
+1.8 Hidden or Secondary Actions
+---------------------------------
+- router.back() used instead of explicit nav on "Back" buttons (may behave unexpectedly if no history)
+- Empty state on dashboard links to form
+- 300ms debounced search on /my-reports (immediate on dashboard)
+- Form filtering excludes 3 specific field IDs
+- Success modal auto-redirects with setTimeout (1.8s), cancelable via manual button
+- Profile dropdown opened by hover (with 200ms close delay)
+
+================================================================================
+2. FACILITATOR FEATURES
+================================================================================
+
+2.1 Pages Accessible
+--------------------
+Route              | Path                                    | Purpose
+-------------------|-----------------------------------------|-------------------------------
+/f                 | app/(facilitator)/f/page.tsx            | Facilitator dashboard
+/f/my-reports      | app/(facilitator)/f/my-reports/page.tsx| Submitted reports list
+/f/submit-report   | app/(facilitator)/f/submit-report/page.tsx| Legacy form submission
+/f/select          | app/(facilitator)/f/select/page.tsx    | Project + quarter selection
+/f/form/[project]  | app/(facilitator)/f/form/[project]/page.tsx| Dynamic project form
+/f/report/[id]     | app/(facilitator)/f/report/[id]/page.tsx| Report detail view
+/profile           | app/(shared)/profile/page.tsx          | Profile management (shared)
+/auth              | app/(auth)/unified-auth-page/page.tsx  | Login / signup
+
+2.2 Navigation Items
+--------------------
+Source          | Item                 | Destination            | Type
+----------------|----------------------|------------------------|---------
+Dashboard       | "View Reports"       | /f/my-reports          | Link
+Dashboard       | Profile icon         | /profile               | Link (not dropdown)
+Dashboard       | "New Report" card    | /f/form/{slug} or /f/select | Link
+My Reports      | "+ New Report"       | /f/form/{slug}         | Link
+My Reports      | "Back"               | router.back()          | Button
+My Reports      | "View" (per row)     | /f/report/{id}         | Button
+Form            | "Back to Dashboard"  | /f                     | Button
+Form            | "View Reports"       | /f/my-reports          | Link
+Form            | Profile icon         | /profile               | Link
+Report Detail   | "Back"               | router.back()          | Button
+Report Detail   | "Close"              | router.back()          | Button
+Profile         | "Back to Dashboard"  | /f                     | Button
+Profile         | "Go to Assigned Form"| /f/form/{slug}         | Link
+Profile         | "View My Reports"    | /f/my-reports          | Link
+Profile         | "Logout"             | /auth                  | Button
+
+2.3 Dashboard Widgets
+---------------------
+- Welcome heading with facilitator name
+- "View Reports" link (top right)
+- Profile icon (top right, links to /profile)
+- "New Report" card
+- Report search input
+- Report table with Project, Quarter, Date, Time
+- "View" link per row
+- Pagination (Previous/Next)
+- Empty state with "Submit your first report" link
+
+2.4 Profile Features
+--------------------
+- Identical to coordinator profile (shared page)
+- "Back to Dashboard" goes to /f
+- "Go to Assigned Form" goes to /f/form/{slug}
+- "View My Reports" goes to /f/my-reports
+- Role label shows "Facilitator"
+
+2.5 Report-Related Features
+----------------------------
+- Submit via dynamic form (/f/form/[project])
+- Submit via legacy form (/f/submit-report)
+- View details (/f/report/[id])
+- List with search/pagination (/f/my-reports)
+- Same metadata display as coordinator
+
+2.6 Form-Related Features
+--------------------------
+- Same dynamic form engine as coordinator (identical field types and behavior)
+- No admin preview mode (admin users always see "Access Denied")
+- Redirects to /f instead of / after submission
+- Green focus ring (#cee9db) on submit button instead of teal (#004446)
+- No profile dropdown (just a link to /profile)
+
+2.7 Key Differences from Coordinator
+--------------------------------------
+Feature               | Coordinator                     | Facilitator
+----------------------|---------------------------------|-------------------------------
+Dashboard URL         | /                               | /f
+Form URL              | /form/[project]                 | /f/form/[project]
+My Reports URL        | /my-reports                     | /f/my-reports
+Report Detail URL     | /report/[id]                    | /f/report/[id]
+Profile Back Button   | /                               | /f
+Profile Menu          | Hover dropdown (Profile/Logout) | Simple link to /profile
+View Reports in Form  | No                              | Yes (link in navbar)
+Admin Preview Mode    | Supported (?preview=true)        | Not supported
+Role Check            | "coordinator"                   | "facilitator"
+Submit Button Color   | focus:ring-[#004446]            | focus:ring-[#cee9db]
+Project Assignment    | Must match assigned project     | Must match assigned project
+Access Denied for     | Wrong project, non-coordinator  | Wrong project, non-facilitator
+                      | (except admin preview)          | (admin always denied)
+
+================================================================================
+3. DASHBOARD AUDIT
+================================================================================
+
+3.1 Coordinator Dashboard (/)
+------------------------------
+Card/Element          | Purpose                        | Navigates to        | Freq  | Importance
+----------------------|--------------------------------|---------------------|-------|-----------
+Welcome + name        | Personal greeting              | --                  | Every | Medium
+"View Reports" link   | Quick access to full list      | /my-reports         | High  | High
+Avatar dropdown       | Profile/logout menu            | /profile or /auth   | Low   | High
+"New Report" card     | Start new submission            | /form/{slug}        | High  | High
+Search input          | Filter reports by quarter      | Inline filter       | High  | High
+Report table          | View submitted reports          | Each row -> /report/{id}| High| High
+Page indicator        | Navigation context              | --                  | Med   | Medium
+Prev/Next buttons     | Paginate through reports        | Page change         | Med   | Medium
+"Submit your first"   | Empty state CTA                 | /form/{slug}        | Low   | Medium
+Skeleton rows         | Loading indicator               | --                  | Low   | Low
+
+3.2 Facilitator Dashboard (/f)
+-------------------------------
+Card/Element          | Purpose                        | Navigates to        | Freq  | Importance
+----------------------|--------------------------------|---------------------|-------|-----------
+Welcome + name        | Personal greeting              | --                  | Every | Medium
+"View Reports" link   | Quick access to full list      | /f/my-reports       | High  | High
+Profile icon          | Navigate to profile settings   | /profile            | Low   | Medium
+"New Report" card     | Start new submission            | /f/form/{slug}      | High  | High
+Search input          | Filter reports by quarter      | Inline filter       | High  | High
+Report table          | View submitted reports          | Each row -> /f/report/{id}| High| High
+Prev/Next buttons     | Paginate through reports        | Page change         | Med   | Medium
+"Submit your first"   | Empty state CTA                 | /f/form/{slug}      | Low   | Medium
+Skeleton rows         | Loading indicator               | --                  | Low   | Low
+
+3.3 Statistics / Counters
+--------------------------
+- Neither dashboard shows statistics, counts, or summary numbers
+- No cards showing total reports, approval rates, or deadlines
+- No quick action widgets beyond "New Report"
+- No recent activity feed
+- No deadline indicators
+
+================================================================================
+4. REPORTS AUDIT
+================================================================================
+
+4.1 View Reports Page (Coordinator: /my-reports, Facilitator: /f/my-reports)
+---------------------------------------------------------------------------
+Purpose: Full-page listing of all submitted reports with search and pagination.
+
+Actions Available:
+- Back button (router.back() with formHref fallback)
+- "+ New Report" link to form
+- Search by quarter (300ms debounced, resets to page 1)
+- "View" per row -> report detail page
+- Previous/Next pagination
+- "Create your first report" empty state link
+
+Search Functionality:
+- Text search by quarter keyword
+- Case-insensitive
+- Debounced at 300ms
+- Resets pagination to page 1 on each search
+- No advanced filters (no project filter, status filter, date range)
+
+Filters:
+- No status filter (all submitted reports shown)
+- No project filter (all projects shown)
+- No date range filter
+
+Sorting:
+- No sort controls; default sort order from API
+
+Buttons:
+- "+ New Report" (primary action)
+- "View" per row (secondary)
+- Previous/Next (pagination)
+
+Navigation Paths:
+- /my-reports -> /form/{slug} (new report)
+- /my-reports -> /report/{id} (view detail)
+- /my-reports -> router.back() (back)
+
+4.2 Report Detail Page (Coordinator: /report/[id], Facilitator: /f/report/[id])
+------------------------------------------------------------------------------
+Purpose: View a single submitted report's full content.
+
+Actions Available:
+- Back button (router.back())
+- Close button (router.back())
+- "Return to My Reports" (error state only)
+
+Search Functionality: None
+
+Filters: None
+
+Sorting: None
+
+Buttons:
+- Back / Close
+- "Return to My Reports" (error state)
+
+Navigation Paths:
+- /report/{id} -> router.back() -> previous page
+- /report/{id} -> /my-reports (error state)
+
+4.3 Legacy Submit Report Page (/submit-report, /f/submit-report)
+----------------------------------------------------------------
+Purpose: Alternative form for manual project/quarter entry.
+
+Actions Available:
+- Back to /select page
+- Fill project name (text input)
+- Fill form fields (text, number, textarea, file)
+- Upload files
+- Remove uploaded files
+- Submit report (POST /api/reports)
+- Cancel (back to /select)
+- Success modal with "Go to History now"
+
+Search Functionality: None
+
+Filters: None
+
+Sorting: None
+
+4.4 Differences Between Roles
+-------------------------------
+- No coordinator-specific report review/approval actions
+- No report status management (draft, submitted, approved, rejected)
+- No report editing after submission
+- No report deletion
+- No report export
+
+================================================================================
+5. PROFILE AUDIT
+================================================================================
+
+5.1 Profile Page (Shared: /profile)
+------------------------------------
+Purpose: Manage user profile image, view account details, change password.
+
+Actions Available:
+- Back to Dashboard (role-aware: /, /f, or /dashboard)
+- Switch between Profile tab and Change Password tab
+- Click avatar to open image edit modal
+- "Edit Profile" button (same modal)
+- Upload new profile image (max 10MB, image/* only)
+- Crop image (1:1 aspect ratio, zoom 1-3x)
+- Remove current image
+- Save cropped image (PATCH /api/auth/me)
+- View Email, Role, Project (read-only)
+- "Go to Assigned Form" link (role-aware)
+- "View My Reports" link (non-admin only)
+- "Logout" button
+- Change Password form (Current, New, Confirm)
+- Submit password change (PATCH /api/auth/change-password)
+- Success/error messages
+
+5.2 Change Password
+--------------------
+- Current Password input
+- New Password input (min 6 chars)
+- Confirm Password input
+- Client-side validation (required, min length, match check)
+- Server-side PATCH to /api/auth/change-password
+- Success message (green) or error message (red)
+
+5.3 User Menu
+--------------
+Coordinator: Hover dropdown on avatar (Dashboard)
+Facilitator: Simple link to /profile (Dashboard and Form)
+Admin: Hover dropdown on avatar (Header)
+
+Coordinator dropdown items:
+- My Profile -> /profile
+- Logout -> /auth
+
+Facilitator: No dropdown, just a CircleUserRound icon linking to /profile
+
+================================================================================
+6. FORM AUDIT
+================================================================================
+
+6.1 Primary Dynamic Form (/form/[project] and /f/form/[project])
+-----------------------------------------------------------------
+Purpose: Main quarterly report submission form with dynamic fields.
+
+Submission Actions:
+- Submit button (POST /api/reports)
+- Success modal with auto-redirect (1.8s)
+- "Go to Dashboard" button (manual redirect, cancels auto-redirect)
+
+Save Draft Actions: NONE - No draft save functionality exists
+  (localStorage is used for form configs but NOT for saving in-progress form data)
+
+Edit Actions:
+- All field values editable until submission
+- No edit-after-submit functionality
+
+View Actions:
+- Preview mode for admin (?preview=true) - read-only
+- No draft preview
+
+Reopen Actions: NONE - No way to reopen a submitted report
+
+Upload Actions:
+- File upload per file-type field
+- Max 10 files per field
+- 1GB per file limit
+- Supported types: .doc,.docx,.xls,.xlsx,.ppt,.pptx,.pdf,image/*,video/*,audio/*
+- Simulated progress bar (setInterval, 0-90% then jumps to 100%)
+- Cancel button during upload (clears timers, resets progress)
+- Delete button per uploaded file
+- File constraints text displayed
+
+Validation Actions:
+- Required field check on submit
+- Field type validation (text, number, date format)
+- Rating range validation
+- No server-side validation error display on form
+
+6.2 Legacy Form (/submit-report and /f/submit-report)
+------------------------------------------------------
+- Simpler form (text, number, textarea, file only - no choice, rating, date)
+- Manual project name input (not from URL slug)
+- Quarter passed as URL param
+- No progress bar for uploads
+- Same submission and success popup flow
+
+6.3 Field Types Supported
+--------------------------
+Type      | UI Control                     | Configurable
+----------|--------------------------------|-------------
+text      | <input type="text">            | Yes
+textarea  | <textarea>                     | Yes
+number    | <input type="number">          | Yes
+choice    | Radix <Select> dropdown        | Choices array
+rating    | Star buttons (configurable 1-5)| Levels, symbol
+date      | Text input + calendar picker   | Yes
+file      | File input + progress bar      | Yes
+
+6.4 Fields Filtered Out
+------------------------
+IDs: region-name, team-size, main-project-update
+These exist in the default field config but are removed from rendered form
+
+================================================================================
+7. SEARCH AUDIT
+================================================================================
+
+7.1 Search Inputs Found
+------------------------
+Location              | Placeholder              | What it searches     | User     | Frequency
+----------------------|--------------------------|----------------------|----------|-----------
+Coordinator Dashboard | "Search by quarter..."   | Report quarter names | Coord    | High
+Coordinator My Reports| "Search by quarter..."   | Report quarter names | Coord    | High
+Facilitator Dashboard | "Search by quarter..."   | Report quarter names | Facilitator| High
+Facilitator My Reports| "Search by quarter..."   | Report quarter names | Facilitator| High
+
+7.2 Search Characteristics
+---------------------------
+- All searches are by quarter keyword only
+- No full-text search across report content
+- No project name search
+- No date range search
+- No status search
+- No user search
+- Dashboard search: immediate (no debounce), resets to page 1
+- My Reports search: 300ms debounce, resets to page 1
+- All searches are client-side via API query params
+
+================================================================================
+8. NAVIGATION MAP
+================================================================================
+
+8.1 Coordinator Navigation Map
+-------------------------------
+/auth (Login/Signup)
+  |
+  v (after login)
+/ (Dashboard)
+  |-- "View Reports" --> /my-reports
+  |-- Avatar --> Profile Dropdown
+  |     |-- "Profile" --> /profile
+  |     |-- "Logout" --> /auth
+  |-- "New Report" card --> /form/{slug} (if assigned project)
+  |                       --> /select (if no project)
+  |-- Report table "View" --> /report/{id}
+  |-- "Submit your first" --> /form/{slug} (empty state)
+  |
+  v
+/form/{slug}
+  |-- "Back to Dashboard" --> /
+  |-- Profile icon --> Profile Dropdown
+  |     |-- "My Profile" --> /profile
+  |     |-- "Logout" --> /auth
+  |-- "Submit" --> Success Modal
+  |     |-- auto-redirect (1.8s) --> /
+  |     |-- "Go to Dashboard" --> /
+  |
+/report/{id}
+  |-- "Back" --> router.back()
+  |-- "Close" --> router.back()
+  |
+/my-reports
+  |-- "+ New Report" --> /form/{slug}
+  |-- "View" per row --> /report/{id}
+  |-- "Back" --> router.back() or /form/{slug}
+  |
+/select
+  |-- "Continue" --> /submit-report?project=X&quarter=Y
+  |
+/submit-report
+  |-- "Submit" --> Success Modal --> /my-reports
+  |-- "Cancel" --> /select
+  |
+/profile
+  |-- "Back to Dashboard" --> /
+  |-- "Go to Assigned Form" --> /form/{slug}
+  |-- "View My Reports" --> /my-reports
+  |-- "Logout" --> /auth
+
+8.2 Facilitator Navigation Map
+-------------------------------
+/auth (Login/Signup)
+  |
+  v (after login)
+/f (Dashboard)
+  |-- "View Reports" --> /f/my-reports
+  |-- Profile icon --> /profile
+  |-- "New Report" card --> /f/form/{slug} (if assigned project)
+  |                       --> /f/select (if no project)
+  |-- Report table "View" --> /f/report/{id}
+  |
+/f/form/{slug}
+  |-- "Back to Dashboard" --> /f
+  |-- "View Reports" --> /f/my-reports
+  |-- Profile icon --> /profile
+  |-- "Submit" --> Success Modal --> /f
+  |
+/f/report/{id}
+  |-- "Back" --> router.back()
+  |-- "Close" --> router.back()
+  |
+/f/my-reports
+  |-- "+ New Report" --> /f/form/{slug}
+  |-- "View" per row --> /f/report/{id}
+  |
+/f/select
+  |-- "Continue" --> /f/submit-report
+  |
+/f/submit-report
+  |-- "Submit" --> Success Modal --> /f/my-reports
+  |
+/profile
+  |-- "Back to Dashboard" --> /f
+  |-- "Go to Assigned Form" --> /f/form/{slug}
+  |-- "View My Reports" --> /f/my-reports
+
+================================================================================
+9. REAL USER WORKFLOW
+================================================================================
+
+9.1 Coordinator Workflow
+-------------------------
+1. LOGIN: /auth -> enter credentials -> POST /api/auth/login
+2. LANDING: / (Dashboard) -> see welcome + recent reports
+3. SUBMIT REPORT (two paths):
+   Path A (primary):
+     - Click "New Report" card
+     - If assigned project: go directly to /form/{slug}
+     - If no project: /select -> type project -> select quarter -> /submit-report
+   Path B (legacy):
+     - /select -> type project -> select quarter -> /submit-report
+4. FILL FORM: Complete dynamic fields (text, number, choice, rating, date, file)
+5. SUBMIT: Click "Submit" -> progress bar -> success modal -> auto-redirect to /
+6. VIEW REPORTS: Dashboard table or /my-reports -> click "View" on a row
+7. SEARCH: Type quarter name in search box -> filtered table
+8. MANAGE PROFILE: Click avatar -> "Profile" -> view/edit image, change password
+9. LOGOUT: Click avatar -> "Logout" -> redirected to /auth
+
+9.2 Facilitator Workflow
+-------------------------
+1. LOGIN: /auth -> enter credentials -> POST /api/auth/login
+2. LANDING: /f (Dashboard) -> see welcome + recent reports
+3. SUBMIT REPORT (two paths):
+   Path A (primary):
+     - Click "New Report" card
+     - If assigned project: go directly to /f/form/{slug}
+     - If no project: /f/select -> /f/submit-report
+   Path B (legacy):
+     - /f/select -> /f/submit-report
+4. FILL FORM: Same dynamic form fields as coordinator
+5. SUBMIT: Click "Submit" -> success modal -> auto-redirect to /f
+6. VIEW REPORTS: Dashboard table or /f/my-reports -> "View"
+7. SEARCH: Type quarter name -> filtered table
+8. MANAGE PROFILE: Click profile icon -> /profile -> edit image, change password
+9. LOGOUT: Profile page -> "Logout"
+
+9.3 Missing Workflow Elements
+------------------------------
+- No email notification integration for form assignments
+- No draft saving capability
+- No report editing after submission
+- No report approval/rejection workflow
+- No deadline awareness (no due dates shown)
+- No confirmation before form submission
+- No offline support for form filling
+
+================================================================================
+10. HIGH / MEDIUM / LOW VALUE FEATURES
+================================================================================
+
+10.1 HIGH VALUE (used every session, critical to core task)
+--------------------------------------------------------------
+- Dynamic form submission (/form/[project]) - Core task
+- Dashboard with report list - Entry point
+- View report details - Review task
+- Profile image management - One-time setup
+- Login/logout - Access control
+- Project assignment check - Security
+
+10.2 MEDIUM VALUE (used regularly, important but not every session)
+--------------------------------------------------------------------
+- Search reports by quarter - Finding past reports
+- Pagination - Navigating large report sets
+- Change password - Security maintenance
+- "New Report" quick-action card - Efficiency
+- Legacy form (/submit-report) - Alternative entry
+- Project/quarter selection (/select) - Manual entry
+
+10.3 LOW VALUE (rarely used, redundant, or unfinished)
+--------------------------------------------------------
+- Simulated file upload progress bar (fake UX, no real progress tracking)
+- Empty state links (shown only once)
+- Skeleton loading animations (ephemeral)
+- Preview mode for admin (only accessible via ?preview=true query)
+- Legacy submit-report path (duplicates form/[project] functionality)
+- router.back() on navigation (unpredictable behavior with no history)
+- Forgot password link (may not have full implementation)
+- Google/Microsoft OAuth buttons (show "Coming Soon" toast)
+- Remember me checkbox (not functionally connected)
+- "Back" in form -> "Back to Dashboard" vs "Back" (confusing dual labels)
+- Profile dropdown hover delay (200ms, marginal UX improvement)
+
+================================================================================
+11. FEATURES LIKELY UNNECESSARY
+================================================================================
+
+11.1 Redundant Pages
+---------------------
+- /submit-report and /f/submit-report (legacy): These duplicate /form/[project]
+  functionality but with fewer field types (no choice, rating, date). The
+  /form/[project] page is the primary and more complete implementation.
+  Recommendation: These are dead code paths after /form/[project] was built.
+
+- /select and /f/select: Only exist to support the legacy /submit-report flow.
+  If /form/[project] fully replaces the legacy path, these are unnecessary.
+
+11.2 Redundant Elements
+------------------------
+- "View Reports" in form navbar (facilitator version): User is already on
+  the form page; "View Reports" should be accessible from the dashboard.
+- Profile icon as simple link (facilitator): Coordinator has a dropdown with
+  profile + logout; facilitator only has a link to /profile with no logout
+  shortcut.
+
+11.3 Questionable Features
+---------------------------
+- Simulated upload progress bar: Shows fake progress (0-90% via setInterval
+  with random increments), then jumps to 100%. Provides no real information.
+- Preview mode (?preview=true): Only triggered by direct URL manipulation;
+  no UI element exposes this feature to admin users naturally.
+
+================================================================================
+12. RECOMMENDATIONS (Analysis Only)
+================================================================================
+
+12.1 High Priority
+-------------------
+1. Remove legacy /submit-report and /select pages (replace all references with
+   /form/[project] path)
+2. Add draft save functionality to the dynamic form (localStorage backup)
+3. Add report status indicators (draft/submitted/approved/rejected)
+4. Add deadline/due date awareness to dashboard
+
+12.2 Medium Priority
+---------------------
+5. Replace simulated upload progress with real upload tracking (XHR progress)
+6. Add report editing capability for draft/submitted reports
+7. Unify coordinator/facilitator form pages to reduce code duplication
+   (they share ~95% of code)
+8. Add confirmation dialog before form submission
+
+12.3 Low Priority
+------------------
+9. Remove or implement Google/Microsoft OAuth buttons
+10. Connect "Remember me" checkbox to actual session persistence
+11. Replace router.back() with explicit navigation targets
+12. Remove fake upload progress bar (replace with spinner or real progress)
+
+================================================================================
+END OF AUDIT
+================================================================================

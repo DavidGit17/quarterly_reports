@@ -1,0 +1,101 @@
+Next.js _buildManifest.js.tmp ENOENT Error — Root Cause Analysis
+=================================================================
+
+ERROR
+-----
+ENOENT: no such file or directory
+.next/static/development/_buildManifest.js.tmp.<hash>
+
+Occurs during development after code changes, before a full page reload.
+
+=================================================================
+
+1. ROOT CAUSE
+   ===========
+   The dev.mjs script writes to .next/server/pages/_app/build-manifest.json every
+   2 seconds via a setInterval (line 43-45, ensureBuildManifest). This periodic
+   write into the .next/ directory triggers Next.js/Turbopack's file watcher,
+   causing continuous rebuild cycles. During a rebuild, the client build manifest
+   (_buildManifest.js) is regenerated via a temporary file
+   (_buildManifest.js.tmp.<hash>). If a page navigation or HMR event occurs
+   mid-rebuild, the client tries to read the .tmp file before the rename
+   completes — or the .tmp file from a previous cycle has already been cleaned up.
+
+   Chain of events:
+     1. dev.mjs writes to .next/server/pages/_app/build-manifest.json (every 2s)
+     2. Turbopack detects change in .next/ via file watcher
+     3. Turbopack invalidates cache and triggers rebuild
+     4. Rebuild writes _buildManifest.js via _buildManifest.js.tmp.<hash>
+     5. Client navigates or HMR fires — tries to read the .tmp file
+     6. .tmp file has been cleaned up or hasn't been renamed yet → ENOENT
+
+2. REPRODUCTION CONDITIONS
+   ========================
+   - Running `node dev.mjs` (which invokes `next dev --turbopack`)
+   - Making code changes to any page/layout file
+   - Navigating between pages before the rebuild fully completes
+   - The error is intermittent because it requires a race between:
+     a) The 2s ensureBuildManifest timer firing
+     b) A code change triggering a rebuild
+     c) A page navigation during the overlap
+
+3. WHETHER THIS IS
+   ================
+   ☑ Cache issue — The ensureBuildManifest interval writes to .next/ at a
+      fixed rate, defeating Turbopack's cache invalidation and forcing
+      continuous full rebuilds.
+   ☑ HMR issue — HMR events that occur during a rebuild cycle race with
+      temporary manifest file writes.
+   ☐ Turbopack issue — Turbopack is not inherently at fault; the custom
+      dev.mjs script creates conditions that would break any watcher.
+   ☐ Route issue — No duplicate routes or dynamic route collisions found.
+   ☐ Import issue — No circular dependencies or invalid imports found.
+   ☑ File watcher issue — The 2s write to .next/ triggers the file watcher
+      in a loop, creating overlapping rebuilds.
+
+4. WHY THE WORKAROUND EXISTS
+   ==========================
+   The ensureBuildManifest function writes to
+   .next/server/pages/_app/build-manifest.json, which is a Pages Router build
+   artifact path. This application uses App Router exclusively. The path is
+   incorrect and the file (containing {"pages":{}}) has no effect on App Router
+   behavior. It was likely copied from a Pages Router project or added as a
+   speculative fix for a different issue, and causes more problems than it solves.
+
+5. RECOMMENDED FIX
+   ================
+   Remove the ensureBuildManifest function and its setInterval timer entirely.
+   The dev.mjs script only needs to:
+     - Start `next dev --turbopack`
+     - Watch .env files and restart on changes
+     - Clean up child processes on SIGTERM
+
+   The ensureBuildManifest function is dead code that actively harms
+   development reliability.
+
+6. PERMANENT FIX
+   ==============
+   Files requiring modification:
+     dev.mjs
+
+   Changes:
+     - Remove ensureBuildManifest function (lines 12-23)
+     - Remove ensureBuildManifest call from start() (line 40)
+     - Remove manifestTimer and its setInterval (lines 43-45)
+     - Remove clearInterval(manifestTimer) in restart() (line 50)
+     - Remove manifestTimer cleanup in SIGTERM handler (line 86)
+
+7. RISK LEVEL
+   ==========
+   Low. The removed code writes to a Pages Router path that is not used by
+   the App Router. The dev server will continue to function identically
+   except without the artificial 2-second rebuild trigger.
+
+8. VERIFICATION
+   =============
+   After the fix, run `node dev.mjs` and:
+     - Make code changes to pages
+     - Navigate between routes rapidly
+     - Verify _buildManifest.js.tmp ENOENT no longer occurs
+   The .next/static/development/ directory will still contain the correct
+   _buildManifest.js (generated normally by Turbopack without interference).

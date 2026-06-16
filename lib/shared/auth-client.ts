@@ -4,6 +4,7 @@ export type SessionUser = {
   email: string;
   role: "admin" | "coordinator" | "facilitator";
   project?: string;
+  deadline?: string;
   profileImage?: string;
 };
 

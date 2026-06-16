@@ -85,7 +85,7 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({
       message: "Login successful.",
-      user: toSessionUser(user),
+      user: await toSessionUser(user),
       role: user.role,
       project: user.project,
     });

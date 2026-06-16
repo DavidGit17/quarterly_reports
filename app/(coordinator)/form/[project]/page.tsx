@@ -541,6 +541,33 @@ export default function ProjectFormPage() {
     );
   }
 
+  if (isReady && fields.length === 0) {
+    return (
+      <div className="fixed inset-0 bg-luxury-glass flex flex-col overflow-hidden">
+        <div className="sticky top-0 z-10 backdrop-blur-md flex-shrink-0 px-4 sm:px-6">
+          <div className="flex items-center justify-between py-3">
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700 transition-colors hover:text-[#4b6358]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </button>
+            {!isPreviewMode && <ProfileDropdown />}
+          </div>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto flex items-center justify-center">
+          <div className="rounded-2xl bg-white shadow-sm border border-slate-100 p-8 w-full max-w-md text-center mx-4">
+            <p className="text-sm text-slate-500">
+              No form is configured for your project yet. Please contact the admin to set up your form fields.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-luxury-glass flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 backdrop-blur-md flex-shrink-0 px-4 sm:px-6">

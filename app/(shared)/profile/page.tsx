@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Cropper, { type Area } from "react-easy-crop";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toProjectSlug } from "@/lib/shared/form-storage";
 import { getCurrentUser, clearCurrentUserCache, type SessionUser } from "@/lib/shared/auth-client";
 import { ArrowLeft, Camera, KeyRound, UserCircle2 } from "lucide-react";
 
@@ -114,6 +112,13 @@ function ProfileContent() {
     void loadSessionUser();
   }, [router]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "password") {
+      setActiveTab("password");
+    }
+  }, []);
+
   const role: UserRole = sessionUser?.role || "coordinator";
   const isAdmin = role === "admin";
 
@@ -173,8 +178,6 @@ function ProfileContent() {
           roleLabel: "Administrator",
           description:
             "You have full access to all reports and can manage the system.",
-          destinationHref: "/dashboard",
-          destinationLabel: "Go to Dashboard",
         }
       : {
           username: sessionUser?.username || "Coordinator",
@@ -182,10 +185,6 @@ function ProfileContent() {
           project: sessionUser?.project || "-",
           roleLabel: role === "facilitator" ? "Facilitator" : "Coordinator",
           description: "You can submit and view your quarterly reports.",
-          destinationHref: sessionUser?.project
-            ? `/${role === "facilitator" ? "f/" : ""}form/${toProjectSlug(sessionUser.project)}`
-            : "/profile",
-          destinationLabel: "Go to Assigned Form",
         };
 
   const handleProfileImageChange = (
@@ -514,22 +513,6 @@ function ProfileContent() {
                 )}
 
                 <div className="mt-4 flex items-center gap-3 flex-wrap">
-                  <Link
-                    href={profileData.destinationHref}
-                    className={`inline-flex h-10 items-center whitespace-nowrap rounded-xl px-5 text-xs font-medium transition-colors ${c.btnPrimary}`}
-                  >
-                    {profileData.destinationLabel}
-                  </Link>
-                  {role !== "admin" && (
-                    <Link
-                      href={
-                        role === "facilitator" ? "/f/my-reports" : "/my-reports"
-                      }
-                      className={`inline-flex h-10 items-center whitespace-nowrap rounded-xl border px-5 text-xs font-medium transition-colors ${c.btnOutline} ${c.cardBg}`}
-                    >
-                      View My Reports
-                    </Link>
-                  )}
                   <button
                     onClick={handleLogout}
                     className={`inline-flex h-10 items-center whitespace-nowrap rounded-xl border px-5 text-xs font-medium transition-colors ${c.logout} ${c.cardBg}`}

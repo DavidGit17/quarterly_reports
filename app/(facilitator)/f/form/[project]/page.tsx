@@ -536,8 +536,86 @@ export default function FacilitatorProjectFormPage() {
     );
   }
 
+  if (isReady && fields.length === 0) {
+    return (
+      <div className="min-h-screen">
+        <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 sm:px-6">
+          <div className="max-w-4xl mx-auto flex items-center justify-between py-3">
+            <button
+              type="button"
+              onClick={() => router.push("/f")}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </button>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/f/my-reports"
+                className="text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+              >
+                View Reports
+              </Link>
+              <Link
+                href="/profile"
+                className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+                aria-label="Go to profile"
+                title="Profile"
+              >
+                <CircleUserRound className="h-6 w-6" />
+              </Link>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto px-4 py-10 flex items-center justify-center min-h-[60vh]">
+          <div className="rounded-2xl bg-white shadow-sm border border-slate-100 p-8 w-full max-w-md text-center">
+            <p className="text-sm text-slate-500">
+              No form is configured for your project yet. Please contact the admin to set up your form fields.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
+      {/* Sticky top bar outside form card */}
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto flex items-center justify-between py-3">
+          <button
+            type="button"
+            onClick={() =>
+              isPreviewMode
+                ? router.push("/dashboard/forms-overview")
+                : router.push("/f")
+            }
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {isPreviewMode ? "Back" : "Back to Dashboard"}
+          </button>
+          {!isPreviewMode && (
+            <div className="flex items-center gap-4">
+              <Link
+                href="/f/my-reports"
+                className="text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+              >
+                View Reports
+              </Link>
+              <Link
+                href="/profile"
+                className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
+                aria-label="Go to profile"
+                title="Profile"
+              >
+                <CircleUserRound className="h-6 w-6" />
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="max-w-4xl mx-auto px-4 py-10">
         {isPreviewMode && (
           <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 px-6 py-4 flex items-center gap-3">
@@ -555,38 +633,6 @@ export default function FacilitatorProjectFormPage() {
         )}
 
         <div className={`${FORM_SURFACE_CLASS} p-8 mb-6`}>
-          <div className="flex items-center justify-between mb-6">
-            <button
-              type="button"
-              onClick={() =>
-                isPreviewMode
-                  ? router.push("/dashboard/forms-overview")
-                  : router.push("/f")
-              }
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {isPreviewMode ? "Back" : "Back to Dashboard"}
-            </button>
-            {!isPreviewMode && (
-              <div className="flex items-center gap-4">
-                <Link
-                  href="/f/my-reports"
-                  className="text-sm font-medium text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-                >
-                  View Reports
-                </Link>
-                <Link
-                  href="/profile"
-                  className="inline-flex items-center text-[#5e6a6e] transition-colors hover:text-[#4b6358]"
-                  aria-label="Go to profile"
-                  title="Profile"
-                >
-                  <CircleUserRound className="h-6 w-6" />
-                </Link>
-              </div>
-            )}
-          </div>
           <h2 className="mb-2 font-heading text-[24px] font-semibold leading-8 tracking-[-0.01em] text-[#191c1d] sm:text-[30px] sm:leading-10 sm:tracking-[-0.02em]">
             {projectName} {quarterRange} {currentYear} Reports
           </h2>

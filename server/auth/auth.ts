@@ -1,6 +1,7 @@
 import { Collection, ObjectId, WithId } from "mongodb";
 import { getDb } from "@/server/db/mongodb";
 import { getAuthTokenFromCookies, verifyAuthToken } from "@/server/auth/jwt";
+import { getFormDistributionCollection } from "@/server/form-distribution/form-distribution";
 
 export type UserRole = "coordinator" | "facilitator" | "admin";
 export type UserStatus = "active" | "inactive";
@@ -12,6 +13,7 @@ export type SessionUser = {
   role: UserRole;
   status: UserStatus;
   project?: string;
+  deadline?: string;
   profileImage?: string;
 };
 
@@ -46,15 +48,33 @@ export const getUsersCollection = async (): Promise<
   return usersCollection;
 };
 
-export const toSessionUser = (user: UserRecord): SessionUser => ({
-  id: user._id.toString(),
-  username: user.username,
-  email: user.email,
-  role: user.role,
-  status: user.status || "active",
-  project: user.project,
-  profileImage: user.profileImage,
-});
+export const toSessionUser = async (user: UserRecord): Promise<SessionUser> => {
+  let deadline: string | undefined;
+  if (user.project) {
+    try {
+      const collection = await getFormDistributionCollection();
+      const rule = await collection.findOne(
+        { projects: user.project, status: "active" },
+        { sort: { createdAt: -1 } },
+      );
+      if (rule?.deadline) {
+        deadline = rule.deadline;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  return {
+    id: user._id.toString(),
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    status: user.status || "active",
+    project: user.project,
+    deadline,
+    profileImage: user.profileImage,
+  };
+};
 
 export const getAuthenticatedUser = async (): Promise<SessionUser | null> => {
   const authToken = await getAuthTokenFromCookies();

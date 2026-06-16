@@ -350,18 +350,22 @@
 
   /* The New Custom Luxury Mesh */
   .bg-luxury-glass {
-    background-color: hsla(156, 0%, 100%, 1);
-    background-image:
-      radial-gradient(at 12% 7%, hsla(156, 49%, 86%, 0.6) 0, transparent 50%),
-      radial-gradient(at 11% 87%, hsla(208, 97%, 81%, 0.6) 0, transparent 50%),
-      radial-gradient(at 80% 7%, hsla(181, 45%, 80%, 0.6) 0, transparent 50%),
-      radial-gradient(at 80% 90%, hsla(156, 49%, 86%, 0.6) 0, transparent 50%);
+    background:
+      radial-gradient(at 12% 7%, rgb(202, 237, 223) 0px, transparent 50%),
+      radial-gradient(at 11% 87%, rgb(160, 210, 254) 0px, transparent 50%),
+      radial-gradient(at 80% 7%, rgb(181, 226, 227) 0px, transparent 50%),
+      radial-gradient(at 80% 90%, rgb(202, 237, 223) 0px, transparent 50%),
+      rgb(255, 255, 255);
   }
 }
 
 .bg-luxury-glass-s {
-  background: rgb(176,224,230);
-background: linear-gradient(159deg, rgba(176,224,230,1) 0%, rgba(70,130,180,1) 100%);
+  background: rgb(176, 224, 230);
+  background: linear-gradient(
+    159deg,
+    rgba(176, 224, 230, 1) 0%,
+    rgba(70, 130, 180, 1) 100%
+  );
 }
 
 .mesh-bg {
